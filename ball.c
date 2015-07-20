@@ -10,24 +10,30 @@ static const int SCREEN_HEIGHT = 750;
 static const int BALL_SIZE = 25;
 static int running = true;
 
+struct Ball {
+    int x;
+    int y;
+    int radius;
+};
+
 static void
-draw_ball(SDL_Renderer *renderer, int x0, int y0, int radius) {
+draw_ball(SDL_Renderer *renderer, struct Ball *ball) {
     // Using Midpoint circle algorithm
-    int x = radius;
+    int x = ball->radius;
     int y = 0;
     int decision_over_2 = 1 - x;
 
     SDL_SetRenderDrawColor(renderer, 0xFF, 0xFF, 0xFF, 0xFF);
 
     while (x >= y) {
-        SDL_RenderDrawPoint(renderer, x + x0, y + y0);
-        SDL_RenderDrawPoint(renderer, y + x0, x + y0);
-        SDL_RenderDrawPoint(renderer, -x + x0, y + y0);
-        SDL_RenderDrawPoint(renderer, -y + x0, x + y0);
-        SDL_RenderDrawPoint(renderer, -x + x0, -y + y0);
-        SDL_RenderDrawPoint(renderer, -y + x0, -x + y0);
-        SDL_RenderDrawPoint(renderer, x + x0, -y + y0);
-        SDL_RenderDrawPoint(renderer, y + x0, -x + y0);
+        SDL_RenderDrawPoint(renderer, x + ball->x, y + ball->y);
+        SDL_RenderDrawPoint(renderer, y + ball->x, x + ball->y);
+        SDL_RenderDrawPoint(renderer, -x + ball->x, y + ball->y);
+        SDL_RenderDrawPoint(renderer, -y + ball->x, x + ball->y);
+        SDL_RenderDrawPoint(renderer, -x + ball->x, -y + ball->y);
+        SDL_RenderDrawPoint(renderer, -y + ball->x, -x + ball->y);
+        SDL_RenderDrawPoint(renderer, x + ball->x, -y + ball->y);
+        SDL_RenderDrawPoint(renderer, y + ball->x, -x + ball->y);
         y++;
         if (decision_over_2 <= 0) {
             decision_over_2 += 2 * y + 1;
@@ -39,12 +45,12 @@ draw_ball(SDL_Renderer *renderer, int x0, int y0, int radius) {
 }
 
 static void
-update(void) {
+update(struct Ball *ball) {
     //updates the location of the ball on the screen
 }
 
 static void
-render(SDL_Renderer *renderer) {
+render(SDL_Renderer *renderer, struct Ball *ball) {
     // Clear screen
     SDL_SetRenderDrawColor(renderer, 0xFF, 0xFF, 0xFF, 0xFF);
     SDL_RenderClear(renderer);
@@ -55,7 +61,7 @@ render(SDL_Renderer *renderer) {
     };
     SDL_SetRenderDrawColor(renderer, 0xFF, 0x00, 0x00, 0xFF);
     SDL_RenderFillRect(renderer, &screen);
-    draw_ball(renderer, SCREEN_WIDTH >> 1, SCREEN_HEIGHT >> 1, BALL_SIZE);
+    draw_ball(renderer, ball);
 
     // Update Screen
     SDL_RenderPresent(renderer);
@@ -89,6 +95,11 @@ main(int argc, char **argv) {
     }
 
     SDL_Event event;
+    struct Ball ball = {
+            SCREEN_WIDTH >> 1,
+            SCREEN_HEIGHT >> 1,
+            BALL_SIZE
+    };
 
     // Main Loop
     while (running) {
@@ -103,8 +114,8 @@ main(int argc, char **argv) {
                     break;
             }
 
-            update();
-            render(renderer);
+            update(&ball);
+            render(renderer, &ball);
         }
     }
 
