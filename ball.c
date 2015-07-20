@@ -19,6 +19,7 @@ struct Ball {
 static void
 draw_ball(SDL_Renderer *renderer, struct Ball *ball) {
     // Using Midpoint circle algorithm
+    //TODO make this fill as well as draw
     int x = ball->radius;
     int y = 0;
     int decision_over_2 = 1 - x;
@@ -46,7 +47,32 @@ draw_ball(SDL_Renderer *renderer, struct Ball *ball) {
 
 static void
 update(struct Ball *ball) {
-    //updates the location of the ball on the screen
+    static int speed_x = 1;
+    static int speed_y = 2;
+
+    // Check left
+    if (ball->x <= ball->radius) {
+        speed_x *= -1;
+    }
+
+    // Check right
+    if (ball->x >= SCREEN_WIDTH - ball->radius) {
+        speed_x *= -1;
+    }
+
+    // Check Top
+    if (ball->y <= ball->radius) {
+        speed_y *= -1;
+    }
+
+    // Check Bottom
+    if (ball->y >= SCREEN_HEIGHT - ball->radius) {
+        speed_y *= -1;
+    }
+
+    // Update speed
+    ball->x += speed_x;
+    ball->y += speed_y;
 }
 
 static void
