@@ -7,7 +7,36 @@
 
 static const int SCREEN_WIDTH = 750;
 static const int SCREEN_HEIGHT = 750;
+static const int BALL_SIZE = 25;
 static int running = true;
+
+static void
+draw_ball(SDL_Renderer *renderer, int x0, int y0, int radius) {
+    // Using Midpoint circle algorithm
+    int x = radius;
+    int y = 0;
+    int decision_over_2 = 1 - x;
+
+    SDL_SetRenderDrawColor(renderer, 0xFF, 0xFF, 0xFF, 0xFF);
+
+    while (x >= y) {
+        SDL_RenderDrawPoint(renderer, x + x0, y + y0);
+        SDL_RenderDrawPoint(renderer, y + x0, x + y0);
+        SDL_RenderDrawPoint(renderer, -x + x0, y + y0);
+        SDL_RenderDrawPoint(renderer, -y + x0, x + y0);
+        SDL_RenderDrawPoint(renderer, -x + x0, -y + y0);
+        SDL_RenderDrawPoint(renderer, -y + x0, -x + y0);
+        SDL_RenderDrawPoint(renderer, x + x0, -y + y0);
+        SDL_RenderDrawPoint(renderer, y + x0, -x + y0);
+        y++;
+        if (decision_over_2 <= 0) {
+            decision_over_2 += 2 * y + 1;
+        } else {
+            x--;
+            decision_over_2 += 2 * (y - x) + 1;
+        }
+    }
+}
 
 static void
 update(void) {
@@ -26,6 +55,7 @@ render(SDL_Renderer *renderer) {
     };
     SDL_SetRenderDrawColor(renderer, 0xFF, 0x00, 0x00, 0xFF);
     SDL_RenderFillRect(renderer, &screen);
+    draw_ball(renderer, SCREEN_WIDTH >> 1, SCREEN_HEIGHT >> 1, BALL_SIZE);
 
     // Update Screen
     SDL_RenderPresent(renderer);
