@@ -2,13 +2,14 @@
 // Created by bryan on 7/19/15.
 //
 #include <SDL2/SDL.h>
+#define SCREEN_WIDTH 750
+#define SCREEN_HEIGHT 750
+#define BASE_SPEED 10
+#define BALL_SIZE 25
 #define true 1
 #define false 0
 
-static const int SCREEN_WIDTH = 750;
-static const int SCREEN_HEIGHT = 750;
-static const int BALL_SIZE = 25;
-static int running = true;
+static uint8_t running = true;
 
 struct Ball {
     int x;
@@ -46,51 +47,53 @@ draw_ball(SDL_Renderer *renderer, struct Ball *ball) {
 }
 
 static void
-update(struct Ball *ball) {
-    static int speed_x = 1;
-    static int speed_y = 2;
+update(struct Ball *ball, float base_speed) {
+    static int dir_x = 1;
+    static int dir_y = 1;
 
     // Check left
     if (ball->x <= ball->radius) {
-        speed_x *= -1;
+        dir_x *= -1;
     }
 
     // Check right
     if (ball->x >= SCREEN_WIDTH - ball->radius) {
-        speed_x *= -1;
+        dir_x *= -1;
     }
 
     // Check Top
     if (ball->y <= ball->radius) {
-        speed_y *= -1;
+        dir_y *= -1;
     }
 
     // Check Bottom
     if (ball->y >= SCREEN_HEIGHT - ball->radius) {
-        speed_y *= -1;
+        dir_y *= -1;
     }
 
     // Update speed
-    ball->x += speed_x;
-    ball->y += speed_y;
+    ball->x += base_speed * dir_x;
+    ball->y += base_speed * dir_y;
 }
 
 static void
 render(SDL_Renderer *renderer, struct Ball *ball) {
-    // Clear screen
-    SDL_SetRenderDrawColor(renderer, 0xFF, 0xFF, 0xFF, 0xFF);
+    // Clear screen to red
+    SDL_SetRenderDrawColor(renderer, 0xFF, 0x00, 0x00, 0xFF);
     SDL_RenderClear(renderer);
 
-    // Draw (Red for now)
-    SDL_Rect screen = {
-            0, 0, SCREEN_WIDTH, SCREEN_HEIGHT
-    };
-    SDL_SetRenderDrawColor(renderer, 0xFF, 0x00, 0x00, 0xFF);
-    SDL_RenderFillRect(renderer, &screen);
     draw_ball(renderer, ball);
+}
 
-    // Update Screen
-    SDL_RenderPresent(renderer);
+static void
+handle_event(SDL_Event *event, uint8_t *running) {
+    switch (event->type) {
+        case SDL_QUIT:
+            *running = false;
+            break;
+        default:
+            break;
+    }
 }
 
 int
@@ -127,22 +130,25 @@ main(int argc, char **argv) {
             BALL_SIZE
     };
 
+    uint32_t then;
+    uint32_t now = SDL_GetTicks();
+
     // Main Loop
     while (running) {
 
-        //poll events
-        while(!SDL_PollEvent(&event)) {
-            switch (event.type) {
-                case SDL_QUIT:
-                    running = false;
-                    break;
-                default:
-                    break;
-            }
+        then = now;
+        now = SDL_GetTicks();
 
-            update(&ball);
-            render(renderer, &ball);
+        //poll events
+        while(SDL_PollEvent(&event) != 0) {
+            handle_event(&event, &running);
         }
+
+        update(&ball, now - then);
+        render(renderer, &ball);
+
+        // Update Screen
+        SDL_RenderPresent(renderer);
     }
 
     SDL_DestroyRenderer(renderer);
