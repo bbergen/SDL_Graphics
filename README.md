@@ -1,7 +1,7 @@
 SDL Graphics
 ============
 
-## A small project for learning Simple DirectMedial Layer 2.0 library
+#### A small project for learning Simple DirectMedial Layer 2.0 library
 
 Sub-Projects
 ------------
