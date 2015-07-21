@@ -6,19 +6,25 @@
 #define SCREEN_WIDTH 750
 #define SCREEN_HEIGHT 750
 #define BALL_SIZE 25
+#define MAX_VARIANCE 5
 #define true 1
 #define false 0
 
 static uint8_t running = true;
 
-struct Ball {
+typedef struct Ball {
     int x;
     int y;
     int radius;
-};
+} Ball;
+
+static inline int8_t
+get_variance() {
+    return rand() % MAX_VARIANCE;
+}
 
 static void
-draw_ball(SDL_Renderer *renderer, struct Ball *ball) {
+draw_ball(SDL_Renderer *renderer, Ball *ball) {
     int x = ball->radius;
     int y = 0;
     int decision_over_2 = 1 - x;
@@ -46,7 +52,7 @@ draw_ball(SDL_Renderer *renderer, struct Ball *ball) {
 }
 
 static void
-fill_ball(SDL_Renderer *renderer, struct Ball *ball) {
+fill_ball(SDL_Renderer *renderer, Ball *ball) {
     // Using Midpoint circle algorithm
     int x = ball->radius;
     int y = 0;
@@ -90,37 +96,43 @@ fill_ball(SDL_Renderer *renderer, struct Ball *ball) {
 }
 
 static void
-update(struct Ball *ball, float base_speed) {
+update(Ball *ball, int base_speed) {
     static int dir_x = 1;
     static int dir_y = 1;
+    int base_speed_x = base_speed + get_variance();
+    int base_speed_y = base_speed + get_variance();
 
     // Check left
     if (ball->x <= ball->radius) {
+        ball->x = ball->radius;
         dir_x *= -1;
     }
 
     // Check right
     if (ball->x >= SCREEN_WIDTH - ball->radius) {
+        ball->x = SCREEN_WIDTH - ball->radius;
         dir_x *= -1;
     }
 
     // Check Top
     if (ball->y <= ball->radius) {
+        ball->y = ball->radius;
         dir_y *= -1;
     }
 
     // Check Bottom
     if (ball->y >= SCREEN_HEIGHT - ball->radius) {
+        ball->y = SCREEN_HEIGHT - ball->radius;
         dir_y *= -1;
     }
 
     // Update speed
-    ball->x += base_speed * dir_x;
-    ball->y += base_speed * dir_y;
+    ball->x += base_speed_x * dir_x;
+    ball->y += base_speed_y * dir_y;
 }
 
 static void
-render(SDL_Renderer *renderer, struct Ball *ball) {
+render(SDL_Renderer *renderer, Ball *ball) {
     // Clear screen to red
     SDL_SetRenderDrawColor(renderer, 0xFF, 0x00, 0x00, 0xFF);
     SDL_RenderClear(renderer);
@@ -168,7 +180,7 @@ main(int argc, char **argv) {
     }
 
     SDL_Event event;
-    struct Ball ball = {
+    Ball ball = {
             SCREEN_WIDTH >> 1,
             SCREEN_HEIGHT >> 1,
             BALL_SIZE
