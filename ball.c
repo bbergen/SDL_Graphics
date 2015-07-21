@@ -2,9 +2,9 @@
 // Created by bryan on 7/19/15.
 //
 #include <SDL2/SDL.h>
+
 #define SCREEN_WIDTH 750
 #define SCREEN_HEIGHT 750
-#define BASE_SPEED 10
 #define BALL_SIZE 25
 #define true 1
 #define false 0
@@ -19,8 +19,35 @@ struct Ball {
 
 static void
 draw_ball(SDL_Renderer *renderer, struct Ball *ball) {
+    int x = ball->radius;
+    int y = 0;
+    int decision_over_2 = 1 - x;
+
+    SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0x00, 0x00);
+
+    while (x >= y) {
+        SDL_RenderDrawPoint(renderer, x + ball->x, y + ball->y);
+        SDL_RenderDrawPoint(renderer, -x + ball->x, y + ball->y);
+        SDL_RenderDrawPoint(renderer, -x + ball->x, -y + ball->y);
+        SDL_RenderDrawPoint(renderer, x + ball->x, -y + ball->y);
+        SDL_RenderDrawPoint(renderer, -y + ball->x, x + ball->y);
+        SDL_RenderDrawPoint(renderer, -y + ball->x, -x + ball->y);
+        SDL_RenderDrawPoint(renderer, y + ball->x, x + ball->y);
+        SDL_RenderDrawPoint(renderer, y + ball->x, -x + ball->y);
+
+        y++;
+        if (decision_over_2 <= 0) {
+            decision_over_2 += 2 * y + 1;
+        } else {
+            x--;
+            decision_over_2 += 2 * (y - x) + 1;
+        }
+    }
+}
+
+static void
+fill_ball(SDL_Renderer *renderer, struct Ball *ball) {
     // Using Midpoint circle algorithm
-    //TODO make this fill as well as draw
     int x = ball->radius;
     int y = 0;
     int decision_over_2 = 1 - x;
@@ -28,14 +55,30 @@ draw_ball(SDL_Renderer *renderer, struct Ball *ball) {
     SDL_SetRenderDrawColor(renderer, 0xFF, 0xFF, 0xFF, 0xFF);
 
     while (x >= y) {
-        SDL_RenderDrawPoint(renderer, x + ball->x, y + ball->y);
-        SDL_RenderDrawPoint(renderer, y + ball->x, x + ball->y);
-        SDL_RenderDrawPoint(renderer, -x + ball->x, y + ball->y);
-        SDL_RenderDrawPoint(renderer, -y + ball->x, x + ball->y);
-        SDL_RenderDrawPoint(renderer, -x + ball->x, -y + ball->y);
-        SDL_RenderDrawPoint(renderer, -y + ball->x, -x + ball->y);
-        SDL_RenderDrawPoint(renderer, x + ball->x, -y + ball->y);
-        SDL_RenderDrawPoint(renderer, y + ball->x, -x + ball->y);
+        SDL_RenderDrawLine(renderer,
+                           x + ball->x,
+                           y + ball->y,
+                           -x + ball->x,
+                           y + ball->y);
+
+        SDL_RenderDrawLine(renderer,
+                           -x + ball->x,
+                           -y + ball->y,
+                           x + ball->x,
+                           -y + ball->y);
+
+        SDL_RenderDrawLine(renderer,
+                           -y + ball->x,
+                           x + ball->y,
+                           -y + ball->x,
+                           -x + ball->y);
+
+        SDL_RenderDrawLine(renderer,
+                           y + ball->x,
+                           x + ball->y,
+                           y + ball->x,
+                           -x + ball->y);
+
         y++;
         if (decision_over_2 <= 0) {
             decision_over_2 += 2 * y + 1;
@@ -82,6 +125,7 @@ render(SDL_Renderer *renderer, struct Ball *ball) {
     SDL_SetRenderDrawColor(renderer, 0xFF, 0x00, 0x00, 0xFF);
     SDL_RenderClear(renderer);
 
+    fill_ball(renderer, ball);
     draw_ball(renderer, ball);
 }
 
