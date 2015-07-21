@@ -6,22 +6,18 @@
 #define SCREEN_WIDTH 750
 #define SCREEN_HEIGHT 750
 #define BALL_SIZE 25
-#define MAX_VARIANCE 5
+#define VARIANCE 0.025f
+#define BASE_SPEED 200
 #define true 1
 #define false 0
 
 static uint8_t running = true;
 
 typedef struct Ball {
-    int x;
-    int y;
+    float x;
+    float y;
     int radius;
 } Ball;
-
-static inline int8_t
-get_variance() {
-    return rand() % MAX_VARIANCE;
-}
 
 static void
 draw_ball(SDL_Renderer *renderer, Ball *ball) {
@@ -96,11 +92,11 @@ fill_ball(SDL_Renderer *renderer, Ball *ball) {
 }
 
 static void
-update(Ball *ball, int base_speed) {
+update(Ball *ball, float speed) {
     static int dir_x = 1;
     static int dir_y = 1;
-    int base_speed_x = base_speed + get_variance();
-    int base_speed_y = base_speed + get_variance();
+    float speed_x = speed * BASE_SPEED;
+    float speed_y = speed * BASE_SPEED;
 
     // Check left
     if (ball->x <= ball->radius) {
@@ -127,8 +123,8 @@ update(Ball *ball, int base_speed) {
     }
 
     // Update speed
-    ball->x += base_speed_x * dir_x;
-    ball->y += base_speed_y * dir_y;
+    ball->x += speed_x * dir_x;
+    ball->y += speed_y * dir_y + VARIANCE * dir_y;
 }
 
 static void
@@ -188,19 +184,21 @@ main(int argc, char **argv) {
 
     uint32_t then;
     uint32_t now = SDL_GetTicks();
+    float delta;
 
     // Main Loop
     while (running) {
 
         then = now;
         now = SDL_GetTicks();
+        delta = (now - then) / 1000.0f;
 
         //poll events
         while(SDL_PollEvent(&event) != 0) {
             handle_event(&event, &running);
         }
 
-        update(&ball, now - then);
+        update(&ball, delta);
         render(renderer, &ball);
 
         // Update Screen

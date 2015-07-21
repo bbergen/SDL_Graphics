@@ -6,6 +6,6 @@ SDL Graphics
 Sub-Projects
 ------------
 
-1. Bouncing Ball (mostly done)
+~~1. Bouncing Ball~~ (done)
 2. Pong (//TODO)
 3. Brick Breaker (//TODO)
