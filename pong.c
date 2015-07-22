@@ -52,7 +52,42 @@ static const SDL_Color PADDLE_COLOR = {
 
 static void
 update_ball(Ball *ball, float delta_t) {
-    //TODO implement
+    static int dir_x = 1;
+    static int dir_y = 1;
+    float speed_x = delta_t * BALL_SPEED;
+    float speed_y = delta_t * BALL_SPEED + VARIANCE;
+
+    // check collisions, scores
+
+    // left
+    if (ball->x <= ball->radius) {
+        ball->x = ball->radius;
+        dir_x *= -1;
+        //TODO change to ai scores
+    }
+
+    // right
+    if (ball->x >= SCREEN_WIDTH - ball->radius) {
+        ball->x = SCREEN_WIDTH - ball->radius;
+        dir_x *= -1;
+        //TODO change to player scores
+    }
+
+    // top
+    if (ball->y <= ball->radius) {
+        ball->y = ball->radius;
+        dir_y *= -1;
+    }
+
+    // bottom
+    if (ball->y >= SCREEN_HEIGHT - ball->radius) {
+        ball->y = SCREEN_HEIGHT - ball->radius;
+        dir_y *= -1;
+    }
+
+    //update position
+    ball->x += speed_x * dir_x;
+    ball->y += speed_y * dir_y;
 }
 
 static void
@@ -76,7 +111,19 @@ update_paddle(Game *game, float delta_t) {
 
 static void
 update_ai(Game *game, float delta_t) {
-    //TODO implement
+
+    float paddle_top = game->ai->y;
+    float paddle_bottom = paddle_top + PADDLE_HEIGHT;
+    float paddle_mid = paddle_bottom + (PADDLE_HEIGHT / 2);
+    float ball_mid = game->ball->y;
+
+    if (paddle_mid > ball_mid && paddle_top > 0) {
+        game->ai->y -= PADDLE_SPEED * delta_t;
+    }
+
+    if (paddle_mid < ball_mid && paddle_bottom < SCREEN_HEIGHT) {
+        game->ai->y += PADDLE_SPEED * delta_t;
+    }
 }
 
 static void
@@ -152,7 +199,15 @@ render_paddle(SDL_Renderer *renderer, Paddle *paddle) {
 
 static void
 render_score(SDL_Renderer *renderer, int player, int ai) {
+    //TODO implement
+}
 
+static void
+render_center_line(SDL_Renderer *renderer) {
+    SDL_SetRenderDrawColor(renderer, 0xFF, 0xFF, 0xFF, 0xFF);
+    for (int i = 0; i < SCREEN_HEIGHT; i += 5) {
+        SDL_RenderDrawPoint(renderer, SCREEN_WIDTH >> 1, i);
+    }
 }
 
 static void
@@ -166,10 +221,11 @@ render(SDL_Renderer *renderer, Game *game) {
     SDL_RenderClear(renderer);
 
     // draw game objects
-    render_ball(renderer, game->ball);
+    render_center_line(renderer);
     render_paddle(renderer, game->player);
     render_paddle(renderer, game->ai);
     render_score(renderer, game->player_score, game->ai_score);
+    render_ball(renderer, game->ball);
 
     // update screen
     SDL_RenderPresent(renderer);
