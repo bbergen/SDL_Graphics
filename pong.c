@@ -10,7 +10,7 @@
 #define PADDLE_HEIGHT 75
 #define BALL_SIZE 10
 #define BALL_SPEED 250
-#define PADDLE_SPEED 100
+#define PADDLE_SPEED 250
 #define VARIANCE 0.025f
 #define true 1
 #define false 0
@@ -56,13 +56,34 @@ update_ball(Ball *ball, float delta_t) {
 }
 
 static void
-update_paddle(Paddle *paddle, float delta_t) {
+update_paddle(Game *game, float delta_t) {
+    if (game->key_up_down) {
+        if (game->player->y > 0) {
+            game->player->y -= PADDLE_SPEED * delta_t;
+        } else {
+            game->player->y = 0;
+        }
+    }
+    if (game->key_down_down) {
+        if (game->player->y < SCREEN_HEIGHT - PADDLE_HEIGHT) {
+            game->player->y += PADDLE_SPEED * delta_t;
+        } else {
+            game->player->y = SCREEN_HEIGHT - PADDLE_HEIGHT;
+        }
+    }
+}
+
+
+static void
+update_ai(Game *game, float delta_t) {
     //TODO implement
 }
 
 static void
 update(Game *game, float delta_t) {
-    //TODO implement
+    update_paddle(game, delta_t);
+    update_ai(game, delta_t);
+    update_ball(game->ball, delta_t);
 }
 
 static void
