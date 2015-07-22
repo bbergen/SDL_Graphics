@@ -7,7 +7,7 @@
 #define SCREEN_HEIGHT 750
 #define BALL_SIZE 25
 #define VARIANCE 0.025f
-#define BASE_SPEED 200
+#define BALL_SPEED 200
 #define true 1
 #define false 0
 
@@ -95,8 +95,8 @@ static void
 update(Ball *ball, float speed) {
     static int dir_x = 1;
     static int dir_y = 1;
-    float speed_x = speed * BASE_SPEED;
-    float speed_y = speed * BASE_SPEED;
+    float speed_x = speed * BALL_SPEED;
+    float speed_y = speed * BALL_SPEED;
 
     // Check left
     if (ball->x <= ball->radius) {
