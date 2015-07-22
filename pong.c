@@ -5,6 +5,8 @@
 
 #define SCREEN_WIDTH 1024
 #define SCREEN_HEIGHT 576
+#define PADDLE_WIDTH 50
+#define PADDLE_HEIGHT 100
 #define BALL_SIZE 15
 #define BASE_SPEED 250
 #define true 1
@@ -44,7 +46,7 @@ static const SDL_Color PADDLE_COLOR = {
 };
 
 static void
-update(Game *game) {
+update(Game *game, float delta_t) {
     //TODO implement
 }
 
@@ -65,11 +67,97 @@ render(SDL_Renderer *renderer, Game *game) {
 
 static void
 process_event(SDL_Event *event, Game *game, uint8_t *running) {
-    //TODO implement
+    switch (event->type) {
+        case SDL_QUIT:
+            *running = false;
+            break;
+        default:
+            break;
+    }
 }
+
+static void
+error(void) {
+    fprintf(stderr, "Error: %s\n", SDL_GetError());
+    exit(EXIT_FAILURE);
+}
+
+static void
+run(void) {
+    if (SDL_Init(SDL_INIT_VIDEO) < 0) {
+        error();
+    }
+
+    SDL_Window *window = SDL_CreateWindow("SDL Pong!",
+                                          SDL_WINDOWPOS_UNDEFINED,
+                                          SDL_WINDOWPOS_UNDEFINED,
+                                          SCREEN_WIDTH,
+                                          SCREEN_HEIGHT,
+                                          SDL_WINDOW_SHOWN);
+
+    if (!window) {
+        error();
+    }
+
+    SDL_Renderer *renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
+
+    if (!renderer) {
+        error();
+    }
+
+    Ball ball = {
+            SCREEN_HEIGHT >> 1,
+            SCREEN_WIDTH >> 1,
+            BALL_SIZE
+    };
+
+    Paddle player_paddle = {
+            0,
+            0,
+            PADDLE_WIDTH,
+            PADDLE_HEIGHT
+    };
+
+    Paddle ai_paddle = {
+            0,
+            0,
+            PADDLE_WIDTH,
+            PADDLE_HEIGHT
+    };
+
+    Game game = {
+            ball,
+            player_paddle,
+            ai_paddle,
+            0, 0
+    };
+
+    SDL_Event event;
+    uint32_t then;
+    uint32_t now = SDL_GetTicks();
+    float delta_t;
+
+    uint8_t running = true;
+
+    // game loop
+    while (running) {
+        then = now;
+        now = SDL_GetTicks();
+        delta_t = (now - then) / 1000.0f;
+
+        while (SDL_PollEvent(&event) != 0) {
+            process_event(&event, &game, &running);
+        }
+
+        update(&game, delta_t);
+        render(renderer, &game);
+    }
+}
+
 
 int
 main(int argc, char **argv) {
-    printf("SDL Pong\n");
+    run();
+    SDL_Quit();
     return EXIT_SUCCESS;
 }
