@@ -2,6 +2,7 @@
 // Created by bryan on 7/21/15.
 //
 #include <SDL2/SDL.h>
+#include <SDL2/SDL_ttf.h>
 #include <stdint-gcc.h>
 
 #define SCREEN_WIDTH 1024
@@ -199,7 +200,23 @@ render_paddle(SDL_Renderer *renderer, Paddle *paddle) {
 
 static void
 render_score(SDL_Renderer *renderer, int player, int ai) {
-    //TODO implement
+    TTF_Font *sans;
+    sans = TTF_OpenFont("resources/fonts/game_over.ttf", 24);
+    if (!sans) {
+        fprintf(stderr, "Error: %s\n", TTF_GetError());
+        exit(EXIT_FAILURE);
+    }
+    SDL_Surface *score_surface = TTF_RenderText_Solid(sans, "SDL Pong!", BALL_COLOR);
+    SDL_Texture *texture = SDL_CreateTextureFromSurface(renderer, score_surface);
+    SDL_Rect score_box = {
+            SCREEN_WIDTH >> 1,
+            15,
+            100, 100
+    };
+
+    TTF_CloseFont(sans);
+    SDL_RenderCopy(renderer, texture, NULL, &score_box);
+    SDL_DestroyTexture(texture);
 }
 
 static void
@@ -278,6 +295,10 @@ run(void) {
         error();
     }
 
+    if (TTF_Init() < 0) {
+        error();
+    }
+
     SDL_Window *window = SDL_CreateWindow("SDL Pong!",
                                           SDL_WINDOWPOS_UNDEFINED,
                                           SDL_WINDOWPOS_UNDEFINED,
@@ -348,6 +369,7 @@ run(void) {
 int
 main(int argc, char **argv) {
     run();
+    TTF_Quit();
     SDL_Quit();
     return EXIT_SUCCESS;
 }
