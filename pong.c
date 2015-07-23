@@ -13,31 +13,39 @@
 #define BALL_SPEED 250
 #define PADDLE_SPEED 250
 #define VARIANCE 0.025f
+#define SCORE_WIDTH 100
+#define SCORE_HEIGHT 50
 #define true 1
 #define false 0
 
-typedef struct Ball {
+typedef struct pong_ball {
     float x;
     float y;
     int radius;
-} Ball;
+} pong_ball;
 
-typedef struct Paddle {
+typedef struct pong_paddle {
     float x;
     float y;
     float width;
     float height;
-} Paddle;
+} pong_paddle;
 
-typedef struct Game {
-    Ball *ball;
-    Paddle *player;
-    Paddle *ai;
+typedef struct score_box {
+    SDL_Rect *box;
+    TTF_Font *font;
+    int score;
+} score_box;
+
+typedef struct game_state {
+    pong_ball *ball;
+    pong_paddle *player;
+    pong_paddle *ai;
     uint8_t key_up_down;
     uint8_t key_down_down;
-    int player_score;
-    int ai_score;
-} Game;
+    score_box *player_score;
+    score_box *ai_score;
+} game_state;
 
 static const SDL_Color BACKGROUND = {
         0x00, 0x00, 0x00, 0x00
@@ -52,7 +60,7 @@ static const SDL_Color PADDLE_COLOR = {
 };
 
 static void
-update_ball(Ball *ball, float delta_t) {
+update_ball(pong_ball *ball, float delta_t) {
     static int dir_x = 1;
     static int dir_y = 1;
     float speed_x = delta_t * BALL_SPEED;
@@ -92,7 +100,7 @@ update_ball(Ball *ball, float delta_t) {
 }
 
 static void
-update_paddle(Game *game, float delta_t) {
+update_paddle(game_state *game, float delta_t) {
     if (game->key_up_down) {
         if (game->player->y > 0) {
             game->player->y -= PADDLE_SPEED * delta_t;
@@ -111,7 +119,7 @@ update_paddle(Game *game, float delta_t) {
 
 
 static void
-update_ai(Game *game, float delta_t) {
+update_ai(game_state *game, float delta_t) {
 
     float paddle_top = game->ai->y;
     float paddle_bottom = paddle_top + PADDLE_HEIGHT;
@@ -128,14 +136,14 @@ update_ai(Game *game, float delta_t) {
 }
 
 static void
-update(Game *game, float delta_t) {
+update(game_state *game, float delta_t) {
     update_paddle(game, delta_t);
     update_ai(game, delta_t);
     update_ball(game->ball, delta_t);
 }
 
 static void
-render_ball(SDL_Renderer *renderer, Ball *ball) {
+render_ball(SDL_Renderer *renderer, pong_ball *ball) {
     int x = ball->radius;
     int y = 0;
     int decision_over_2 = 1 - x;
@@ -182,7 +190,7 @@ render_ball(SDL_Renderer *renderer, Ball *ball) {
 }
 
 static void
-render_paddle(SDL_Renderer *renderer, Paddle *paddle) {
+render_paddle(SDL_Renderer *renderer, pong_paddle *paddle) {
     SDL_SetRenderDrawColor(renderer,
                            PADDLE_COLOR.r,
                            PADDLE_COLOR.g,
@@ -199,23 +207,12 @@ render_paddle(SDL_Renderer *renderer, Paddle *paddle) {
 }
 
 static void
-render_score(SDL_Renderer *renderer, int player, int ai) {
-    TTF_Font *sans;
-    sans = TTF_OpenFont("resources/fonts/game_over.ttf", 24);
-    if (!sans) {
-        fprintf(stderr, "Error: %s\n", TTF_GetError());
-        exit(EXIT_FAILURE);
-    }
-    SDL_Surface *score_surface = TTF_RenderText_Solid(sans, "SDL Pong!", BALL_COLOR);
-    SDL_Texture *texture = SDL_CreateTextureFromSurface(renderer, score_surface);
-    SDL_Rect score_box = {
-            SCREEN_WIDTH >> 1,
-            15,
-            100, 100
-    };
+render_score(SDL_Renderer *renderer, score_box *score) {
+    //TODO change to render a single score_box, currently just test code
 
-    TTF_CloseFont(sans);
-    SDL_RenderCopy(renderer, texture, NULL, &score_box);
+    SDL_Surface *score_surface = TTF_RenderText_Solid(score->font, "Score: ", BALL_COLOR);
+    SDL_Texture *texture = SDL_CreateTextureFromSurface(renderer, score_surface);
+    SDL_RenderCopy(renderer, texture, NULL, score->box);
     SDL_DestroyTexture(texture);
 }
 
@@ -228,7 +225,7 @@ render_center_line(SDL_Renderer *renderer) {
 }
 
 static void
-render(SDL_Renderer *renderer, Game *game) {
+render(SDL_Renderer *renderer, game_state *game) {
     // clear screen
     SDL_SetRenderDrawColor(renderer,
                            BACKGROUND.r,
@@ -241,7 +238,8 @@ render(SDL_Renderer *renderer, Game *game) {
     render_center_line(renderer);
     render_paddle(renderer, game->player);
     render_paddle(renderer, game->ai);
-    render_score(renderer, game->player_score, game->ai_score);
+    render_score(renderer, game->player_score);
+    render_score(renderer, game->ai_score);
     render_ball(renderer, game->ball);
 
     // update screen
@@ -249,7 +247,7 @@ render(SDL_Renderer *renderer, Game *game) {
 }
 
 static void
-process_event(SDL_Event *event, Game *game, uint8_t *running) {
+process_event(SDL_Event *event, game_state *game, uint8_t *running) {
     switch (event->type) {
         case SDL_QUIT:
             *running = false;
@@ -284,19 +282,19 @@ process_event(SDL_Event *event, Game *game, uint8_t *running) {
 }
 
 static void
-error(void) {
-    fprintf(stderr, "Error: %s\n", SDL_GetError());
+error(const char*(*error_function)(void)) {
+    fprintf(stderr, "Error: %s\n", error_function());
     exit(EXIT_FAILURE);
 }
 
 static void
 run(void) {
     if (SDL_Init(SDL_INIT_VIDEO) < 0) {
-        error();
+        error(SDL_GetError);
     }
 
     if (TTF_Init() < 0) {
-        error();
+        error(SDL_GetError);
     }
 
     SDL_Window *window = SDL_CreateWindow("SDL Pong!",
@@ -307,40 +305,67 @@ run(void) {
                                           SDL_WINDOW_SHOWN);
 
     if (!window) {
-        error();
+        error(SDL_GetError);
     }
 
     SDL_Renderer *renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
 
     if (!renderer) {
-        error();
+        error(SDL_GetError);
     }
 
-    Ball ball = {
+    TTF_Font *font;
+    font = TTF_OpenFont("resources/fonts/game_over.ttf", 24);
+    if (!font) {
+        error(TTF_GetError);
+    }
+
+    pong_ball ball = {
             SCREEN_WIDTH >> 1,
             SCREEN_HEIGHT >> 1,
             BALL_SIZE
     };
 
 
-    Paddle player_paddle = {
+    pong_paddle player_paddle = {
             SCREEN_WIDTH * .1,
             (SCREEN_HEIGHT >> 1) - (PADDLE_HEIGHT >> 1),
             PADDLE_WIDTH,
             PADDLE_HEIGHT
     };
-    Paddle ai_paddle = {
+    pong_paddle ai_paddle = {
             SCREEN_WIDTH - (SCREEN_WIDTH * .1 + PADDLE_WIDTH),
             (SCREEN_HEIGHT >> 1) - (PADDLE_HEIGHT >> 1),
             PADDLE_WIDTH,
             PADDLE_HEIGHT
     };
 
-    Game game = {
+    SDL_Rect score_rect = {
+            SCREEN_WIDTH >> 1 - SCORE_WIDTH,
+            0,
+            SCORE_WIDTH,
+            SCORE_HEIGHT
+    };
+
+    score_box player = {
+            &score_rect,
+            font,
+            0
+    };
+
+    score_box ai = {
+            &score_rect,
+            font,
+            0
+    };
+
+    game_state game = {
             &ball,
             &player_paddle,
             &ai_paddle,
-            0, 0
+            0, 0,
+            &player,
+            &ai
     };
 
     SDL_Event event;
@@ -363,6 +388,7 @@ run(void) {
         update(&game, delta_t);
         render(renderer, &game);
     }
+    TTF_CloseFont(font);
 }
 
 

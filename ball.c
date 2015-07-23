@@ -13,14 +13,14 @@
 
 static uint8_t running = true;
 
-typedef struct Ball {
+typedef struct pong_ball {
     float x;
     float y;
     int radius;
-} Ball;
+} pong_ball;
 
 static void
-draw_ball(SDL_Renderer *renderer, Ball *ball) {
+draw_ball(SDL_Renderer *renderer, pong_ball *ball) {
     int x = ball->radius;
     int y = 0;
     int decision_over_2 = 1 - x;
@@ -48,7 +48,7 @@ draw_ball(SDL_Renderer *renderer, Ball *ball) {
 }
 
 static void
-fill_ball(SDL_Renderer *renderer, Ball *ball) {
+fill_ball(SDL_Renderer *renderer, pong_ball *ball) {
     // Using Midpoint circle algorithm
     int x = ball->radius;
     int y = 0;
@@ -92,7 +92,7 @@ fill_ball(SDL_Renderer *renderer, Ball *ball) {
 }
 
 static void
-update(Ball *ball, float speed) {
+update(pong_ball *ball, float speed) {
     static int dir_x = 1;
     static int dir_y = 1;
     float speed_x = speed * BALL_SPEED;
@@ -128,7 +128,7 @@ update(Ball *ball, float speed) {
 }
 
 static void
-render(SDL_Renderer *renderer, Ball *ball) {
+render(SDL_Renderer *renderer, pong_ball *ball) {
     // Clear screen to red
     SDL_SetRenderDrawColor(renderer, 0xFF, 0x00, 0x00, 0xFF);
     SDL_RenderClear(renderer);
@@ -156,7 +156,7 @@ main(int argc, char **argv) {
         return EXIT_FAILURE;
     }
 
-    SDL_Window *window = SDL_CreateWindow("Bouncing Ball!",
+    SDL_Window *window = SDL_CreateWindow("Bouncing pong_ball!",
                                           SDL_WINDOWPOS_UNDEFINED,
                                           SDL_WINDOWPOS_UNDEFINED,
                                           SCREEN_WIDTH,
@@ -176,7 +176,7 @@ main(int argc, char **argv) {
     }
 
     SDL_Event event;
-    Ball ball = {
+    pong_ball ball = {
             SCREEN_WIDTH >> 1,
             SCREEN_HEIGHT >> 1,
             BALL_SIZE
