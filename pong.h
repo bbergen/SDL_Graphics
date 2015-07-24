@@ -46,6 +46,8 @@ typedef struct game_state {
     uint8_t key_down_down;
     score_box *player_score;
     score_box *ai_score;
+    int8_t x_dir;
+    int8_t y_dir;
 } game_state;
 
 static const SDL_Color BACKGROUND = {

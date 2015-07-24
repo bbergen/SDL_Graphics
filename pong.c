@@ -11,6 +11,14 @@ random_bool(void) {
     return rand() % 2 == 0;
 }
 
+static void
+reset_game(game_state *game) {
+    game->x_dir = random_bool() ? 1 : -1;
+    game->y_dir = random_bool() ? 1 : -1;
+    game->ball->x = SCREEN_WIDTH >> 1;
+    game->ball->y = SCREEN_HEIGHT >> 1;
+}
+
 static int8_t
 has_collided(pong_ball *ball, pong_paddle *paddle) {
     return ball->x >= paddle->x &&
@@ -21,50 +29,47 @@ has_collided(pong_ball *ball, pong_paddle *paddle) {
 
 static void
 update_ball(game_state *game, float delta_t) {
-    static int dir_x = 1;
-    static int dir_y = 1;
     float speed_x = delta_t * BALL_SPEED;
     float speed_y = delta_t * BALL_SPEED + VARIANCE;
 
     pong_ball *ball = game->ball;
 
-    // check collisions, scores
-
-    // left
+    // left, ai scores
     if (ball->x <= ball->radius) {
-        ball->x = ball->radius;
-        dir_x *= -1;
-        game->ai_score->score += dir_x;
+        game->ai_score->score++;
+        reset_game(game);
+        return;
     }
 
-    // right
+    // right, player scores
     if (ball->x >= SCREEN_WIDTH - ball->radius) {
         ball->x = SCREEN_WIDTH - ball->radius;
-        dir_x *= -1;
-        game->player_score->score -= dir_x;
+        game->player_score->score++;
+        reset_game(game);
+        return;
     }
 
     // top
     if (ball->y <= ball->radius) {
         ball->y = ball->radius;
-        dir_y *= -1;
+        game->y_dir *= -1;
     }
 
     // bottom
     if (ball->y >= SCREEN_HEIGHT - ball->radius) {
         ball->y = SCREEN_HEIGHT - ball->radius;
-        dir_y *= -1;
+        game->y_dir *= -1;
     }
 
     // check paddle collisions
     if (has_collided(ball, game->ai) || has_collided(ball, game->player)) {
-        dir_x *= -1;
-        dir_y *= random_bool() ? -1 : 1;
+        game->x_dir *= -1;
+        game->y_dir *= random_bool() ? -1 : 1;
     }
 
     //update position
-    ball->x += speed_x * dir_x;
-    ball->y += speed_y * dir_y;
+    ball->x += speed_x * game->x_dir;
+    ball->y += speed_y * game->y_dir;
 
 }
 
@@ -85,7 +90,6 @@ update_paddle(game_state *game, float delta_t) {
         }
     }
 }
-
 
 static void
 update_ai(game_state *game, float delta_t) {
@@ -341,7 +345,9 @@ run(void) {
             &ai_paddle,
             0, 0,
             &player,
-            &ai
+            &ai,
+            random_bool() ? 1 : -1,
+            random_bool() ? 1 : -1
     };
 
     SDL_Event event;
