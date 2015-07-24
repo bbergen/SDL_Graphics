@@ -1,11 +1,11 @@
 cmake_minimum_required(VERSION 3.2)
 project(SDL_Graphics)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -lSDL2_ttf")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${SDL_Graphics_SOURCE_DIR}/bin)
 
 set(BALL_SOURCE ball.c)
-set(PONG_SOURCE pong.c)
+set(PONG_SOURCE pong.c pong.h)
 add_executable(SDL_Ball ${BALL_SOURCE})
 add_executable(SDL_Pong ${PONG_SOURCE})
 
