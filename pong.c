@@ -6,6 +6,19 @@
 #include <stdint-gcc.h>
 #include "pong.h"
 
+static int8_t
+random_bool(void) {
+    return rand() % 2 == 0;
+}
+
+static int8_t
+has_collided(pong_ball *ball, pong_paddle *paddle) {
+    return ball->x >= paddle->x &&
+            ball->x <= paddle->x + PADDLE_WIDTH &&
+            ball->y >= paddle->y &&
+            ball->y <= paddle->y + PADDLE_HEIGHT;
+}
+
 static void
 update_ball(game_state *game, float delta_t) {
     static int dir_x = 1;
@@ -44,19 +57,9 @@ update_ball(game_state *game, float delta_t) {
     }
 
     // check paddle collisions
-
-    float x = ball->x;
-    float y = ball->y;
-    pong_paddle p = *game->ai;
-
-    if (y > p.y && y < p.y + PADDLE_HEIGHT && x > p.x && x < p.x + PADDLE_WIDTH) {
+    if (has_collided(ball, game->ai) || has_collided(ball, game->player)) {
         dir_x *= -1;
-    }
-
-    p = *game->player;
-
-    if (y > p.y && y < p.y + PADDLE_HEIGHT && x > p.x && x < p.x + PADDLE_WIDTH) {
-        dir_x *= -1;
+        dir_y *= random_bool() ? -1 : 1;
     }
 
     //update position
@@ -89,7 +92,7 @@ update_ai(game_state *game, float delta_t) {
 
     float paddle_top = game->ai->y;
     float paddle_bottom = paddle_top + PADDLE_HEIGHT;
-    float paddle_mid = paddle_bottom + (PADDLE_HEIGHT / 2);
+    float paddle_mid = paddle_top + (PADDLE_HEIGHT / 2);
     float ball_mid = game->ball->y;
 
     if (paddle_mid > ball_mid && paddle_top > 0) {
@@ -294,20 +297,20 @@ run(void) {
 
 
     pong_paddle player_paddle = {
-            SCREEN_WIDTH * .1,
+            SCREEN_WIDTH * .1f,
             (SCREEN_HEIGHT >> 1) - (PADDLE_HEIGHT >> 1),
             PADDLE_WIDTH,
             PADDLE_HEIGHT
     };
     pong_paddle ai_paddle = {
-            SCREEN_WIDTH - (SCREEN_WIDTH * .1 + PADDLE_WIDTH),
+            SCREEN_WIDTH - (SCREEN_WIDTH * .1f + PADDLE_WIDTH),
             (SCREEN_HEIGHT >> 1) - (PADDLE_HEIGHT >> 1),
             PADDLE_WIDTH,
             PADDLE_HEIGHT
     };
 
     SDL_Rect player_rect = {
-            (SCREEN_WIDTH >> 1) - (SCORE_WIDTH + 10),
+            (SCREEN_WIDTH >> 1) - (SCORE_WIDTH + TEXT_OFFSET),
             0,
             SCORE_WIDTH,
             SCORE_HEIGHT
@@ -320,7 +323,7 @@ run(void) {
     };
 
     SDL_Rect ai_rect = {
-            (SCREEN_WIDTH >> 1) + 10,
+            (SCREEN_WIDTH >> 1) + TEXT_OFFSET,
             0,
             SCORE_WIDTH,
             SCORE_HEIGHT
