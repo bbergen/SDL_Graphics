@@ -19,6 +19,12 @@
 #define true 1
 #define false 0
 
+typedef struct sound_effects {
+    Mix_Chunk *wall_bounce;
+    Mix_Chunk *paddle_bounce;
+    Mix_Chunk *score_sound;
+} sound_effects;
+
 typedef struct pong_ball {
     float x;
     float y;
@@ -48,6 +54,7 @@ typedef struct game_state {
     score_box *ai_score;
     int8_t x_dir;
     int8_t y_dir;
+    sound_effects *sound;
 } game_state;
 
 static const SDL_Color BACKGROUND = {

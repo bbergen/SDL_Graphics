@@ -3,6 +3,7 @@
 //
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
+#include <SDL2/SDL_mixer.h>
 #include <stdint-gcc.h>
 #include "pong.h"
 
@@ -262,12 +263,16 @@ error(const char*(*error_function)(void)) {
 
 static void
 run(void) {
-    if (SDL_Init(SDL_INIT_VIDEO) < 0) {
+    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) < 0) {
         error(SDL_GetError);
     }
 
     if (TTF_Init() < 0) {
-        error(SDL_GetError);
+        error(TTF_GetError);
+    }
+
+    if (Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048) < 0) {
+        error(Mix_GetError);
     }
 
     SDL_Window *window = SDL_CreateWindow("SDL Pong!",
@@ -373,10 +378,16 @@ run(void) {
     TTF_CloseFont(font);
 }
 
+static void
+close(void) {
+    Mix_Quit();
+    TTF_Quit();
+    SDL_Quit();
+}
+
 int
 main(int argc, char **argv) {
     run();
-    TTF_Quit();
-    SDL_Quit();
+    close();
     return EXIT_SUCCESS;
 }

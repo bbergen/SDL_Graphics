@@ -15,4 +15,4 @@ PKG_SEARCH_MODULE(SDL2 REQUIRED sdl2)
 
 include_directories(SDL_Graphics ${SDL2_INCLUDE_DIR})
 target_link_libraries(SDL_Ball ${SDL2_LIBRARIES})
-target_link_libraries(SDL_Pong ${SDL2_LIBRARIES} SDL2_ttf)
+target_link_libraries(SDL_Pong ${SDL2_LIBRARIES} SDL2_ttf SDL2_mixer)
