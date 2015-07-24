@@ -13,8 +13,8 @@
 #define BALL_SPEED 250
 #define PADDLE_SPEED 250
 #define VARIANCE 0.025f
-#define SCORE_WIDTH 100
-#define SCORE_HEIGHT 50
+#define SCORE_WIDTH 50
+#define SCORE_HEIGHT 75
 #define true 1
 #define false 0
 
@@ -208,9 +208,9 @@ render_paddle(SDL_Renderer *renderer, pong_paddle *paddle) {
 
 static void
 render_score(SDL_Renderer *renderer, score_box *score) {
-    //TODO change to render a single score_box, currently just test code
-
-    SDL_Surface *score_surface = TTF_RenderText_Solid(score->font, "Score: ", BALL_COLOR);
+    char score_string[5];
+    sprintf(score_string, score->score < 10 ? "0%d" : "%d", score->score);
+    SDL_Surface *score_surface = TTF_RenderText_Solid(score->font, score_string, BALL_COLOR);
     SDL_Texture *texture = SDL_CreateTextureFromSurface(renderer, score_surface);
     SDL_RenderCopy(renderer, texture, NULL, score->box);
     SDL_DestroyTexture(texture);
@@ -340,21 +340,28 @@ run(void) {
             PADDLE_HEIGHT
     };
 
-    SDL_Rect score_rect = {
-            SCREEN_WIDTH >> 1 - SCORE_WIDTH,
+    SDL_Rect player_rect = {
+            (SCREEN_WIDTH >> 1) - (SCORE_WIDTH + 10),
             0,
             SCORE_WIDTH,
             SCORE_HEIGHT
     };
 
     score_box player = {
-            &score_rect,
+            &player_rect,
             font,
             0
     };
 
+    SDL_Rect ai_rect = {
+            (SCREEN_WIDTH >> 1) + 10,
+            0,
+            SCORE_WIDTH,
+            SCORE_HEIGHT
+    };
+
     score_box ai = {
-            &score_rect,
+            &ai_rect,
             font,
             0
     };
@@ -390,7 +397,6 @@ run(void) {
     }
     TTF_CloseFont(font);
 }
-
 
 int
 main(int argc, char **argv) {
