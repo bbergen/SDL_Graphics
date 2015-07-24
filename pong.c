@@ -60,11 +60,13 @@ static const SDL_Color PADDLE_COLOR = {
 };
 
 static void
-update_ball(pong_ball *ball, float delta_t) {
+update_ball(game_state *game, float delta_t) {
     static int dir_x = 1;
     static int dir_y = 1;
     float speed_x = delta_t * BALL_SPEED;
     float speed_y = delta_t * BALL_SPEED + VARIANCE;
+
+    pong_ball *ball = game->ball;
 
     // check collisions, scores
 
@@ -72,14 +74,14 @@ update_ball(pong_ball *ball, float delta_t) {
     if (ball->x <= ball->radius) {
         ball->x = ball->radius;
         dir_x *= -1;
-        //TODO change to ai scores
+        game->ai_score->score += dir_x;
     }
 
     // right
     if (ball->x >= SCREEN_WIDTH - ball->radius) {
         ball->x = SCREEN_WIDTH - ball->radius;
         dir_x *= -1;
-        //TODO change to player scores
+        game->player_score->score -= dir_x;
     }
 
     // top
@@ -94,9 +96,28 @@ update_ball(pong_ball *ball, float delta_t) {
         dir_y *= -1;
     }
 
+    // check paddle collisions
+
+    float x = ball->x;
+    float y = ball->y;
+    pong_paddle p = *game->ai;
+
+    if (y > p.y && y < p.y + PADDLE_HEIGHT && x > p.x && x < p.x + PADDLE_WIDTH) {
+        dir_x *= -1;
+    }
+
+    p = *game->player;
+
+    if (y > p.y && y < p.y + PADDLE_HEIGHT && x > p.x && x < p.x + PADDLE_WIDTH) {
+        dir_x *= -1;
+    }
+
+
+
     //update position
     ball->x += speed_x * dir_x;
     ball->y += speed_y * dir_y;
+
 }
 
 static void
@@ -139,7 +160,7 @@ static void
 update(game_state *game, float delta_t) {
     update_paddle(game, delta_t);
     update_ai(game, delta_t);
-    update_ball(game->ball, delta_t);
+    update_ball(game, delta_t);
 }
 
 static void
