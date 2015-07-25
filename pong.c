@@ -140,28 +140,28 @@ render_ball(SDL_Renderer *renderer, pong_ball *ball) {
 
     while (x >= y) {
         SDL_RenderDrawLine(renderer,
-                           x + ball->x,
-                           y + ball->y,
-                           -x + ball->x,
-                           y + ball->y);
+                           x + (int) ball->x,
+                           y + (int) ball->y,
+                           -x + (int) ball->x,
+                           y + (int) ball->y);
 
         SDL_RenderDrawLine(renderer,
-                           -x + ball->x,
-                           -y + ball->y,
-                           x + ball->x,
-                           -y + ball->y);
+                           -x + (int) ball->x,
+                           -y + (int) ball->y,
+                           x + (int) ball->x,
+                           -y + (int) ball->y);
 
         SDL_RenderDrawLine(renderer,
-                           -y + ball->x,
-                           x + ball->y,
-                           -y + ball->x,
-                           -x + ball->y);
+                           -y + (int) ball->x,
+                           x + (int) ball->y,
+                           -y + (int) ball->x,
+                           -x + (int) ball->y);
 
         SDL_RenderDrawLine(renderer,
-                           y + ball->x,
-                           x + ball->y,
-                           y + ball->x,
-                           -x + ball->y);
+                           y + (int) ball->x,
+                           x + (int) ball->y,
+                           y + (int) ball->x,
+                           -x + (int) ball->y);
 
         y++;
         if (decision_over_2 <= 0) {
@@ -182,10 +182,10 @@ render_paddle(SDL_Renderer *renderer, pong_paddle *paddle) {
                            PADDLE_COLOR.a);
 
     SDL_Rect rect = {
-            paddle->x,
-            paddle->y,
-            paddle->width,
-            paddle->height
+            (int) paddle->x,
+            (int) paddle->y,
+            (int) paddle->width,
+            (int) paddle->height
     };
     SDL_RenderFillRect(renderer, &rect);
 }
@@ -415,6 +415,7 @@ run(void) {
         render(renderer, &game);
     }
 
+    // Close open resources
     Mix_FreeChunk(sounds.score_sound);
     Mix_FreeChunk(sounds.wall_bounce);
     Mix_FreeChunk(sounds.paddle_bounce);
