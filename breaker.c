@@ -11,7 +11,49 @@ render_brick(SDL_Renderer *renderer, breaker_brick *brick) {
 
 static void
 render_ball(SDL_Renderer *renderer, breaker_ball *ball) {
-    //TODO implement
+    int x = ball->radius;
+    int y = 0;
+    int decision_over_2 = 1 - x;
+
+    SDL_SetRenderDrawColor(renderer,
+                           ball->color->r,
+                           ball->color->g,
+                           ball->color->b,
+                           ball->color->a);
+
+    while (x >= y) {
+        SDL_RenderDrawLine(renderer,
+                           x + (int) ball->x,
+                           y + (int) ball->y,
+                           -x + (int) ball->x,
+                           y + (int) ball->y);
+
+        SDL_RenderDrawLine(renderer,
+                           -x + (int) ball->x,
+                           -y + (int) ball->y,
+                           x + (int) ball->x,
+                           -y + (int) ball->y);
+
+        SDL_RenderDrawLine(renderer,
+                           -y + (int) ball->x,
+                           x + (int) ball->y,
+                           -y + (int) ball->x,
+                           -x + (int) ball->y);
+
+        SDL_RenderDrawLine(renderer,
+                           y + (int) ball->x,
+                           x + (int) ball->y,
+                           y + (int) ball->x,
+                           -x + (int) ball->y);
+
+        y++;
+        if (decision_over_2 <= 0) {
+            decision_over_2 += 2 * y + 1;
+        } else {
+            x--;
+            decision_over_2 += 2 * (y - x) + 1;
+        }
+    }
 }
 
 static void
@@ -21,12 +63,59 @@ render_paddle(SDL_Renderer *renderer, breaker_paddle *paddle) {
 
 static void
 render(SDL_Renderer *renderer, breaker_game *game) {
-    //TODO implement
+    // clear screen
+    SDL_SetRenderDrawColor(renderer,
+                           BACKGROUND.r,
+                           BACKGROUND.g,
+                           BACKGROUND.b,
+                           BACKGROUND.a);
+    SDL_RenderClear(renderer);
+
+    // render game objects
+    render_ball(renderer, game->ball);
+
+    // present backbuffer
+    SDL_RenderPresent(renderer);
+}
+
+static void
+update_ball(breaker_ball *ball, float delta_t) {
+    float speed_x = delta_t * STARTING_SPEED;
+    float speed_y = delta_t * STARTING_SPEED;
+
+    // check left
+    if (ball->x <= ball->radius) {
+        ball->x = ball->radius;
+        ball->x_dir *= -1;
+    }
+
+    // check right
+    if (ball->x >= SCREEN_WIDTH - ball->radius) {
+        ball->x = SCREEN_WIDTH - ball->radius;
+        ball->x_dir *= -1;
+    }
+
+    // check top
+    if (ball->y <= ball->radius) {
+        ball->y = ball->radius;
+        ball->y_dir *= -1;
+    }
+
+    // check bottom
+    if (ball->y >= SCREEN_HEIGHT - ball->radius) {
+        ball->y = SCREEN_HEIGHT - ball->radius;
+        ball->y_dir *= -1;
+    }
+
+    // update position
+    ball->x += speed_x * ball->x_dir;
+    ball->y += speed_y * ball->y_dir;
 }
 
 static void
 update(breaker_game *game, float delta_t) {
-    //TODO implement
+    update_ball(game->ball, delta_t);
+    //TODO update paddle
 }
 
 static void
@@ -71,7 +160,9 @@ run(void) {
     breaker_ball ball = {
             SCREEN_WIDTH >> 1,
             SCREEN_HEIGHT >> 1,
-            BALL_SIZE
+            BALL_SIZE,
+            1, 1,
+            &DEFAULT_BALL
     };
 
     breaker_game game = {
