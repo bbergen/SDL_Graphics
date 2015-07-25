@@ -5,6 +5,27 @@
 #include "common.h"
 
 static void
+start_music(Mix_Music *track) {
+    Mix_PlayMusic(track, -1);
+}
+
+static void
+play_sound_effect(Mix_Chunk *effect) {
+    Mix_PlayChannel(-1, effect, 0);
+}
+
+static void
+pause_music(void) {
+    if (Mix_PlayingMusic()) {
+        if (Mix_PausedMusic()) {
+            Mix_ResumeMusic();
+        } else {
+            Mix_PauseMusic();
+        }
+    }
+}
+
+static void
 render_brick(SDL_Renderer *renderer, breaker_brick *brick) {
     //TODO implement
 }
@@ -79,32 +100,37 @@ render(SDL_Renderer *renderer, breaker_game *game) {
 }
 
 static void
-update_ball(breaker_ball *ball, float delta_t) {
+update_ball(breaker_game *game, float delta_t) {
     float speed_x = delta_t * STARTING_SPEED;
     float speed_y = delta_t * STARTING_SPEED;
+    breaker_ball *ball = game->ball;
 
     // check left
     if (ball->x <= ball->radius) {
         ball->x = ball->radius;
         ball->x_dir *= -1;
+        play_sound_effect(game->sounds->wall_bounce);
     }
 
     // check right
     if (ball->x >= SCREEN_WIDTH - ball->radius) {
         ball->x = SCREEN_WIDTH - ball->radius;
         ball->x_dir *= -1;
+        play_sound_effect(game->sounds->wall_bounce);
     }
 
     // check top
     if (ball->y <= ball->radius) {
         ball->y = ball->radius;
         ball->y_dir *= -1;
+        play_sound_effect(game->sounds->wall_bounce);
     }
 
     // check bottom
     if (ball->y >= SCREEN_HEIGHT - ball->radius) {
         ball->y = SCREEN_HEIGHT - ball->radius;
         ball->y_dir *= -1;
+        play_sound_effect(game->sounds->wall_bounce);
     }
 
     // update position
@@ -114,7 +140,7 @@ update_ball(breaker_ball *ball, float delta_t) {
 
 static void
 update(breaker_game *game, float delta_t) {
-    update_ball(game->ball, delta_t);
+    update_ball(game, delta_t);
     //TODO update paddle
 }
 
@@ -157,6 +183,23 @@ run(void) {
     //TODO load fonts
     //TODO load music/audio chunks
 
+    Mix_Music *level_1 = Mix_LoadMUS(LEVEL_2_TRACK);
+
+    if (!level_1) {
+        error(Mix_GetError);
+    }
+
+    Mix_Chunk *wall_ping = Mix_LoadWAV(WALL_PING);
+
+    if (!wall_ping) {
+        error(Mix_GetError);
+    }
+
+    breaker_sounds sounds = {
+            level_1,
+            wall_ping
+    };
+
     breaker_ball ball = {
             SCREEN_WIDTH >> 1,
             SCREEN_HEIGHT >> 1,
@@ -166,7 +209,10 @@ run(void) {
     };
 
     breaker_game game = {
-            &ball
+            &ball,
+            NULL,
+            NULL,
+            &sounds
     };
 
     int8_t running = true;
@@ -174,6 +220,9 @@ run(void) {
     uint32_t then;
     uint32_t now = SDL_GetTicks();
     float delta_t;
+
+    //start music
+    Mix_PlayMusic(game.sounds->music, -1);
 
     //game loop
     while (running) {
@@ -188,6 +237,9 @@ run(void) {
         update(&game, delta_t);
         render(renderer, &game);
     }
+
+    //free resources
+    Mix_FreeMusic(level_1);
 }
 
 static void

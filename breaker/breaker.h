@@ -18,6 +18,12 @@
 #define DEFAULT_PADDLE_SPEED 300
 #define STARTING_SPEED 300
 
+#define WALL_PING "resources/sounds/breaker/effects/wall_ping.wav"
+#define LEVEL_1_TRACK "resources/sounds/breaker/music/level_1.wav"
+#define LEVEL_2_TRACK "resources/sounds/breaker/music/level_2.wav"
+#define LEVEL_3_TRACK "resources/sounds/breaker/music/level_3.wav"
+#define LEVEL_4_TRACK "resources/sounds/breaker/music/level_4.wav"
+
 typedef struct score_box {
     SDL_Rect *bounds;
     TTF_Font *font;
@@ -27,9 +33,10 @@ typedef struct score_box {
 
 typedef struct breaker_sounds {
     Mix_Music *music;
+    Mix_Chunk *wall_bounce;
     Mix_Chunk *paddle_bounce;
     Mix_Chunk *brick_break;
-};
+} breaker_sounds;
 
 typedef struct breaker_brick {
     int x;
@@ -61,6 +68,7 @@ typedef struct breaker_game {
     breaker_ball *ball;
     breaker_paddle *player;
     score_box *score;
+    breaker_sounds *sounds;
     int remaining_balls;
     float difficulty_modifier;
 } breaker_game;
