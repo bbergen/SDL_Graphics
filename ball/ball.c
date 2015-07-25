@@ -2,7 +2,7 @@
 // Created by bryan on 7/19/15.
 //
 #include <SDL2/SDL.h>
-#include "common.h"
+#include <common.h>
 
 #define SCREEN_WIDTH 750
 #define SCREEN_HEIGHT 750

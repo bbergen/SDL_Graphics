@@ -17,9 +17,9 @@
 #define SCORE_WIDTH 50
 #define SCORE_HEIGHT 75
 
-#define PADDLE_BOUNCE "resources/sounds/paddle_bounce.wav"
-#define WALL_BOUNCE "resources/sounds/wall_bounce.wav"
-#define SCORE_SOUND "resources/sounds/score_sound.wav"
+#define PADDLE_BOUNCE "resources/sounds/pong/paddle_bounce.wav"
+#define WALL_BOUNCE "resources/sounds/pong/wall_bounce.wav"
+#define SCORE_SOUND "resources/sounds/pong/score_sound.wav"
 
 typedef struct sound_effects {
     Mix_Chunk *wall_bounce;
