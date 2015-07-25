@@ -13,6 +13,11 @@ random_bool(void) {
 }
 
 static void
+play_sound_effect(Mix_Chunk *chunk) {
+    Mix_PlayChannel(-1, chunk, 0);
+}
+
+static void
 reset_game(game_state *game) {
     game->x_dir = random_bool() ? 1 : -1;
     game->y_dir = random_bool() ? 1 : -1;
@@ -38,6 +43,7 @@ update_ball(game_state *game, float delta_t) {
     // left, ai scores
     if (ball->x <= ball->radius) {
         game->ai_score->score++;
+        play_sound_effect(game->sound->score_sound);
         reset_game(game);
         return;
     }
@@ -46,6 +52,7 @@ update_ball(game_state *game, float delta_t) {
     if (ball->x >= SCREEN_WIDTH - ball->radius) {
         ball->x = SCREEN_WIDTH - ball->radius;
         game->player_score->score++;
+        play_sound_effect(game->sound->score_sound);
         reset_game(game);
         return;
     }
@@ -54,18 +61,21 @@ update_ball(game_state *game, float delta_t) {
     if (ball->y <= ball->radius) {
         ball->y = ball->radius;
         game->y_dir *= -1;
+        play_sound_effect(game->sound->wall_bounce);
     }
 
     // bottom
     if (ball->y >= SCREEN_HEIGHT - ball->radius) {
         ball->y = SCREEN_HEIGHT - ball->radius;
         game->y_dir *= -1;
+        play_sound_effect(game->sound->wall_bounce);
     }
 
     // check paddle collisions
     if (has_collided(ball, game->ai) || has_collided(ball, game->player)) {
         game->x_dir *= -1;
         game->y_dir *= random_bool() ? -1 : 1;
+        play_sound_effect(game->sound->paddle_bounce);
     }
 
     //update position
@@ -344,6 +354,34 @@ run(void) {
             0
     };
 
+    Mix_Chunk *wall_bounce;
+    Mix_Chunk *paddle_bounce;
+    Mix_Chunk *score_sound;
+
+    wall_bounce = Mix_LoadWAV(WALL_BOUNCE);
+
+    if (!wall_bounce) {
+        error(Mix_GetError);
+    }
+
+    paddle_bounce = Mix_LoadWAV(PADDLE_BOUNCE);
+
+    if (!paddle_bounce) {
+        error(Mix_GetError);
+    }
+
+    score_sound = Mix_LoadWAV(SCORE_SOUND);
+
+    if (!score_sound) {
+        error(Mix_GetError);
+    }
+
+    sound_effects sounds = {
+            wall_bounce,
+            paddle_bounce,
+            score_sound
+    };
+
     game_state game = {
             &ball,
             &player_paddle,
@@ -352,7 +390,8 @@ run(void) {
             &player,
             &ai,
             random_bool() ? 1 : -1,
-            random_bool() ? 1 : -1
+            random_bool() ? 1 : -1,
+            &sounds
     };
 
     SDL_Event event;
@@ -375,6 +414,10 @@ run(void) {
         update(&game, delta_t);
         render(renderer, &game);
     }
+
+    Mix_FreeChunk(sounds.score_sound);
+    Mix_FreeChunk(sounds.wall_bounce);
+    Mix_FreeChunk(sounds.paddle_bounce);
     TTF_CloseFont(font);
 }
 

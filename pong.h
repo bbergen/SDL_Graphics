@@ -19,6 +19,10 @@
 #define true 1
 #define false 0
 
+#define PADDLE_BOUNCE "resources/sounds/paddle_bounce.wav"
+#define WALL_BOUNCE "resources/sounds/wall_bounce.wav"
+#define SCORE_SOUND "resources/sounds/score_sound.wav"
+
 typedef struct sound_effects {
     Mix_Chunk *wall_bounce;
     Mix_Chunk *paddle_bounce;
