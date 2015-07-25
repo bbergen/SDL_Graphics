@@ -6,6 +6,7 @@
 #include <SDL2/SDL_mixer.h>
 #include <stdint-gcc.h>
 #include "pong.h"
+#include "common.h"
 
 static int8_t
 random_bool(void) {

@@ -2,14 +2,13 @@
 // Created by bryan on 7/19/15.
 //
 #include <SDL2/SDL.h>
+#include "common.h"
 
 #define SCREEN_WIDTH 750
 #define SCREEN_HEIGHT 750
 #define BALL_SIZE 25
 #define VARIANCE 0.025f
 #define BALL_SPEED 200
-#define true 1
-#define false 0
 
 static uint8_t running = true;
 

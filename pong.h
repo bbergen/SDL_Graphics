@@ -16,8 +16,6 @@
 #define VARIANCE 0.025f
 #define SCORE_WIDTH 50
 #define SCORE_HEIGHT 75
-#define true 1
-#define false 0
 
 #define PADDLE_BOUNCE "resources/sounds/paddle_bounce.wav"
 #define WALL_BOUNCE "resources/sounds/wall_bounce.wav"

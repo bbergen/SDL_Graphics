@@ -8,5 +8,5 @@ Sub-Projects
 
 1. ~~Bouncing Ball~~ (done)
 2. ~~Pong~~ (done)
-3. Brick Breaker (//TODO)
+3. Brick Breaker (In Progress!)
 4. Asteroids (//TODO)
