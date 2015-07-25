@@ -25,8 +25,19 @@ render(SDL_Renderer *renderer, breaker_game *game) {
 }
 
 static void
-update(breaker_game *game) {
+update(breaker_game *game, float delta_t) {
     //TODO implement
+}
+
+static void
+process_event(SDL_Event *event, int8_t *running) {
+    switch (event->type) {
+        case SDL_QUIT:
+            *running = false;
+            break;
+        default:
+            break;
+    }
 }
 
 static void
@@ -37,13 +48,75 @@ error(const char*(*error_function)(void)) {
 
 static void
 run(void) {
-    //TODO implement resource init, game state, game loop
+    SDL_Window *window = SDL_CreateWindow("Brick Breaker!",
+                                          SDL_WINDOWPOS_UNDEFINED,
+                                          SDL_WINDOWPOS_UNDEFINED,
+                                          SCREEN_WIDTH,
+                                          SCREEN_HEIGHT,
+                                          SDL_WINDOW_SHOWN);
+
+    if (!window) {
+        error(SDL_GetError);
+    }
+
+    SDL_Renderer *renderer = SDL_CreateRenderer(window, - 1, SDL_RENDERER_ACCELERATED);
+
+    if (!renderer) {
+        error(SDL_GetError);
+    }
+
+    //TODO load fonts
+    //TODO load music/audio chunks
+
+    breaker_ball ball = {
+            SCREEN_WIDTH >> 1,
+            SCREEN_HEIGHT >> 1,
+            BALL_SIZE
+    };
+
+    breaker_game game = {
+            &ball
+    };
+
     int8_t running = true;
+    SDL_Event event;
+    uint32_t then;
+    uint32_t now = SDL_GetTicks();
+    float delta_t;
+
+    //game loop
+    while (running) {
+        then = now;
+        now = SDL_GetTicks();
+        delta_t = (now - then) / 1000.0f;
+
+        while (SDL_PollEvent(&event) !=0) {
+            process_event(&event, &running);
+        }
+
+        update(&game, delta_t);
+        render(renderer, &game);
+    }
 }
 
 static void
 init(void) {
-    //TODO implement SDL Lib initializations, error checks
+
+    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) < 0) {
+        error(SDL_GetError);
+    }
+
+    if (TTF_Init() < 0) {
+        error(TTF_GetError);
+    }
+
+    if (Mix_OpenAudio(AUDIO_FREQUENCY,
+                      MIX_DEFAULT_FORMAT,
+                      AUDIO_CHANNELS,
+                      AUDIO_CHUNK_SIZE) < 0) {
+        error(Mix_GetError);
+    }
+
 }
 
 static void

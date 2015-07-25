@@ -7,6 +7,21 @@
 
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_mixer.h>
+#include <SDL2/SDL_ttf.h>
+
+#define SCREEN_WIDTH 576
+#define SCREEN_HEIGHT 850
+#define AUDIO_FREQUENCY 44100
+#define AUDIO_CHANNELS 2
+#define AUDIO_CHUNK_SIZE 2048
+#define BALL_SIZE 5
+
+typedef struct score_box {
+    SDL_Rect *bounds;
+    TTF_Font *font;
+    uint32_t current_score;
+    uint32_t high_score;
+} score_box;
 
 typedef struct breaker_sounds {
     Mix_Music *music;
@@ -39,10 +54,11 @@ typedef struct breaker_ball {
 } breaker_ball;
 
 typedef struct breaker_game {
-    breaker_paddle *player;
     breaker_ball *ball;
+    breaker_paddle *player;
+    score_box *score;
+    int remaining_balls;
     float difficulty_modifier;
-    uint32_t score;
 } breaker_game;
 
 #endif //SDL_GRAPHICS_BREAKER_H
