@@ -72,7 +72,19 @@ update_ball(game_state *game, float delta_t) {
     }
 
     // check paddle collisions
-    if (has_collided(ball, game->ai) || has_collided(ball, game->player)) {
+    if (has_collided(ball, game->ai)) {
+        if (game->x_dir == 1) {
+            ball->x = game->ai->x - ball->radius;
+        }
+        game->x_dir *= -1;
+        game->y_dir *= random_bool() ? -1 : 1;
+        play_sound_effect(game->sound->paddle_bounce);
+    }
+
+    if (has_collided(ball, game->player)) {
+        if (game->x_dir == -1) {
+            ball->x = game->player->x + PADDLE_WIDTH + ball->radius;
+        }
         game->x_dir *= -1;
         game->y_dir *= random_bool() ? -1 : 1;
         play_sound_effect(game->sound->paddle_bounce);
