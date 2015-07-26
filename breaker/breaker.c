@@ -31,41 +31,41 @@ render_brick(SDL_Renderer *renderer, breaker_brick *brick) {
 }
 
 static void
-render_ball(SDL_Renderer *renderer, breaker_ball *ball) {
-    int x = ball->radius;
+render_circle(SDL_Renderer *renderer, const SDL_Color *color, int mid_x, int mid_y, int radius) {
+    int x = radius;
     int y = 0;
     int decision_over_2 = 1 - x;
 
     SDL_SetRenderDrawColor(renderer,
-                           ball->color->r,
-                           ball->color->g,
-                           ball->color->b,
-                           ball->color->a);
+                           color->r,
+                           color->g,
+                           color->b,
+                           color->a);
 
     while (x >= y) {
         SDL_RenderDrawLine(renderer,
-                           x + (int) ball->x,
-                           y + (int) ball->y,
-                           -x + (int) ball->x,
-                           y + (int) ball->y);
+                           x + mid_x,
+                           y + mid_y,
+                           -x + mid_x,
+                           y + mid_y);
 
         SDL_RenderDrawLine(renderer,
-                           -x + (int) ball->x,
-                           -y + (int) ball->y,
-                           x + (int) ball->x,
-                           -y + (int) ball->y);
+                           -x + mid_x,
+                           -y + mid_y,
+                           x + mid_x,
+                           -y + mid_y);
 
         SDL_RenderDrawLine(renderer,
-                           -y + (int) ball->x,
-                           x + (int) ball->y,
-                           -y + (int) ball->x,
-                           -x + (int) ball->y);
+                           -y + mid_x,
+                           x + mid_y,
+                           -y + mid_x,
+                           -x + mid_y);
 
         SDL_RenderDrawLine(renderer,
-                           y + (int) ball->x,
-                           x + (int) ball->y,
-                           y + (int) ball->x,
-                           -x + (int) ball->y);
+                           y + mid_x,
+                           x + mid_y,
+                           y + mid_x,
+                           -x + mid_y);
 
         y++;
         if (decision_over_2 <= 0) {
@@ -78,8 +78,24 @@ render_ball(SDL_Renderer *renderer, breaker_ball *ball) {
 }
 
 static void
+render_ball(SDL_Renderer *renderer, breaker_ball *ball) {
+    render_circle(renderer, ball->color, (int) ball->x, (int) ball->y, ball->radius);
+}
+
+static void
 render_paddle(SDL_Renderer *renderer, breaker_paddle *paddle) {
-    //TODO implement
+    SDL_Color *color = paddle->color;
+    SDL_SetRenderDrawColor(renderer, color->r, color->g, color->b, color->a);
+    SDL_Rect rect = {
+            (int) paddle->x, (int) paddle->y, paddle->width, paddle->height
+    };
+    render_circle(renderer, color,
+                  paddle->left_end->center_offset + (int) paddle->x,
+                  (int) paddle->y + (PADDLE_HEIGHT >> 1), paddle->left_end->radius);
+    render_circle(renderer, color,
+                  paddle->right_end->center_offset + (int) paddle->x,
+                  (int) paddle->y + (PADDLE_HEIGHT >> 1), paddle->left_end->radius);
+    SDL_RenderFillRect(renderer, &rect);
 }
 
 static void
@@ -94,6 +110,7 @@ render(SDL_Renderer *renderer, breaker_game *game) {
 
     // render game objects
     render_ball(renderer, game->ball);
+    render_paddle(renderer, game->player);
 
     // present backbuffer
     SDL_RenderPresent(renderer);
@@ -183,7 +200,7 @@ run(void) {
     //TODO load fonts
     //TODO load music/audio chunks
 
-    Mix_Music *level_1 = Mix_LoadMUS(LEVEL_2_TRACK);
+    Mix_Music *level_1 = Mix_LoadMUS(LEVEL_1_TRACK);
 
     if (!level_1) {
         error(Mix_GetError);
@@ -208,9 +225,31 @@ run(void) {
             &DEFAULT_BALL
     };
 
+    paddle_end left = {
+        0,  (PADDLE_HEIGHT >> 1) - 1
+    };
+
+    paddle_end right = {
+        PADDLE_WIDTH, (PADDLE_HEIGHT >> 1) - 1
+    };
+
+    SDL_Color paddle_color = {
+            0x00, 0x00, 0x00, 0x00
+    };
+
+    breaker_paddle paddle = {
+            (SCREEN_WIDTH >> 1) - (PADDLE_WIDTH >> 1),
+            SCREEN_HEIGHT * .9f,
+            PADDLE_WIDTH,
+            PADDLE_HEIGHT,
+            &left,
+            &right,
+            &paddle_color
+    };
+
     breaker_game game = {
             &ball,
-            NULL,
+            &paddle,
             NULL,
             &sounds
     };

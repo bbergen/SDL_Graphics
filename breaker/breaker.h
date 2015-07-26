@@ -17,12 +17,19 @@
 #define BALL_SIZE 5
 #define DEFAULT_PADDLE_SPEED 300
 #define STARTING_SPEED 300
+#define PADDLE_HEIGHT 20
+#define PADDLE_WIDTH 100
 
 #define WALL_PING "resources/sounds/breaker/effects/wall_ping.wav"
 #define LEVEL_1_TRACK "resources/sounds/breaker/music/level_1.wav"
 #define LEVEL_2_TRACK "resources/sounds/breaker/music/level_2.wav"
 #define LEVEL_3_TRACK "resources/sounds/breaker/music/level_3.wav"
 #define LEVEL_4_TRACK "resources/sounds/breaker/music/level_4.wav"
+
+typedef struct paddle_end {
+    int center_offset;
+    int radius;
+} paddle_end;
 
 typedef struct score_box {
     SDL_Rect *bounds;
@@ -52,6 +59,8 @@ typedef struct breaker_paddle {
     float y;
     int width;
     int height;
+    paddle_end *left_end;
+    paddle_end *right_end;
     SDL_Color *color;
 } breaker_paddle;
 
