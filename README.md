@@ -6,7 +6,7 @@ SDL Graphics
 Sub-Projects
 ------------
 
-1. ~~Bouncing Ball~~ (done)
-2. ~~Pong~~ (done)
-3. Brick Breaker (In Progress!)
+1. ~~[Bouncing Ball](https://github.com/bbergen/SDL_Graphics/tree/master/ball)~~ (done)
+2. ~~[Pong](https://github.com/bbergen/SDL_Graphics/tree/master/pong)~~ (done)
+3. [Brick Breaker](https://github.com/bbergen/SDL_Graphics/tree/master/breaker) (In Progress!)
 4. Asteroids (//TODO)
