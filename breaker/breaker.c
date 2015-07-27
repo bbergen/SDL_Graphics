@@ -146,6 +146,14 @@ update_ball(breaker_game *game, float delta_t) {
     }
 
     // check paddle collision
+    breaker_paddle *paddle = game->player;
+    if (ball->x - ball->radius <= paddle->x + PADDLE_WIDTH &&
+            ball->x + ball->radius >= paddle->x &&
+            ball->y + ball->radius >= paddle->y &&
+            ball->y - ball->radius <= paddle->y + PADDLE_HEIGHT) {
+        ball->y_dir *= -1;
+        play_sound_effect(game->sounds->wall_bounce);
+    }
 
 
     // update position
