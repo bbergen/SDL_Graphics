@@ -79,33 +79,28 @@ render_circle(SDL_Renderer *renderer, const SDL_Color *color, int mid_x, int mid
 
 static void
 render_ball(SDL_Renderer *renderer, breaker_ball *ball) {
-    render_circle(renderer, ball->color, (int) ball->x, (int) ball->y, ball->radius);
+    render_circle(renderer, &PURPLE, (int) ball->x, (int) ball->y, ball->radius);
 }
 
 static void
 render_paddle(SDL_Renderer *renderer, breaker_paddle *paddle) {
-    SDL_Color *color = paddle->color;
-    SDL_SetRenderDrawColor(renderer, color->r, color->g, color->b, color->a);
     SDL_Rect rect = {
             (int) paddle->x, (int) paddle->y, paddle->width, paddle->height
     };
-    render_circle(renderer, color,
-                  paddle->left_end->center_offset + (int) paddle->x,
-                  (int) paddle->y + (PADDLE_HEIGHT >> 1), paddle->left_end->radius);
-    render_circle(renderer, color,
-                  paddle->right_end->center_offset + (int) paddle->x,
-                  (int) paddle->y + (PADDLE_HEIGHT >> 1), paddle->left_end->radius);
+    SDL_SetRenderDrawColor(renderer, BLUE.r, BLUE.g, BLUE.b, BLUE.a);
     SDL_RenderFillRect(renderer, &rect);
+    SDL_SetRenderDrawColor(renderer, BLACK.r, BLACK.g, BLACK.b, BLACK.a);
+    SDL_RenderDrawRect(renderer, &rect);
 }
 
 static void
 render(SDL_Renderer *renderer, breaker_game *game) {
     // clear screen
     SDL_SetRenderDrawColor(renderer,
-                           BACKGROUND.r,
-                           BACKGROUND.g,
-                           BACKGROUND.b,
-                           BACKGROUND.a);
+                           WHITE.r,
+                           WHITE.g,
+                           WHITE.b,
+                           WHITE.a);
     SDL_RenderClear(renderer);
 
     // render game objects
@@ -222,19 +217,6 @@ run(void) {
             SCREEN_HEIGHT >> 1,
             BALL_SIZE,
             1, 1,
-            &DEFAULT_BALL
-    };
-
-    paddle_end left = {
-        0,  (PADDLE_HEIGHT >> 1) - 1
-    };
-
-    paddle_end right = {
-        PADDLE_WIDTH, (PADDLE_HEIGHT >> 1) - 1
-    };
-
-    SDL_Color paddle_color = {
-            0x00, 0x00, 0x00, 0x00
     };
 
     breaker_paddle paddle = {
@@ -242,9 +224,6 @@ run(void) {
             SCREEN_HEIGHT * .9f,
             PADDLE_WIDTH,
             PADDLE_HEIGHT,
-            &left,
-            &right,
-            &paddle_color
     };
 
     breaker_game game = {

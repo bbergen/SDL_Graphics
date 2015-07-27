@@ -26,11 +26,6 @@
 #define LEVEL_3_TRACK "resources/sounds/breaker/music/level_3.wav"
 #define LEVEL_4_TRACK "resources/sounds/breaker/music/level_4.wav"
 
-typedef struct paddle_end {
-    int center_offset;
-    int radius;
-} paddle_end;
-
 typedef struct score_box {
     SDL_Rect *bounds;
     TTF_Font *font;
@@ -51,7 +46,6 @@ typedef struct breaker_brick {
     int width;
     int height;
     int point_value;
-    SDL_Color *color;
 } breaker_brick;
 
 typedef struct breaker_paddle {
@@ -59,9 +53,6 @@ typedef struct breaker_paddle {
     float y;
     int width;
     int height;
-    paddle_end *left_end;
-    paddle_end *right_end;
-    SDL_Color *color;
 } breaker_paddle;
 
 typedef struct breaker_ball {
@@ -70,7 +61,6 @@ typedef struct breaker_ball {
     int radius;
     int8_t x_dir;
     int8_t y_dir;
-    const SDL_Color *color;
 } breaker_ball;
 
 typedef struct breaker_game {
@@ -82,12 +72,20 @@ typedef struct breaker_game {
     float difficulty_modifier;
 } breaker_game;
 
-static const SDL_Color BACKGROUND = {
+static const SDL_Color WHITE = {
         0xFF, 0xFF, 0xFF, 0x00
 };
 
-static const SDL_Color DEFAULT_BALL = {
+static const SDL_Color PURPLE = {
         0x4B, 0x00, 0x82, 0x00
+};
+
+static const SDL_Color BLACK = {
+        0x00, 0x00, 0x00, 0x00
+};
+
+static const SDL_Color BLUE = {
+        0x14, 0xAD, 0xDB, 0x00
 };
 
 #endif //SDL_GRAPHICS_BREAKER_H

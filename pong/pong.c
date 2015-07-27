@@ -225,10 +225,10 @@ static void
 render(SDL_Renderer *renderer, game_state *game) {
     // clear screen
     SDL_SetRenderDrawColor(renderer,
-                           BACKGROUND.r,
-                           BACKGROUND.g,
-                           BACKGROUND.b,
-                           BACKGROUND.a);
+                           WHITE.r,
+                           WHITE.g,
+                           WHITE.b,
+                           WHITE.a);
     SDL_RenderClear(renderer);
 
     // draw game objects

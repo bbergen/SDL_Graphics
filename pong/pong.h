@@ -59,7 +59,7 @@ typedef struct game_state {
     sound_effects *sound;
 } game_state;
 
-static const SDL_Color BACKGROUND = {
+static const SDL_Color WHITE = {
         0x00, 0x00, 0x00, 0x00
 };
 
