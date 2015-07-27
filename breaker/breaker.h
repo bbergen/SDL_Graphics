@@ -17,8 +17,8 @@
 #define BALL_SIZE 5
 #define DEFAULT_PADDLE_SPEED 300
 #define STARTING_SPEED 300
-#define PADDLE_HEIGHT 20
-#define PADDLE_WIDTH 100
+#define PADDLE_HEIGHT 10
+#define PADDLE_WIDTH 75
 
 #define WALL_PING "resources/sounds/breaker/effects/wall_ping.wav"
 #define LEVEL_1_TRACK "resources/sounds/breaker/music/level_1.wav"
@@ -68,8 +68,8 @@ typedef struct breaker_game {
     breaker_paddle *player;
     score_box *score;
     breaker_sounds *sounds;
-    int remaining_balls;
-    float difficulty_modifier;
+    int8_t key_right_down;
+    int8_t key_left_down;
 } breaker_game;
 
 static const SDL_Color WHITE = {

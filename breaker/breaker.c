@@ -145,22 +145,69 @@ update_ball(breaker_game *game, float delta_t) {
         play_sound_effect(game->sounds->wall_bounce);
     }
 
+    // check paddle collision
+
+
     // update position
     ball->x += speed_x * ball->x_dir;
     ball->y += speed_y * ball->y_dir;
 }
 
 static void
-update(breaker_game *game, float delta_t) {
-    update_ball(game, delta_t);
-    //TODO update paddle
+update_paddle(breaker_paddle *paddle, int8_t right_down, int8_t left_down, float delta_t) {
+
+    if (right_down) {
+        if (paddle->x <= SCREEN_WIDTH - PADDLE_WIDTH) {
+            paddle->x += STARTING_SPEED * delta_t;
+        } else {
+            paddle->x = SCREEN_WIDTH - PADDLE_WIDTH;
+        }
+    }
+
+    if (left_down) {
+        if (paddle->x >= 0) {
+            paddle->x -= STARTING_SPEED * delta_t;
+        } else {
+            paddle->x = 0;
+        }
+    }
 }
 
 static void
-process_event(SDL_Event *event, int8_t *running) {
+update(breaker_game *game, float delta_t) {
+    update_ball(game, delta_t);
+    update_paddle(game->player, game->key_right_down, game->key_left_down, delta_t);
+}
+
+static void
+process_event(SDL_Event *event, breaker_game * game, int8_t *running) {
     switch (event->type) {
         case SDL_QUIT:
             *running = false;
+            break;
+        case SDL_KEYDOWN:
+            switch(event->key.keysym.sym) {
+                case SDLK_RIGHT:
+                    game->key_right_down = true;
+                    break;
+                case SDLK_LEFT:
+                    game->key_left_down = true;
+                    break;
+                default:
+                    break;
+            }
+            break;
+        case SDL_KEYUP:
+            switch (event->key.keysym.sym) {
+                case SDLK_RIGHT:
+                    game->key_right_down = false;
+                    break;
+                case SDLK_LEFT:
+                    game->key_left_down = false;
+                    break;
+                default:
+                    break;
+            }
             break;
         default:
             break;
@@ -230,7 +277,9 @@ run(void) {
             &ball,
             &paddle,
             NULL,
-            &sounds
+            &sounds,
+            false,
+            false
     };
 
     int8_t running = true;
@@ -249,7 +298,7 @@ run(void) {
         delta_t = (now - then) / 1000.0f;
 
         while (SDL_PollEvent(&event) !=0) {
-            process_event(&event, &running);
+            process_event(&event, &game, &running);
         }
 
         update(&game, delta_t);
