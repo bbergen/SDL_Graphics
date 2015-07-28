@@ -2,6 +2,8 @@
 // Created by bryan on 7/27/15.
 //
 
+#include <stdlib.h>
+#include <string.h>
 #include "list.h"
 
 void

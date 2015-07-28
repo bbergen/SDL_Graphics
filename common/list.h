@@ -5,6 +5,7 @@
 #ifndef SDL_GRAPHICS_LIST_H
 #define SDL_GRAPHICS_LIST_H
 
+#include <stdint.h>
 #include <stddef.h>
 #include "common.h"
 
