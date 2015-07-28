@@ -4,6 +4,8 @@ project(SDL_Graphics)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${SDL_Graphics_SOURCE_DIR}/bin)
 
+add_definitions(-DDEBUG=1)
+
 include_directories(common)
 set(BALL_SOURCE ball/ball.c)
 set(PONG_SOURCE pong/pong.c pong/pong.h)
