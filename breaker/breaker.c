@@ -2,7 +2,63 @@
 // Created by bryan on 7/24/15.
 //
 #include "breaker.h"
-#include "common.h"
+
+static int8_t
+render_brick(void *b) {
+    breaker_brick *brick = b;
+    SDL_Color *color = brick->color;
+    SDL_SetRenderDrawColor(brick->renderer, color->r, color->g, color->b, color->a);
+    SDL_Rect rect = {
+            brick->x,
+            brick->y,
+            brick->width,
+            brick->height
+    };
+    SDL_RenderFillRect(brick->renderer, &rect);
+    return true;
+}
+
+static void
+random_color(SDL_Color *color) {
+    uint8_t red = (uint8_t) (rand() % 255);
+    uint8_t blue = (uint8_t) (rand() % 255);
+    uint8_t green = (uint8_t) (rand() % 255);
+    SDL_Color c = {
+            red, blue, green, 0x00
+    };
+    *color = c;
+}
+
+static breaker_brick*
+build_brick(SDL_Renderer *renderer, int x, int y, int width, int height) {
+    breaker_brick *brick = malloc(sizeof(breaker_brick));
+    brick->x = x;
+    brick->y = y;
+    brick->width = width;
+    brick->height = height;
+    brick->renderer = renderer;
+    brick->color = malloc(sizeof(SDL_Color));
+    random_color(brick->color);
+    return brick;
+}
+
+static void
+free_brick(void *b) {
+    breaker_brick *brick = b;
+    free(brick->color);
+}
+
+static list*
+build_brick_list(SDL_Renderer *renderer, int bricks) {
+    list *brick_list = malloc(sizeof(brick_list));
+    init_list(brick_list, sizeof(breaker_brick), free_brick);
+
+    for (int i = 0; i < bricks; i++) {
+        add(brick_list, build_brick(renderer, i * BRICK_WIDTH, 0, BRICK_WIDTH, BRICK_HEIGHT));
+    }
+
+    return brick_list;
+}
 
 static void
 start_music(Mix_Music *track) {
@@ -23,11 +79,6 @@ pause_music(void) {
             Mix_PauseMusic();
         }
     }
-}
-
-static void
-render_brick(SDL_Renderer *renderer, breaker_brick *brick) {
-    //TODO implement
 }
 
 static void
@@ -106,6 +157,9 @@ render(SDL_Renderer *renderer, breaker_game *game) {
     // render game objects
     render_ball(renderer, game->ball);
     render_paddle(renderer, game->player);
+
+    //render bricks
+    list_for_each(game->brick_list, render_brick);
 
     // present backbuffer
     SDL_RenderPresent(renderer);
@@ -287,7 +341,8 @@ run(void) {
             NULL,
             &sounds,
             false,
-            false
+            false,
+            build_brick_list(renderer, 5)
     };
 
     int8_t running = true;

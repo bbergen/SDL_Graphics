@@ -8,6 +8,7 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_mixer.h>
 #include <SDL2/SDL_ttf.h>
+#include "list.h"
 
 #define SCREEN_WIDTH 576
 #define SCREEN_HEIGHT 850
@@ -19,6 +20,8 @@
 #define STARTING_SPEED 300
 #define PADDLE_HEIGHT 10
 #define PADDLE_WIDTH 75
+#define BRICK_WIDTH 50
+#define BRICK_HEIGHT 15
 
 #define WALL_PING "resources/sounds/breaker/effects/wall_ping.wav"
 #define LEVEL_1_TRACK "resources/sounds/breaker/music/level_1.wav"
@@ -46,6 +49,8 @@ typedef struct breaker_brick {
     int width;
     int height;
     int point_value;
+    SDL_Color *color;
+    SDL_Renderer *renderer;
 } breaker_brick;
 
 typedef struct breaker_paddle {
@@ -70,6 +75,7 @@ typedef struct breaker_game {
     breaker_sounds *sounds;
     int8_t key_right_down;
     int8_t key_left_down;
+    list *brick_list;
 } breaker_game;
 
 static const SDL_Color WHITE = {
