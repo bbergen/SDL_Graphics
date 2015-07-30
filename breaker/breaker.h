@@ -20,7 +20,7 @@
 #define STARTING_SPEED 300
 #define PADDLE_HEIGHT 10
 #define PADDLE_WIDTH 75
-#define BRICK_WIDTH 50
+#define BRICK_WIDTH SCREEN_WIDTH / 12
 #define BRICK_HEIGHT 15
 
 #define WALL_PING "resources/sounds/breaker/effects/wall_ping.wav"
@@ -48,7 +48,7 @@ typedef struct breaker_brick {
     int y;
     int width;
     int height;
-    int point_value;
+    int8_t visible;
     SDL_Color *color;
     SDL_Renderer *renderer;
 } breaker_brick;

@@ -6,15 +6,19 @@
 static int8_t
 render_brick(void *b) {
     breaker_brick *brick = b;
-    SDL_Color *color = brick->color;
-    SDL_SetRenderDrawColor(brick->renderer, color->r, color->g, color->b, color->a);
-    SDL_Rect rect = {
-            brick->x,
-            brick->y,
-            brick->width,
-            brick->height
-    };
-    SDL_RenderFillRect(brick->renderer, &rect);
+    if (brick->visible) {
+        SDL_Color *color = brick->color;
+        SDL_SetRenderDrawColor(brick->renderer, color->r, color->g, color->b, color->a);
+        SDL_Rect rect = {
+                brick->x,
+                brick->y,
+                brick->width,
+                brick->height
+        };
+        SDL_RenderFillRect(brick->renderer, &rect);
+        SDL_SetRenderDrawColor(brick->renderer, BLACK.r, BLACK.g, BLACK.b, BLACK.a);
+        SDL_RenderDrawRect(brick->renderer, &rect);
+    }
     return true;
 }
 
@@ -37,6 +41,7 @@ build_brick(SDL_Renderer *renderer, int x, int y, int width, int height) {
     brick->width = width;
     brick->height = height;
     brick->renderer = renderer;
+    brick->visible = true;
     brick->color = malloc(sizeof(SDL_Color));
     random_color(brick->color);
     return brick;
@@ -53,8 +58,21 @@ build_brick_list(SDL_Renderer *renderer, int bricks) {
     list *brick_list = malloc(sizeof(brick_list));
     init_list(brick_list, sizeof(breaker_brick), free_brick);
 
+    int step = 0;
+    int x = 0;
     for (int i = 0; i < bricks; i++) {
-        add(brick_list, build_brick(renderer, i * BRICK_WIDTH, 0, BRICK_WIDTH, BRICK_HEIGHT));
+
+        if (i % 12 == 0) {
+            step++;
+            x = 0;
+        }
+
+        int y = (int) (SCREEN_HEIGHT * 0.1f) + (step * BRICK_HEIGHT);
+        int width = BRICK_WIDTH;
+        int height = BRICK_HEIGHT;
+        add(brick_list, build_brick(renderer, x, y, width, height));
+        x += BRICK_WIDTH;
+
     }
 
     return brick_list;
@@ -342,7 +360,7 @@ run(void) {
             &sounds,
             false,
             false,
-            build_brick_list(renderer, 5)
+            build_brick_list(renderer, 60)
     };
 
     int8_t running = true;
@@ -352,7 +370,7 @@ run(void) {
     float delta_t;
 
     //start music
-    Mix_PlayMusic(game.sounds->music, -1);
+    start_music(game.sounds->music);
 
     //game loop
     while (running) {
@@ -369,6 +387,8 @@ run(void) {
     }
 
     //free resources
+    free_list(game.brick_list);
+    free(game.brick_list);
     Mix_FreeMusic(level_1);
 }
 
@@ -394,6 +414,7 @@ init(void) {
 
 static void
 close(void) {
+    Mix_Quit();
     SDL_Quit();
 }
 

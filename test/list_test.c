@@ -29,9 +29,8 @@ print_test_node(void *data) {
     printf("X: %d, Y: %d\n\n", *test->x, *test->y);
 }
 
-static test_data*
-allocate_test_data(char *display_text, int x, int y) {
-    test_data *test = malloc(sizeof(test_data));
+static void
+allocate_test_data(test_data *test, char *display_text, int x, int y) {
 
     test->display_text = malloc(strlen(display_text) + 1);
     test->x = malloc(sizeof(int));
@@ -40,8 +39,6 @@ allocate_test_data(char *display_text, int x, int y) {
     strcpy(test->display_text, display_text);
     *test->x = x;
     *test->y = y;
-
-    return test;
 }
 
 int
@@ -52,13 +49,18 @@ main(int argc, char **argv) {
 
     init_list(&test_list, sizeof(test_data), test_free);
 
-    test_data *first = allocate_test_data("First Data Struct", 1, 2);
-    test_data *second = allocate_test_data("Second Data Struct", 2, 3);
-    test_data *third = allocate_test_data("Third Data Struct", 4, 5);
 
-    add(&test_list, first);
-    add(&test_list, second);
-    add(&test_list, third);
+    test_data first;
+    test_data second;
+    test_data third;
+
+    allocate_test_data(&first, "First Data Struct", 1, 2);
+    allocate_test_data(&second, "Second Data Struct", 2, 3);
+    allocate_test_data(&third, "Third Data Struct", 4, 5);
+
+    add(&test_list, &first);
+    add(&test_list, &second);
+    add(&test_list, &third);
 
     printf("Size of test_list: %d\n", list_size(&test_list));
     list_for_each(&test_list, print_test_node);
