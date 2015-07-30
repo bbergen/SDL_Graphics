@@ -33,9 +33,8 @@ random_color(SDL_Color *color) {
     *color = c;
 }
 
-static breaker_brick*
-build_brick(SDL_Renderer *renderer, int x, int y, int width, int height) {
-    breaker_brick *brick = malloc(sizeof(breaker_brick));
+static void
+build_brick(breaker_brick *brick, SDL_Renderer *renderer, int x, int y, int width, int height) {
     brick->x = x;
     brick->y = y;
     brick->width = width;
@@ -44,7 +43,6 @@ build_brick(SDL_Renderer *renderer, int x, int y, int width, int height) {
     brick->visible = true;
     brick->color = malloc(sizeof(SDL_Color));
     random_color(brick->color);
-    return brick;
 }
 
 static void
@@ -53,10 +51,9 @@ free_brick(void *b) {
     free(brick->color);
 }
 
-static list*
-build_brick_list(SDL_Renderer *renderer, int bricks) {
-    list *brick_list = malloc(sizeof(brick_list));
-    init_list(brick_list, sizeof(breaker_brick), free_brick);
+static void
+build_brick_list(list *l, SDL_Renderer *renderer, int bricks) {
+    init_list(l, sizeof(breaker_brick), free_brick);
 
     int step = 0;
     int x = 0;
@@ -70,12 +67,12 @@ build_brick_list(SDL_Renderer *renderer, int bricks) {
         int y = (int) (SCREEN_HEIGHT * 0.1f) + (step * BRICK_HEIGHT);
         int width = BRICK_WIDTH;
         int height = BRICK_HEIGHT;
-        add(brick_list, build_brick(renderer, x, y, width, height));
+        breaker_brick brick;
+        build_brick(&brick, renderer, x, y, width, height);
+        add(l, &brick);
         x += BRICK_WIDTH;
 
     }
-
-    return brick_list;
 }
 
 static void
@@ -353,6 +350,9 @@ run(void) {
             PADDLE_HEIGHT,
     };
 
+    list brick_list;
+    build_brick_list(&brick_list, renderer, 60);
+
     breaker_game game = {
             &ball,
             &paddle,
@@ -360,7 +360,7 @@ run(void) {
             &sounds,
             false,
             false,
-            build_brick_list(renderer, 60)
+            &brick_list
     };
 
     int8_t running = true;
@@ -388,7 +388,6 @@ run(void) {
 
     //free resources
     free_list(game.brick_list);
-    free(game.brick_list);
     Mix_FreeMusic(level_1);
 }
 
