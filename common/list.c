@@ -68,12 +68,24 @@ remove_at(list *l, int index) {
 
 void
 list_for_each(list *l, list_iterator iterator) {
-    assert(iterator != NULL);
+    assert(iterator != NULL)
 
     node *current = l->head;
     int8_t result = true;
     while (current && result) {
         result = iterator(current->data);
+        current = current->next;
+    }
+}
+
+void
+list_for_each_with_param(list *l, list_iterator_with_param iterator, void *param) {
+    assert(iterator != NULL)
+
+    node *current = l->head;
+    int8_t result = true;
+    while (current && result) {
+        result = iterator(current->data, param);
         current = current->next;
     }
 }

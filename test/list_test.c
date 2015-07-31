@@ -29,6 +29,14 @@ print_test_node(void *data) {
     printf("X: %d, Y: %d\n\n", *test->x, *test->y);
 }
 
+static int8_t
+print_test_node_params(void *data, void *param) {
+    test_data *test = (test_data*) data;
+    char *param_string = (char*) param;
+    printf("Printing: %s\n", test->display_text);
+    printf("Parameter: %s\n\n", param_string);
+}
+
 static void
 allocate_test_data(test_data *test, char *display_text, int x, int y) {
 
@@ -64,6 +72,7 @@ main(int argc, char **argv) {
 
     printf("Size of test_list: %d\n", list_size(&test_list));
     list_for_each(&test_list, print_test_node);
+    list_for_each_with_param(&test_list, print_test_node_params, "Dynamic Parameter");
 
     printf("Address of allocated test_list head: %p\n", test_list.head);
     free_list(&test_list);

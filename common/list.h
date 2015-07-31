@@ -13,6 +13,8 @@ typedef void (*free_function)(void *);
 
 typedef int8_t (*list_iterator)(void *);
 
+typedef int8_t (*list_iterator_with_param)(void *, void *);
+
 typedef struct _node {
     void *data;
     struct _node *next;
@@ -38,11 +40,17 @@ void init_list(list*, size_t, free_function);
  */
 void free_list(list*);
 
-/**
+/*
  * Iterates over the list and calls the passed function
  * on each element
  */
 void list_for_each(list*, list_iterator);
+
+/*
+ * Iterates over the list and calls the passed function
+ * on each element, additionally passing it the third argument
+ */
+void list_for_each_with_param(list*, list_iterator_with_param, void *);
 
 /*
  * Appends an element to the list
