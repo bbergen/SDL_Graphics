@@ -22,6 +22,28 @@ render_brick(void *b) {
     return true;
 }
 
+static int8_t
+has_brick_ball_collided(void *brick_arg, void *ball_arg) {
+    breaker_brick *brick = (breaker_brick*) brick_arg;
+    breaker_ball *ball = (breaker_ball*) ball_arg;
+
+    int8_t has_collided = false;
+
+    if (brick->visible) {
+        if (ball->x + ball->radius >= brick->x &&
+            ball->x - ball->radius <= brick->x + brick->width &&
+            ball->y + ball->radius >= brick->y &&
+            ball->y - ball->radius <= brick->y + brick->height) {
+            has_collided = true;
+            ball->y_dir *= -1;
+            ball->x_dir *= -1;
+            brick->visible = false;
+        }
+    }
+
+    return !has_collided;
+}
+
 static void
 random_color(SDL_Color *color) {
     uint8_t red = (uint8_t) (rand() % 255);
@@ -213,6 +235,11 @@ update_ball(breaker_game *game, float delta_t) {
         ball->y_dir *= -1;
         play_sound_effect(game->sounds->wall_bounce);
     }
+
+    // check brick collisions
+    list_for_each_with_param(game->brick_list,
+                             has_brick_ball_collided,
+                             game->ball);
 
     // check paddle collision
     breaker_paddle *paddle = game->player;
