@@ -529,6 +529,9 @@ run(void) {
     //free resources
     free_list(game.brick_list);
     Mix_FreeMusic(level_1);
+    Mix_FreeChunk(wall_bounce);
+    Mix_FreeChunk(brick_bounce);
+    Mix_FreeChunk(brick_break);
 }
 
 static void
