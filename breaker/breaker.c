@@ -1,6 +1,7 @@
 //
 // Created by bryan on 7/24/15.
 //
+#include <x86intrin.h>
 #include "breaker.h"
 
 static int8_t
@@ -402,6 +403,21 @@ error(const char*(*error_function)(void)) {
 }
 
 static void
+performance_profiling(uint64_t per_count_freq, uint64_t *last_count, uint64_t *last_cycles) {
+    uint64_t end_counter = SDL_GetPerformanceCounter();
+    uint64_t counter_elapsed = end_counter - *last_count;
+    uint64_t end_cycle_count = _rdtsc();
+    uint64_t cycles_elapsed = end_cycle_count - *last_cycles;
+    double mc_per_frame = ((double) cycles_elapsed / (1000.0f * 1000.0f));
+    double ms_per_frame = ((1000.0f * (double) counter_elapsed) / (double) per_count_freq);
+    double fps = (double) per_count_freq / (double) counter_elapsed;
+    fprintf(stdout, "%.02f ms/f, %.02f f/s, %.02f mc/f\n", ms_per_frame, fps, mc_per_frame);
+
+    *last_count = end_counter;
+    *last_cycles = end_cycle_count;
+}
+
+static void
 run(void) {
     SDL_Window *window = SDL_CreateWindow("Brick Breaker!",
                                           SDL_WINDOWPOS_UNDEFINED,
@@ -476,6 +492,13 @@ run(void) {
     //start music
     start_music(game.sounds->music);
 
+#if DEBUG
+    //performance tracking
+    uint64_t per_count_frequency = SDL_GetPerformanceFrequency();
+    uint64_t last_counter = SDL_GetPerformanceCounter();
+    uint64_t last_cycle_count = _rdtsc();
+#endif
+
     //game loop
     while (running) {
         then = now;
@@ -488,6 +511,10 @@ run(void) {
 
         update(&game, delta_t);
         render(renderer, &game);
+
+#if DEBUG
+        performance_profiling(per_count_frequency, &last_counter, &last_cycle_count);
+#endif
     }
 
     //free resources
