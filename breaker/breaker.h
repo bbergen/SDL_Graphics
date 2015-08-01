@@ -23,7 +23,9 @@
 #define BRICK_WIDTH SCREEN_WIDTH / 12
 #define BRICK_HEIGHT 15
 
-#define WALL_PING "resources/sounds/breaker/effects/wall_ping.wav"
+#define WALL_BOUNCE "resources/sounds/breaker/effects/wall_bounce.wav"
+#define BRICK_BOUNCE "resources/sounds/breaker/effects/brick_bounce.wav"
+#define BRICK_BREAK "resources/sounds/breaker/effects/brick_break.wav"
 #define LEVEL_1_TRACK "resources/sounds/breaker/music/level_1.wav"
 #define LEVEL_2_TRACK "resources/sounds/breaker/music/level_2.wav"
 #define LEVEL_3_TRACK "resources/sounds/breaker/music/level_3.wav"
@@ -44,8 +46,7 @@ typedef struct score_box {
 typedef struct breaker_sounds {
     Mix_Music *music;
     Mix_Chunk *wall_bounce;
-    Mix_Chunk *paddle_bounce;
-    Mix_Chunk *brick_break;
+    Mix_Chunk *brick_bounce;
 } breaker_sounds;
 
 typedef struct breaker_brick {
@@ -56,6 +57,7 @@ typedef struct breaker_brick {
     int8_t visible;
     SDL_Color *color;
     SDL_Renderer *renderer;
+    Mix_Chunk *brick_break;
 } breaker_brick;
 
 typedef struct breaker_paddle {

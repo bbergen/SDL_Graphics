@@ -4,6 +4,11 @@
 #include <x86intrin.h>
 #include "breaker.h"
 
+static void
+play_sound_effect(Mix_Chunk *effect) {
+    Mix_PlayChannel(-1, effect, 0);
+}
+
 static int8_t
 render_brick(void *b) {
     breaker_brick *brick = b;
@@ -118,6 +123,10 @@ has_brick_ball_collided(void *brick_arg, void *ball_arg) {
         ball->y_dir *= -1;
     }
 
+    if (has_collided) {
+        play_sound_effect(brick->brick_break);
+    }
+
     brick->visible = !has_collided;
     return !has_collided;
 }
@@ -134,15 +143,20 @@ random_color(SDL_Color *color) {
 }
 
 static void
-build_brick(breaker_brick *brick, SDL_Renderer *renderer, int x, int y, int width, int height) {
+build_brick(breaker_brick *brick,
+            SDL_Renderer *renderer,
+            Mix_Chunk *brick_break,
+            SDL_Color color,
+            int x, int y, int width, int height) {
     brick->x = x;
     brick->y = y;
     brick->width = width;
     brick->height = height;
     brick->renderer = renderer;
+    brick->brick_break = brick_break;
     brick->visible = true;
     brick->color = malloc(sizeof(SDL_Color));
-    random_color(brick->color);
+    *brick->color = color;
 }
 
 static void
@@ -152,23 +166,26 @@ free_brick(void *b) {
 }
 
 static void
-build_brick_list(list *l, SDL_Renderer *renderer, int bricks) {
+build_brick_list(list *l, SDL_Renderer *renderer, Mix_Chunk *brick_break, int bricks) {
     init_list(l, sizeof(breaker_brick), free_brick);
 
     int step = 0;
     int x = 0;
+    SDL_Color color = {};
+    random_color(&color);
     for (int i = 0; i < bricks; i++) {
 
         if (i % 12 == 0) {
             step++;
             x = 0;
+            random_color(&color);
         }
 
-        int y = (int) (SCREEN_HEIGHT * 0.1f) + (step * BRICK_HEIGHT);
+        int y = (int) (SCREEN_HEIGHT * 0.2f) + (step * BRICK_HEIGHT);
         int width = BRICK_WIDTH;
         int height = BRICK_HEIGHT;
         breaker_brick brick;
-        build_brick(&brick, renderer, x, y, width, height);
+        build_brick(&brick, renderer, brick_break, color, x, y, width, height);
         add(l, &brick);
         x += BRICK_WIDTH;
 
@@ -178,11 +195,6 @@ build_brick_list(list *l, SDL_Renderer *renderer, int bricks) {
 static void
 start_music(Mix_Music *track) {
     Mix_PlayMusic(track, -1);
-}
-
-static void
-play_sound_effect(Mix_Chunk *effect) {
-    Mix_PlayChannel(-1, effect, 0);
 }
 
 static void
@@ -437,23 +449,20 @@ run(void) {
     }
 
     //TODO load fonts
-    //TODO load music/audio chunks
 
     Mix_Music *level_1 = Mix_LoadMUS(LEVEL_1_TRACK);
+    Mix_Chunk *wall_bounce = Mix_LoadWAV(WALL_BOUNCE);
+    Mix_Chunk *brick_bounce = Mix_LoadWAV(BRICK_BOUNCE);
+    Mix_Chunk *brick_break = Mix_LoadWAV(BRICK_BREAK);
 
-    if (!level_1) {
-        error(Mix_GetError);
-    }
-
-    Mix_Chunk *wall_ping = Mix_LoadWAV(WALL_PING);
-
-    if (!wall_ping) {
+    if (!level_1 || !wall_bounce || !brick_bounce || !brick_break) {
         error(Mix_GetError);
     }
 
     breaker_sounds sounds = {
             level_1,
-            wall_ping
+            wall_bounce,
+            brick_bounce,
     };
 
     breaker_ball ball = {
@@ -471,7 +480,7 @@ run(void) {
     };
 
     list brick_list;
-    build_brick_list(&brick_list, renderer, 60);
+    build_brick_list(&brick_list, renderer, brick_break, 60);
 
     breaker_game game = {
             &ball,
