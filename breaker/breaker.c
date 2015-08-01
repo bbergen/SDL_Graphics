@@ -22,25 +22,102 @@ render_brick(void *b) {
     return true;
 }
 
+static point
+circle_intersect(int angle, int x, int y, int radius) {
+    double theta = angle * (180 / PI);
+
+    point p = {};
+    p.x = (int) (x + radius * cos(theta));
+    p.y = (int) (y + radius * sin(theta));
+
+    return p;
+}
+
 static int8_t
 has_brick_ball_collided(void *brick_arg, void *ball_arg) {
     breaker_brick *brick = (breaker_brick*) brick_arg;
     breaker_ball *ball = (breaker_ball*) ball_arg;
 
-    int8_t has_collided = false;
-
-    if (brick->visible) {
-        if (ball->x + ball->radius >= brick->x &&
-            ball->x - ball->radius <= brick->x + brick->width &&
-            ball->y + ball->radius >= brick->y &&
-            ball->y - ball->radius <= brick->y + brick->height) {
-            has_collided = true;
-            ball->y_dir *= -1;
-            ball->x_dir *= -1;
-            brick->visible = false;
-        }
+    if (!brick->visible) {
+        return true;
     }
 
+    int8_t has_collided = false;
+    static int SIZE = 2;
+
+    // collision boxes
+    SDL_Rect top_right = { brick->x, brick->y, SIZE, SIZE};
+    SDL_Rect top = {brick->x + SIZE, brick->y, brick->width - SIZE * 2, SIZE};
+    SDL_Rect top_left = {brick->x + brick->width - SIZE, brick->y, SIZE, SIZE};
+    SDL_Rect left = { brick->x, brick->y + SIZE, SIZE, brick->height - SIZE * 2};
+    SDL_Rect right = { brick->x + brick->width - SIZE, brick->y + SIZE, SIZE, brick->height - SIZE * 2};
+    SDL_Rect bottom_left = {brick->x, brick->y + brick->height - SIZE, SIZE, SIZE};
+    SDL_Rect bottom_right = {brick->x + brick->width - SIZE, brick->y + brick->height - SIZE, SIZE, SIZE};
+    SDL_Rect bottom = {brick->x + SIZE, brick->y + brick->height - SIZE, brick->width - SIZE * 2, SIZE};
+
+    int ball_x = (int)ball->x;
+    int ball_y = (int)ball->y;
+    int end_x;
+    int end_y;
+    point p;
+
+    p = circle_intersect(255, ball_x, ball_y, ball->radius);
+    if (SDL_IntersectRectAndLine(&top_right, &ball_x, &ball_y, &p.x, &p.y)) {
+        has_collided = true;
+        ball->x_dir *= -1;
+        ball->y_dir *= -1;
+    }
+
+    end_x = ball_x;
+    end_y = ball_y + ball->radius;
+    if (!has_collided && SDL_IntersectRectAndLine(&top, &ball_x, &ball_y, &end_x, &end_y)) {
+        has_collided = true;
+        ball->y_dir *= -1;
+    }
+
+    p = circle_intersect(315, ball_x, ball_y, ball->radius);
+    if (!has_collided && SDL_IntersectRectAndLine(&top_left, &ball_x, &ball_y, &p.x, &p.y)) {
+        has_collided = true;
+        ball->x_dir *= -1;
+        ball->y_dir *= -1;
+    }
+
+    end_x = ball_x + ball->radius;
+    end_y = ball_y;
+    if (!has_collided && SDL_IntersectRectAndLine(&left, &ball_x, &ball_y, &end_x, &end_y)) {
+        has_collided = true;
+        ball->x_dir *= -1;
+    }
+
+    end_x = ball_x - ball->radius;
+    end_y = ball_y;
+    if (!has_collided && SDL_IntersectRectAndLine(&right, &ball_x, &ball_y, &end_x, &end_y)) {
+        has_collided = true;
+        ball->x_dir *= -1;
+    }
+
+    p = circle_intersect(45, ball_x, ball_y, ball->radius);
+    if (!has_collided && SDL_IntersectRectAndLine(&bottom_left, &ball_x, &ball_y, &p.x, &p.y)) {
+        has_collided = true;
+        ball->x_dir *= -1;
+        ball->y_dir *= -1;
+    }
+
+    p = circle_intersect(135, ball_x, ball_y, ball->radius);
+    if (!has_collided && SDL_IntersectRectAndLine(&bottom_right, &ball_x, &ball_y, &p.x, &p.y)) {
+        has_collided = true;
+        ball->x_dir *= -1;
+        ball->y_dir *= -1;
+    }
+
+    end_x = ball_x;
+    end_y = ball_y - ball->radius;
+    if (!has_collided && SDL_IntersectRectAndLine(&bottom, &ball_x, &ball_y, &end_x, &end_y)) {
+        has_collided = true;
+        ball->y_dir *= -1;
+    }
+
+    brick->visible = !has_collided;
     return !has_collided;
 }
 

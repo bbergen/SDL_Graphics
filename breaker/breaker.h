@@ -29,6 +29,11 @@
 #define LEVEL_3_TRACK "resources/sounds/breaker/music/level_3.wav"
 #define LEVEL_4_TRACK "resources/sounds/breaker/music/level_4.wav"
 
+typedef struct point {
+    int x;
+    int y;
+} point;
+
 typedef struct score_box {
     SDL_Rect *bounds;
     TTF_Font *font;

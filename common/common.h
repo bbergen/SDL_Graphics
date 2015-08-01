@@ -7,6 +7,7 @@
 
 #define true 1
 #define false 0
+#define PI 3.14159265359
 
 #if DEBUG
 #define assert(expression) if(!(expression)) {*(int*) 0 = 0;}
