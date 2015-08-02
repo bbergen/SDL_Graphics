@@ -292,6 +292,100 @@ render(SDL_Renderer *renderer, breaker_game *game) {
     SDL_RenderPresent(renderer);
 }
 
+static int8_t
+check_paddle_collisions(breaker_paddle *paddle, breaker_ball *ball) {
+
+    static int CORNER_HEIGHT = 3;
+    static int CORNER_WIDTH = 15;
+
+    int p_x = (int) paddle->x;
+    int p_y = (int) paddle->y;
+    int p_width = paddle->width;
+    int p_height = paddle->height;
+
+    int b_x = (int) ball->x;
+    int b_y = (int) ball->y;
+    int radius = ball->radius;
+
+    SDL_Rect top_left = {p_x, p_y, CORNER_WIDTH, CORNER_HEIGHT};
+    SDL_Rect top = {p_x + CORNER_WIDTH, p_y, p_width - CORNER_WIDTH * 2, CORNER_HEIGHT};
+    SDL_Rect top_right = {p_x + p_width - CORNER_WIDTH, p_y, CORNER_WIDTH, CORNER_HEIGHT};
+    SDL_Rect left = {p_x, p_y + CORNER_HEIGHT, CORNER_HEIGHT, p_height - CORNER_HEIGHT * 2};
+    SDL_Rect right = {p_x + p_width - CORNER_WIDTH, p_y + CORNER_HEIGHT, CORNER_HEIGHT, p_height - CORNER_HEIGHT * 2};
+    SDL_Rect bottom_left = {p_x, p_y + p_height - CORNER_HEIGHT, CORNER_WIDTH, CORNER_HEIGHT};
+    SDL_Rect bottom = {p_x + CORNER_WIDTH, p_y + p_height - CORNER_HEIGHT, p_width - CORNER_WIDTH * 2, CORNER_HEIGHT};
+    SDL_Rect bottom_right = {p_x + p_width - CORNER_WIDTH, p_y + p_height - CORNER_HEIGHT, CORNER_WIDTH, CORNER_HEIGHT};
+
+    int8_t has_collided = false;
+    point p;
+
+    p = circle_intersect(315, b_x, b_y, radius);
+    if (SDL_IntersectRectAndLine(&top_left, &b_x, &b_y, &p.x, &p.y)) {
+        has_collided = true;
+        ball->y_dir *= -1;
+        ball->x_dir = - 1; //always bounce left
+        ball->y = top_left.y - ball->radius;
+    }
+
+    p = circle_intersect(270, b_x, b_y, radius);
+    if (!has_collided && SDL_IntersectRectAndLine(&top, &b_x, &b_y, &p.x, &p.y)) {
+        has_collided = true;
+        ball->y_dir *= -1;
+        ball->y = top.y - ball->radius;
+    }
+
+    p = circle_intersect(225, b_x, b_y, radius);
+    if (!has_collided && SDL_IntersectRectAndLine(&top_right, &b_x, &b_y, &p.x, &p.y)) {
+        has_collided = true;
+        ball->y_dir *= -1;
+        ball->x_dir = 1; // always bounce right
+        ball->y = top_right.y - ball->radius;
+    }
+
+    p = circle_intersect(360, b_x, b_y, radius);
+    if (!has_collided && SDL_IntersectRectAndLine(&left, &b_x, &b_y, &p.x, &p.y)) {
+        has_collided = true;
+        ball->x_dir *= -1;
+        ball->x = p_x - ball->radius;
+    }
+
+    p = circle_intersect(180, b_x, b_y, radius);
+    if (!has_collided && SDL_IntersectRectAndLine(&right, &b_x, &b_y, &p.x, &p.y)) {
+        has_collided = true;
+        ball->x_dir *= -1;
+        ball->x = p_x + p_width + ball->radius;
+    }
+
+    p = circle_intersect(45, b_x, b_y, radius);
+    if (!has_collided && SDL_IntersectRectAndLine(&bottom_left, &b_x, &b_y, &p.x, &p.y)) {
+        has_collided = true;
+        ball->y_dir *= -1;
+        ball->x_dir = -1;
+    }
+
+    p = circle_intersect(90, b_x, b_y, radius);
+    if (!has_collided && SDL_IntersectRectAndLine(&bottom, &b_x, &b_y, &p.x, &p.y)) {
+        has_collided = true;
+        ball->y_dir *= -1;
+    }
+
+    p = circle_intersect(135, b_x, b_y, radius);
+    if (!has_collided && SDL_IntersectRectAndLine(&bottom_right, &b_x, &b_y, &p.x, &p.y)) {
+        has_collided = true;
+        ball->y_dir *= -1;
+        ball->x_dir = 1;
+    }
+
+//    if (ball->x - ball->radius <= paddle->x + PADDLE_WIDTH &&
+//        ball->x + ball->radius >= paddle->x &&
+//        ball->y + ball->radius >= paddle->y &&
+//        ball->y - ball->radius <= paddle->y + PADDLE_HEIGHT) {
+//        ball->y_dir *= -1;
+//        return true;
+//    }
+    return has_collided;
+}
+
 static void
 update_ball(breaker_game *game, float delta_t) {
     float speed_x = delta_t * STARTING_SPEED;
@@ -332,12 +426,7 @@ update_ball(breaker_game *game, float delta_t) {
                              game->ball);
 
     // check paddle collision
-    breaker_paddle *paddle = game->player;
-    if (ball->x - ball->radius <= paddle->x + PADDLE_WIDTH &&
-            ball->x + ball->radius >= paddle->x &&
-            ball->y + ball->radius >= paddle->y &&
-            ball->y - ball->radius <= paddle->y + PADDLE_HEIGHT) {
-        ball->y_dir *= -1;
+    if (check_paddle_collisions(game->player, ball)) {
         play_sound_effect(game->sounds->wall_bounce);
     }
 
