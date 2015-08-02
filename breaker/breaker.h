@@ -30,6 +30,11 @@
 #define LEVEL_2_TRACK "resources/sounds/breaker/music/level_2.wav"
 #define LEVEL_3_TRACK "resources/sounds/breaker/music/level_3.wav"
 #define LEVEL_4_TRACK "resources/sounds/breaker/music/level_4.wav"
+#define MUSIC_ON "resources/icons/music_on.png"
+#define MUSIC_OFF "resources/icons/music_off.png"
+#define SOUND_ON "resources/icons/sound_on.png"
+#define SOUND_OFF "resources/icons/sound_off.png"
+#define SCORE_FONT "resources/fonts/jackpot.ttf"
 
 typedef struct point {
     int x;
@@ -37,10 +42,12 @@ typedef struct point {
 } point;
 
 typedef struct score_box {
-    SDL_Rect *bounds;
-    TTF_Font *font;
-    uint32_t current_score;
-    uint32_t high_score;
+    SDL_Surface *music_on;
+    SDL_Surface *music_off;
+    SDL_Surface *sound_on;
+    SDL_Surface *sound_off;
+    TTF_Font *button_label_font;
+    TTF_Font *score_label_font;
 } score_box;
 
 typedef struct breaker_sounds {

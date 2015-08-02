@@ -1,6 +1,7 @@
 //
 // Created by bryan on 7/24/15.
 //
+#include <SDL2/SDL_image.h>
 #include <x86intrin.h>
 #include "breaker.h"
 
@@ -537,8 +538,6 @@ run(void) {
         error(SDL_GetError);
     }
 
-    //TODO load fonts
-
     Mix_Music *level_1 = Mix_LoadMUS(LEVEL_1_TRACK);
     Mix_Chunk *wall_bounce = Mix_LoadWAV(WALL_BOUNCE);
     Mix_Chunk *brick_bounce = Mix_LoadWAV(BRICK_BOUNCE);
@@ -571,10 +570,35 @@ run(void) {
     list brick_list;
     build_brick_list(&brick_list, renderer, brick_break, 60);
 
+    TTF_Font *button_font = TTF_OpenFont(SCORE_FONT, 12);
+    TTF_Font *score_font = TTF_OpenFont(SCORE_FONT, 25);
+
+    if (!button_font || !score_font) {
+        error(TTF_GetError);
+    }
+
+    SDL_Surface *music_on = IMG_Load(MUSIC_ON);
+    SDL_Surface *music_off = IMG_Load(MUSIC_OFF);
+    SDL_Surface *sound_on = IMG_Load(SOUND_ON);
+    SDL_Surface *sound_off = IMG_Load(SOUND_OFF);
+
+    if (!music_on || !music_off || !sound_on || !sound_off) {
+        error(IMG_GetError);
+    }
+
+    score_box box = {
+        music_on,
+        music_off,
+        sound_on,
+        sound_off,
+        button_font,
+        score_font
+    };
+
     breaker_game game = {
             &ball,
             &paddle,
-            NULL,
+            &box,
             &sounds,
             false,
             false,
@@ -621,6 +645,8 @@ run(void) {
     Mix_FreeChunk(wall_bounce);
     Mix_FreeChunk(brick_bounce);
     Mix_FreeChunk(brick_break);
+    TTF_CloseFont(button_font);
+    TTF_CloseFont(score_font);
 }
 
 static void
@@ -632,6 +658,10 @@ init(void) {
 
     if (TTF_Init() < 0) {
         error(TTF_GetError);
+    }
+
+    if (!(IMG_Init(IMG_INIT_PNG) & IMG_INIT_PNG)) {
+        error(IMG_GetError);
     }
 
     if (Mix_OpenAudio(AUDIO_FREQUENCY,
