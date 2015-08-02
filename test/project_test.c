@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "list.h"
+#include "util.h"
 
 typedef struct test_data {
     char *display_text;
@@ -49,8 +50,8 @@ allocate_test_data(test_data *test, char *display_text, int x, int y) {
     *test->y = y;
 }
 
-int
-main(int argc, char **argv) {
+static void
+run_list_test(void) {
     printf("Starting List Tests...\n");
 
     list test_list;
@@ -78,6 +79,30 @@ main(int argc, char **argv) {
     free_list(&test_list);
     printf("Address of freed test_list head: %p\n", test_list.head);
 
-    printf("List Test Completed\n");
+    printf("List Test Completed\n\n");
+}
+
+static void
+run_util_test(void) {
+    printf("Starting Util Tests...\n");
+
+    int n = 123;
+    char *expected = "0000123";
+    char test[50];
+    itoa(n, test, 7);
+    printf("Expected: %s, Result: %s\n\n", expected, test);
+
+    n = 54321;
+    char test2[50];
+    itoa(n, test2, 0);
+    printf("Expected: %d, Result: %s\n\n", n, test2);
+
+    printf("Util Tests Completed\n\n");
+}
+
+int
+main(int argc, char **argv) {
+    run_list_test();
+    run_util_test();
     return EXIT_SUCCESS;
 }

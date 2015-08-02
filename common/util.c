@@ -6,6 +6,18 @@
 #include "util.h"
 #include "common.h"
 
+static void
+reverse(char s[]) {
+    int tmp;
+    int j;
+
+    for (int i = 0, j = strlen(s) - 1; i < j; i++, j--) {
+        tmp = s[i];
+        s[i] = s[j];
+        s[j] = tmp;
+    }
+}
+
 void
 itoa(int n, char s[], int pad) {
     //ensure there is enough room in s including '/0'
@@ -27,16 +39,4 @@ itoa(int n, char s[], int pad) {
 
     s[i] = '\0';
     reverse(s);
-}
-
-static void
-reverse(char s[]) {
-    int tmp;
-    int j;
-
-    for (int i = 0, j = strlen(s) - 1; i < j; i++, j--) {
-        tmp = s[i];
-        s[i] = s[j];
-        s[j] = tmp;
-    }
 }

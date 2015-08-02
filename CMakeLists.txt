@@ -7,14 +7,14 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${SDL_Graphics_SOURCE_DIR}/bin)
 add_definitions(-DDEBUG=1)
 
 include_directories(common)
-set(TEST_SOURCE test/list_test.c common/list.c)
+set(TEST_SOURCE test/project_test.c common/list.c common/util.c)
 set(BALL_SOURCE ball/ball.c)
 set(PONG_SOURCE pong/pong.c pong/pong.h)
 set(BREAKER_SOURCE breaker/breaker.c breaker/breaker.h common/list.c)
 add_executable(SDL_Ball ${BALL_SOURCE})
 add_executable(SDL_Pong ${PONG_SOURCE})
 add_executable(SDL_Breaker ${BREAKER_SOURCE})
-add_executable(TEST_List ${TEST_SOURCE})
+add_executable(TEST_Common ${TEST_SOURCE})
 
 INCLUDE(FindPkgConfig)
 
