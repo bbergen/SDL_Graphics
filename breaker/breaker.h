@@ -22,6 +22,7 @@
 #define PADDLE_WIDTH 75
 #define BRICK_WIDTH SCREEN_WIDTH / 12
 #define BRICK_HEIGHT 15
+#define CEILING 75
 
 #define WALL_BOUNCE "resources/sounds/breaker/effects/wall_bounce.wav"
 #define BRICK_BOUNCE "resources/sounds/breaker/effects/brick_bounce.wav"
@@ -41,13 +42,38 @@ typedef struct point {
     int y;
 } point;
 
+typedef struct button {
+    SDL_Rect *bounds;
+    SDL_Texture *icon_on;
+    SDL_Texture *icon_off;
+    int8_t active;
+} button;
+
+typedef struct text_field {
+    SDL_Rect *bounds;
+    char *text;
+    SDL_Color *background;
+    SDL_Color *foreground;
+    TTF_Font *font;
+} text_field;
+
+typedef struct label {
+    SDL_Rect *bounds;
+    char *text;
+    TTF_Font *font;
+} label;
+
 typedef struct score_box {
-    SDL_Surface *music_on;
-    SDL_Surface *music_off;
-    SDL_Surface *sound_on;
-    SDL_Surface *sound_off;
-    TTF_Font *button_label_font;
-    TTF_Font *score_label_font;
+    button *music;
+    button *sound;
+    text_field *high_score;
+    text_field *current_score;
+    text_field *lives;
+    label *music_label;
+    label *sound_label;
+    label *lives_label;
+    label *high_score_label;
+    label *current_score_label;
 } score_box;
 
 typedef struct breaker_sounds {
@@ -90,6 +116,9 @@ typedef struct breaker_game {
     int8_t key_right_down;
     int8_t key_left_down;
     list *brick_list;
+    int lives;
+    int high_score;
+    int current_score;
 } breaker_game;
 
 static const SDL_Color WHITE = {

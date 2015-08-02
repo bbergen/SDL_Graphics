@@ -273,6 +273,53 @@ render_paddle(SDL_Renderer *renderer, breaker_paddle *paddle) {
 }
 
 static void
+render_button(SDL_Renderer *renderer, button *b) {
+
+}
+
+static void
+render_text_field(SDL_Renderer *renderer, text_field *tf) {
+
+}
+
+static void
+render_label(SDL_Renderer *renderer, label *l) {
+
+}
+
+static void
+render_score_box(SDL_Renderer *renderer,
+                 score_box *box,
+                 int high_score, int current_score, int lives) {
+
+    static const int OFFSET = 5;
+
+    SDL_Rect outline = {
+            OFFSET, OFFSET, SCREEN_WIDTH - (OFFSET << 1), CEILING - 4
+    };
+
+    SDL_SetRenderDrawColor(renderer, BLACK.r, BLACK.g, BLACK.b, BLACK.a);
+    SDL_RenderDrawRect(renderer, &outline);
+    SDL_RenderDrawLine(renderer, 0, CEILING, SCREEN_WIDTH, CEILING);
+
+    //draw labels
+    render_label(renderer, box->sound_label);
+    render_label(renderer, box->music_label);
+    render_label(renderer, box->high_score_label);
+    render_label(renderer, box->current_score_label);
+    render_label(renderer, box->lives_label);
+
+    //draw buttons
+    render_button(renderer, box->music);
+    render_button(renderer, box->sound);
+
+    //draw text fields
+    render_text_field(renderer, box->high_score);
+    render_text_field(renderer, box->current_score);
+    render_text_field(renderer, box->lives);
+}
+
+static void
 render(SDL_Renderer *renderer, breaker_game *game) {
     // clear screen
     SDL_SetRenderDrawColor(renderer,
@@ -285,6 +332,7 @@ render(SDL_Renderer *renderer, breaker_game *game) {
     // render game objects
     render_ball(renderer, game->ball);
     render_paddle(renderer, game->player);
+    render_score_box(renderer, game->score, game->high_score, game->current_score, game->lives);
 
     //render bricks
     list_for_each(game->brick_list, render_brick);
@@ -377,13 +425,6 @@ check_paddle_collisions(breaker_paddle *paddle, breaker_ball *ball) {
         ball->x_dir = 1;
     }
 
-//    if (ball->x - ball->radius <= paddle->x + PADDLE_WIDTH &&
-//        ball->x + ball->radius >= paddle->x &&
-//        ball->y + ball->radius >= paddle->y &&
-//        ball->y - ball->radius <= paddle->y + PADDLE_HEIGHT) {
-//        ball->y_dir *= -1;
-//        return true;
-//    }
     return has_collided;
 }
 
@@ -408,8 +449,8 @@ update_ball(breaker_game *game, float delta_t) {
     }
 
     // check top
-    if (ball->y <= ball->radius) {
-        ball->y = ball->radius;
+    if (ball->y <= ball->radius + CEILING) {
+        ball->y = ball->radius + CEILING;
         ball->y_dir *= -1;
         play_sound_effect(game->sounds->wall_bounce);
     }
@@ -586,13 +627,17 @@ run(void) {
         error(IMG_GetError);
     }
 
+    SDL_Texture *music_on_text = SDL_CreateTextureFromSurface(renderer, music_on);
+    SDL_Texture *music_off_text = SDL_CreateTextureFromSurface(renderer, music_off);
+    SDL_Texture *sound_on_text = SDL_CreateTextureFromSurface(renderer, sound_on);
+    SDL_Texture *sound_off_text = SDL_CreateTextureFromSurface(renderer, sound_off);
+
+    if (!music_on_text || !music_off_text || !sound_on_text || !sound_off_text) {
+        error(SDL_GetError);
+    }
+
     score_box box = {
-        music_on,
-        music_off,
-        sound_on,
-        sound_off,
-        button_font,
-        score_font
+
     };
 
     breaker_game game = {
@@ -602,7 +647,10 @@ run(void) {
             &sounds,
             false,
             false,
-            &brick_list
+            &brick_list,
+            3,
+            99999,
+            12345
     };
 
     int8_t running = true;

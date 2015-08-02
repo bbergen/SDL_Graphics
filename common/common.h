@@ -8,6 +8,7 @@
 #define true 1
 #define false 0
 #define PI 3.14159265359
+#define count(array) (sizeof(array) / sizeof((array)[0]))
 
 #if DEBUG
 #define assert(expression) if(!(expression)) {*(int*) 0 = 0;}
