@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 usage="Usage: $0 [-a] file"
-append=false
+base_command="valgrind --leak-check=yes"
 output_file="mem_report.txt"
 
 if [ $# -ne 1 ] && [ $# -ne 2 ];
@@ -16,19 +16,19 @@ then
     exit
 fi
 
-if [ $1 = '-a' ];
+if [ $1 = '-a' ] && [ -x $2 ];
 then
-    append=true
-fi
-
-if [ "$append" = true ] && [ -x $2 ];
-then
-    $(valgrind --leak-check=yes ./"$2" >> "$output_file" 2>&1)
+    base_command="$base_command ./$2 >>"
+    executable=$2
 elif [ -x $1 ];
 then
-    $(valgrind --leak-check=yes ./"$1" > "$output_file" 2>&1)
+    base_command="$base_command ./$1 >"
+    executable=$1
 else
     echo "Error: Not an executable file"
     echo "$usage"
     exit
 fi
+
+output_file="mem_report_${executable}.txt"
+eval "${base_command} ${output_file} 2>&1"
