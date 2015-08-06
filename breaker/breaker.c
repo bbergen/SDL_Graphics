@@ -300,13 +300,31 @@ render_score_box(SDL_Renderer *renderer,
             BUTTON_SIZE,
             BUTTON_SIZE
     };
-    SDL_RenderCopy(renderer, box->music_on_icon, NULL, &button);
+    SDL_RenderCopy(renderer, box->music_on_icon, NULL, &button); //TODO increase the quality of the icon rendering
     SDL_RenderDrawRect(renderer, &button);
+
+    SDL_Surface *music_surface = TTF_RenderText_Blended(box->button_font, "Music", BLACK);
+    SDL_Texture *music_texture = SDL_CreateTextureFromSurface(renderer, music_surface);
+    SDL_Rect text_box = {
+            button.x + ((BUTTON_SIZE - music_surface->w) >> 1), OFFSET << 1, music_surface->w, music_surface->h
+    };
+    //TODO refactoring the above calls to be init somewhere else, there is a significant performance hit
+    SDL_RenderCopy(renderer, music_texture, NULL, &text_box);
+    SDL_DestroyTexture(music_texture);
 
     //draw sound button
     button.x += BUTTON_SIZE + OFFSET;
-    SDL_RenderCopy(renderer, box->sound_on_icon, NULL, &button);
+    SDL_RenderCopy(renderer, box->sound_on_icon, NULL, &button); //TODO increase the quality of the icon rendering
     SDL_RenderDrawRect(renderer, &button);
+
+    SDL_Surface *sound_surface = TTF_RenderText_Blended(box->button_font, "Sound", BLACK);
+    SDL_Texture *sound_texture = SDL_CreateTextureFromSurface(renderer, sound_surface);
+    text_box.x = button.x + ((BUTTON_SIZE - sound_surface->w) >> 1);
+    text_box.w = sound_surface->w;
+    text_box.h = sound_surface->h;
+    //TODO refactoring the above calls to be init somewhere else, there is a significant performance hit
+    SDL_RenderCopy(renderer, sound_texture, NULL, &text_box);
+    SDL_DestroyTexture(sound_texture);
 
     //draw high score box
     int field_size = (score_box_width - ((BUTTON_SIZE * 3) + OFFSET * 6)) >> 1;
@@ -314,15 +332,41 @@ render_score_box(SDL_Renderer *renderer,
     button.w = field_size;
     SDL_RenderDrawRect(renderer, &button);
 
+    SDL_Surface *high_score_surface = TTF_RenderText_Blended(box->button_font, "High Score", BLACK);
+    SDL_Texture *high_score_texture = SDL_CreateTextureFromSurface(renderer, high_score_surface);
+    text_box.x = button.x + ((field_size - high_score_surface->w) >> 1);
+    text_box.w = high_score_surface->w;
+    text_box.h = high_score_surface->h;
+    //TODO refactoring the above calls to be init somewhere else, there is a significant performance hit
+    SDL_RenderCopy(renderer, high_score_texture, NULL, &text_box);
+    SDL_DestroyTexture(high_score_texture);
+
     //draw current score box
     button.x += field_size + OFFSET;
     SDL_RenderDrawRect(renderer, &button);
+
+    SDL_Surface *current_score_surface = TTF_RenderText_Blended(box->button_font, "Current Score", BLACK);
+    SDL_Texture *current_score_texture = SDL_CreateTextureFromSurface(renderer, current_score_surface);
+    text_box.x = button.x + ((field_size - current_score_surface->w) >> 1);
+    text_box.w = current_score_surface->w;
+    text_box.h = current_score_surface->h;
+    //TODO refactoring the above calls to be init somewhere else, there is a significant performance hit
+    SDL_RenderCopy(renderer, current_score_texture, NULL, &text_box);
+    SDL_DestroyTexture(current_score_texture);
 
     //draw lives box
     button.x += field_size + OFFSET;
     button.w = BUTTON_SIZE;
     SDL_RenderDrawRect(renderer, &button);
 
+    SDL_Surface *lives_surface = TTF_RenderText_Blended(box->button_font, "Lives", BLACK);
+    SDL_Texture *lives_texture = SDL_CreateTextureFromSurface(renderer, lives_surface);
+    text_box.x = button.x + ((BUTTON_SIZE - lives_surface->w) >> 1);
+    text_box.w = lives_surface->w;
+    text_box.h = lives_surface->h;
+    //TODO refactoring the above calls to be init somewhere else, there is a significant performance hit
+    SDL_RenderCopy(renderer, lives_texture, NULL, &text_box);
+    SDL_DestroyTexture(lives_texture);
 }
 
 static void
@@ -618,7 +662,7 @@ run(void) {
     list brick_list;
     build_brick_list(&brick_list, renderer, brick_break, 60);
 
-    TTF_Font *button_font = TTF_OpenFont(SCORE_FONT, 12);
+    TTF_Font *button_font = TTF_OpenFont(SCORE_FONT, 18);
     TTF_Font *label_font = TTF_OpenFont(SCORE_FONT, 28);
     TTF_Font *score_font = TTF_OpenFont(SCORE_FONT, 25);
 
