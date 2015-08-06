@@ -2,6 +2,7 @@ SDL Graphics
 ============
 
 #### A small project for learning [Simple DirectMedia Layer 2.0](https://www.libsdl.org/) library
+As well as learning more C, developing style with the language, and enjoying building much from scratch
 
 Sub-Projects
 ------------
