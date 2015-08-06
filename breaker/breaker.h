@@ -36,7 +36,7 @@
 #define SOUND_ON "resources/icons/sound_on.png"
 #define SOUND_OFF "resources/icons/sound_off.png"
 #define SCORE_TEXTURE "resources/textures/score_box.png"
-#define SCORE_FONT "resources/fonts/jackpot.ttf"
+#define SCORE_FONT "resources/fonts/built_tiling.ttf"
 
 typedef struct point {
     int x;
