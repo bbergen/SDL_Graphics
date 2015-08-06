@@ -14,7 +14,7 @@ reverse(char s[]) {
     for (int i = 0, j = strlen(s) - 1; i < j; i++, j--) {
         tmp = s[i];
         s[i] = s[j];
-        s[j] = tmp;
+        s[j] = (char) tmp;
     }
 }
 
@@ -28,7 +28,7 @@ itoa(int n, char s[], int pad) {
 
     i = 0;
     do {
-        s[i++] = n % 10 + '0';
+        s[i++] = (char) (n % 10 + '0');
         digit++;
     } while ((n /= 10) > 0);
 

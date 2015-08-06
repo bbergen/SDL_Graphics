@@ -28,6 +28,7 @@ print_test_node(void *data) {
     test_data *test = (test_data*) data;
     printf("Printing: %s\n", test->display_text);
     printf("X: %d, Y: %d\n\n", *test->x, *test->y);
+    return true;
 }
 
 static int8_t
@@ -36,6 +37,7 @@ print_test_node_params(void *data, void *param) {
     char *param_string = (char*) param;
     printf("Printing: %s\n", test->display_text);
     printf("Parameter: %s\n\n", param_string);
+    return true;
 }
 
 static void
@@ -83,7 +85,7 @@ run_list_test(void) {
 }
 
 static void
-run_util_test(void) {
+run_itoa_test(void) {
     printf("Starting Util Tests...\n");
 
     int n = 123;
@@ -103,6 +105,6 @@ run_util_test(void) {
 int
 main(int argc, char **argv) {
     run_list_test();
-    run_util_test();
+    run_itoa_test();
     return EXIT_SUCCESS;
 }
