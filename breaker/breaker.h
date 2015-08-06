@@ -35,6 +35,7 @@
 #define MUSIC_OFF "resources/icons/music_off.png"
 #define SOUND_ON "resources/icons/sound_on.png"
 #define SOUND_OFF "resources/icons/sound_off.png"
+#define SCORE_TEXTURE "resources/textures/score_box.png"
 #define SCORE_FONT "resources/fonts/jackpot.ttf"
 
 typedef struct point {
@@ -42,38 +43,14 @@ typedef struct point {
     int y;
 } point;
 
-typedef struct button {
-    SDL_Rect *bounds;
-    SDL_Texture *icon_on;
-    SDL_Texture *icon_off;
-    int8_t active;
-} button;
-
-typedef struct text_field {
-    SDL_Rect *bounds;
-    char *text;
-    SDL_Color *background;
-    SDL_Color *foreground;
-    TTF_Font *font;
-} text_field;
-
-typedef struct label {
-    SDL_Rect *bounds;
-    char *text;
-    TTF_Font *font;
-} label;
-
 typedef struct score_box {
-    button *music;
-    button *sound;
-    text_field *high_score;
-    text_field *current_score;
-    text_field *lives;
-    label *music_label;
-    label *sound_label;
-    label *lives_label;
-    label *high_score_label;
-    label *current_score_label;
+    SDL_Texture *music_on_icon;
+    SDL_Texture *music_off_icon;
+    SDL_Texture *sound_on_icon;
+    SDL_Texture *sound_off_icon;
+    TTF_Font *button_font;
+    TTF_Font *label_font;
+    TTF_Font *score_font;
 } score_box;
 
 typedef struct breaker_sounds {

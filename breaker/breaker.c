@@ -273,60 +273,67 @@ render_paddle(SDL_Renderer *renderer, breaker_paddle *paddle) {
 }
 
 static void
-render_button(SDL_Renderer *renderer, button *b) {
-
-}
-
-static void
-render_text_field(SDL_Renderer *renderer, text_field *tf) {
-
-}
-
-static void
-render_label(SDL_Renderer *renderer, label *l) {
-
-}
-
-static void
 render_score_box(SDL_Renderer *renderer,
                  score_box *box,
                  int high_score, int current_score, int lives) {
 
     static const int OFFSET = 5;
+    int score_box_width = SCREEN_WIDTH - (OFFSET << 1);
 
+    //draw outline
     SDL_Rect outline = {
-            OFFSET, OFFSET, SCREEN_WIDTH - (OFFSET << 1), CEILING - 4
+            OFFSET, OFFSET, score_box_width, CEILING - 4
     };
-
+    SDL_SetRenderDrawColor(renderer, WHITE.r, WHITE.g, WHITE.b, WHITE.a);
+    SDL_RenderFillRect(renderer, &outline);
     SDL_SetRenderDrawColor(renderer, BLACK.r, BLACK.g, BLACK.b, BLACK.a);
     SDL_RenderDrawRect(renderer, &outline);
+
+    //draw ceiling line
     SDL_RenderDrawLine(renderer, 0, CEILING, SCREEN_WIDTH, CEILING);
 
-    //draw labels
-    render_label(renderer, box->sound_label);
-    render_label(renderer, box->music_label);
-    render_label(renderer, box->high_score_label);
-    render_label(renderer, box->current_score_label);
-    render_label(renderer, box->lives_label);
+    //draw music button
+    static int BUTTON_SIZE = 40;
+    SDL_Rect button = {
+            OFFSET << 1,
+            CEILING - (OFFSET + BUTTON_SIZE),
+            BUTTON_SIZE,
+            BUTTON_SIZE
+    };
+    SDL_RenderCopy(renderer, box->music_on_icon, NULL, &button);
+    SDL_RenderDrawRect(renderer, &button);
 
-    //draw buttons
-    render_button(renderer, box->music);
-    render_button(renderer, box->sound);
+    //draw sound button
+    button.x += BUTTON_SIZE + OFFSET;
+    SDL_RenderCopy(renderer, box->sound_on_icon, NULL, &button);
+    SDL_RenderDrawRect(renderer, &button);
 
-    //draw text fields
-    render_text_field(renderer, box->high_score);
-    render_text_field(renderer, box->current_score);
-    render_text_field(renderer, box->lives);
+    //draw high score box
+    int field_size = (score_box_width - ((BUTTON_SIZE * 3) + OFFSET * 6)) >> 1;
+    button.x += BUTTON_SIZE + OFFSET;
+    button.w = field_size;
+    SDL_RenderDrawRect(renderer, &button);
+
+    //draw current score box
+    button.x += field_size + OFFSET;
+    SDL_RenderDrawRect(renderer, &button);
+
+    //draw lives box
+    button.x += field_size + OFFSET;
+    button.w = BUTTON_SIZE;
+    SDL_RenderDrawRect(renderer, &button);
+
 }
 
 static void
 render(SDL_Renderer *renderer, breaker_game *game) {
     // clear screen
     SDL_SetRenderDrawColor(renderer,
-                           WHITE.r,
-                           WHITE.g,
-                           WHITE.b,
-                           WHITE.a);
+                           0xAE,
+                           0xC6,
+                           0xCF,
+                           0xFF);
+    //TODO make this constant color if I want to keep it.
     SDL_RenderClear(renderer);
 
     // render game objects
@@ -612,9 +619,10 @@ run(void) {
     build_brick_list(&brick_list, renderer, brick_break, 60);
 
     TTF_Font *button_font = TTF_OpenFont(SCORE_FONT, 12);
+    TTF_Font *label_font = TTF_OpenFont(SCORE_FONT, 28);
     TTF_Font *score_font = TTF_OpenFont(SCORE_FONT, 25);
 
-    if (!button_font || !score_font) {
+    if (!button_font || !score_font || !label_font) {
         error(TTF_GetError);
     }
 
@@ -627,17 +635,23 @@ run(void) {
         error(IMG_GetError);
     }
 
-    SDL_Texture *music_on_text = SDL_CreateTextureFromSurface(renderer, music_on);
-    SDL_Texture *music_off_text = SDL_CreateTextureFromSurface(renderer, music_off);
-    SDL_Texture *sound_on_text = SDL_CreateTextureFromSurface(renderer, sound_on);
-    SDL_Texture *sound_off_text = SDL_CreateTextureFromSurface(renderer, sound_off);
+    SDL_Texture *music_on_icon = SDL_CreateTextureFromSurface(renderer, music_on);
+    SDL_Texture *music_off_icon = SDL_CreateTextureFromSurface(renderer, music_off);
+    SDL_Texture *sound_on_icon = SDL_CreateTextureFromSurface(renderer, sound_on);
+    SDL_Texture *sound_off_icon = SDL_CreateTextureFromSurface(renderer, sound_off);
 
-    if (!music_on_text || !music_off_text || !sound_on_text || !sound_off_text) {
+    if (!music_on_icon || !music_off_icon || !sound_on_icon || !sound_off_icon) {
         error(SDL_GetError);
     }
 
     score_box box = {
-
+            music_on_icon,
+            music_off_icon,
+            sound_on_icon,
+            sound_off_icon,
+            button_font,
+            label_font,
+            score_font
     };
 
     breaker_game game = {
