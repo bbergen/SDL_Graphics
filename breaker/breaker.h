@@ -93,6 +93,7 @@ typedef struct breaker_ball {
     int radius;
     int8_t x_dir;
     int8_t y_dir;
+    int8_t sound_effects_on;
 } breaker_ball;
 
 typedef struct breaker_game {
@@ -106,6 +107,9 @@ typedef struct breaker_game {
     int lives;
     int high_score;
     int current_score;
+    int8_t mouse_down;
+    int mouse_x;
+    int mouse_y;
 } breaker_game;
 
 static const SDL_Color WHITE = {

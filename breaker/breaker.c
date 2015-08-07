@@ -3,6 +3,7 @@
 //
 #include <SDL2/SDL_image.h>
 #include <x86intrin.h>
+#include <list.h>
 #include "breaker.h"
 
 static void
@@ -124,7 +125,7 @@ has_brick_ball_collided(void *brick_arg, void *ball_arg) {
         ball->y_dir *= -1;
     }
 
-    if (has_collided) {
+    if (has_collided && ball->sound_effects_on) {
         play_sound_effect(brick->brick_break);
     }
 
@@ -480,28 +481,36 @@ update_ball(breaker_game *game, float delta_t) {
     if (ball->x <= ball->radius) {
         ball->x = ball->radius;
         ball->x_dir *= -1;
-        play_sound_effect(game->sounds->wall_bounce);
+        if (game->ball->sound_effects_on) {
+            play_sound_effect(game->sounds->wall_bounce);
+        }
     }
 
     // check right
     if (ball->x >= SCREEN_WIDTH - ball->radius) {
         ball->x = SCREEN_WIDTH - ball->radius;
         ball->x_dir *= -1;
-        play_sound_effect(game->sounds->wall_bounce);
+        if (game->ball->sound_effects_on) {
+            play_sound_effect(game->sounds->wall_bounce);
+        }
     }
 
     // check top
     if (ball->y <= ball->radius + CEILING) {
         ball->y = ball->radius + CEILING;
         ball->y_dir *= -1;
-        play_sound_effect(game->sounds->wall_bounce);
+        if (game->ball->sound_effects_on) {
+            play_sound_effect(game->sounds->wall_bounce);
+        }
     }
 
     // check bottom
     if (ball->y >= SCREEN_HEIGHT - ball->radius) {
         ball->y = SCREEN_HEIGHT - ball->radius;
         ball->y_dir *= -1;
-        play_sound_effect(game->sounds->wall_bounce);
+        if (game->ball->sound_effects_on) {
+            play_sound_effect(game->sounds->wall_bounce);
+        }
     }
 
     // check brick collisions
@@ -511,7 +520,9 @@ update_ball(breaker_game *game, float delta_t) {
 
     // check paddle collision
     if (check_paddle_collisions(game->player, ball)) {
-        play_sound_effect(game->sounds->wall_bounce);
+        if (game->ball->sound_effects_on) {
+            play_sound_effect(game->sounds->wall_bounce);
+        }
     }
 
 
@@ -575,6 +586,15 @@ process_event(SDL_Event *event, breaker_game * game, int8_t *running) {
                 default:
                     break;
             }
+            break;
+        case SDL_MOUSEMOTION:
+            SDL_GetMouseState(&game->mouse_x, &game->mouse_y);
+            break;
+        case SDL_MOUSEBUTTONUP:
+            game->mouse_down = false;
+            break;
+        case SDL_MOUSEBUTTONDOWN:
+            game->mouse_down = true;
             break;
         default:
             break;
@@ -641,6 +661,7 @@ run(void) {
             SCREEN_HEIGHT >> 1,
             BALL_SIZE,
             1, 1,
+            true
     };
 
     breaker_paddle paddle = {
@@ -732,7 +753,9 @@ run(void) {
             &brick_list,
             3,
             99999,
-            12345
+            12345,
+            false,
+            0, 0
     };
 
     int8_t running = true;
@@ -770,6 +793,7 @@ run(void) {
     }
 
     //free resources
+    //TODO free more stuff (font textures, etc.)
     free_list(game.brick_list);
     Mix_FreeMusic(level_1);
     Mix_FreeChunk(wall_bounce);
