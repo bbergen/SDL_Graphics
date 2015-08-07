@@ -273,16 +273,20 @@ render_paddle(SDL_Renderer *renderer, breaker_paddle *paddle) {
 }
 
 static void
+render_label(SDL_Renderer *renderer, label *l) {
+    SDL_RenderCopy(renderer, l->text, NULL, l->bounds);
+}
+
+static void
 render_score_box(SDL_Renderer *renderer,
                  score_box *box,
                  int high_score, int current_score, int lives) {
 
-    static const int OFFSET = 5;
-    int score_box_width = SCREEN_WIDTH - (OFFSET << 1);
+    int score_box_width = SCREEN_WIDTH - (SCORE_OFFSET<< 1);
 
     //draw outline
     SDL_Rect outline = {
-            OFFSET, OFFSET, score_box_width, CEILING - 4
+            SCORE_OFFSET, SCORE_OFFSET, score_box_width, CEILING - 4
     };
     SDL_SetRenderDrawColor(renderer, WHITE.r, WHITE.g, WHITE.b, WHITE.a);
     SDL_RenderFillRect(renderer, &outline);
@@ -293,80 +297,48 @@ render_score_box(SDL_Renderer *renderer,
     SDL_RenderDrawLine(renderer, 0, CEILING, SCREEN_WIDTH, CEILING);
 
     //draw music button
-    static int BUTTON_SIZE = 40;
     SDL_Rect button = {
-            OFFSET << 1,
-            CEILING - (OFFSET + BUTTON_SIZE),
+            SCORE_OFFSET << 1,
+            CEILING - (SCORE_OFFSET + BUTTON_SIZE),
             BUTTON_SIZE,
             BUTTON_SIZE
     };
     SDL_RenderCopy(renderer, box->music_on_icon, NULL, &button); //TODO increase the quality of the icon rendering
     SDL_RenderDrawRect(renderer, &button);
 
-    SDL_Surface *music_surface = TTF_RenderText_Blended(box->button_font, "Music", BLACK);
-    SDL_Texture *music_texture = SDL_CreateTextureFromSurface(renderer, music_surface);
-    SDL_Rect text_box = {
-            button.x + ((BUTTON_SIZE - music_surface->w) >> 1), OFFSET << 1, music_surface->w, music_surface->h
-    };
-    //TODO refactoring the above calls to be init somewhere else, there is a significant performance hit
-    SDL_RenderCopy(renderer, music_texture, NULL, &text_box);
-    SDL_DestroyTexture(music_texture);
+//    SDL_Rect text_box = {
+//            button.x + ((BUTTON_SIZE - music_surface->w) >> 1), OFFSET << 1, music_surface->w, music_surface->h
+//    };
+    render_label(renderer, box->music);
+//    SDL_RenderCopy(renderer, box->music->text, NULL, box->music->bounds);
 
     //draw sound button
-    button.x += BUTTON_SIZE + OFFSET;
+    button.x += BUTTON_SIZE + SCORE_OFFSET;
     SDL_RenderCopy(renderer, box->sound_on_icon, NULL, &button); //TODO increase the quality of the icon rendering
     SDL_RenderDrawRect(renderer, &button);
 
-    SDL_Surface *sound_surface = TTF_RenderText_Blended(box->button_font, "Sound", BLACK);
-    SDL_Texture *sound_texture = SDL_CreateTextureFromSurface(renderer, sound_surface);
-    text_box.x = button.x + ((BUTTON_SIZE - sound_surface->w) >> 1);
-    text_box.w = sound_surface->w;
-    text_box.h = sound_surface->h;
-    //TODO refactoring the above calls to be init somewhere else, there is a significant performance hit
-    SDL_RenderCopy(renderer, sound_texture, NULL, &text_box);
-    SDL_DestroyTexture(sound_texture);
+    render_label(renderer, box->sound);
 
     //draw high score box
-    int field_size = (score_box_width - ((BUTTON_SIZE * 3) + OFFSET * 6)) >> 1;
-    button.x += BUTTON_SIZE + OFFSET;
+    int field_size = (score_box_width - ((BUTTON_SIZE * 3) + SCORE_OFFSET * 6)) >> 1;
+    button.x += BUTTON_SIZE + SCORE_OFFSET;
     button.w = field_size;
     SDL_RenderDrawRect(renderer, &button);
 
-    SDL_Surface *high_score_surface = TTF_RenderText_Blended(box->button_font, "High Score", BLACK);
-    SDL_Texture *high_score_texture = SDL_CreateTextureFromSurface(renderer, high_score_surface);
-    text_box.x = button.x + ((field_size - high_score_surface->w) >> 1);
-    text_box.w = high_score_surface->w;
-    text_box.h = high_score_surface->h;
-    //TODO refactoring the above calls to be init somewhere else, there is a significant performance hit
-    SDL_RenderCopy(renderer, high_score_texture, NULL, &text_box);
-    SDL_DestroyTexture(high_score_texture);
+    render_label(renderer, box->high_score);
 
     //draw current score box
-    button.x += field_size + OFFSET;
+    button.x += field_size + SCORE_OFFSET;
     SDL_RenderDrawRect(renderer, &button);
 
-    SDL_Surface *current_score_surface = TTF_RenderText_Blended(box->button_font, "Current Score", BLACK);
-    SDL_Texture *current_score_texture = SDL_CreateTextureFromSurface(renderer, current_score_surface);
-    text_box.x = button.x + ((field_size - current_score_surface->w) >> 1);
-    text_box.w = current_score_surface->w;
-    text_box.h = current_score_surface->h;
-    //TODO refactoring the above calls to be init somewhere else, there is a significant performance hit
-    SDL_RenderCopy(renderer, current_score_texture, NULL, &text_box);
-    SDL_DestroyTexture(current_score_texture);
+    render_label(renderer, box->current_score);
 
     //draw lives box
-    button.x += field_size + OFFSET;
+    button.x += field_size + SCORE_OFFSET;
     button.w = BUTTON_SIZE;
     SDL_RenderDrawRect(renderer, &button);
 
-    SDL_Surface *lives_surface = TTF_RenderText_Blended(box->button_font, "Lives", BLACK);
-    SDL_Texture *lives_texture = SDL_CreateTextureFromSurface(renderer, lives_surface);
-    text_box.x = button.x + ((BUTTON_SIZE - lives_surface->w) >> 1);
-    text_box.w = lives_surface->w;
-    text_box.h = lives_surface->h;
-    //TODO refactoring the above calls to be init somewhere else, there is a significant performance hit
-    SDL_RenderCopy(renderer, lives_texture, NULL, &text_box);
-    SDL_DestroyTexture(lives_texture);
+    render_label(renderer, box->lives);
 }
 
 static void
@@ -688,14 +660,89 @@ run(void) {
         error(SDL_GetError);
     }
 
+    SDL_Surface *music_surface = TTF_RenderText_Blended(button_font, "Music", BLACK);
+    SDL_Texture *music_texture = SDL_CreateTextureFromSurface(renderer, music_surface);
+    SDL_Surface *sound_surface = TTF_RenderText_Blended(button_font, "Sound", BLACK);
+    SDL_Texture *sound_texture = SDL_CreateTextureFromSurface(renderer, sound_surface);
+    SDL_Surface *high_score_surface = TTF_RenderText_Blended(button_font, "High Score", BLACK);
+    SDL_Texture *high_score_texture = SDL_CreateTextureFromSurface(renderer, high_score_surface);
+    SDL_Surface *current_score_surface = TTF_RenderText_Blended(button_font, "Current Score", BLACK);
+    SDL_Texture *current_score_texture = SDL_CreateTextureFromSurface(renderer, current_score_surface);
+    SDL_Surface *lives_surface = TTF_RenderText_Blended(button_font, "Lives", BLACK);
+    SDL_Texture *lives_texture = SDL_CreateTextureFromSurface(renderer, lives_surface);
+
+    SDL_Rect music_rect = {
+            (SCORE_OFFSET << 1) + ((BUTTON_SIZE - music_surface->w) >> 1),
+            SCORE_OFFSET << 1,
+            music_surface->w,
+            music_surface->h
+    };
+
+    label music = {
+            music_texture,
+            &music_rect
+    };
+
+    SDL_Rect sound_rect = {
+            music_rect.x + BUTTON_SIZE + SCORE_OFFSET + ((BUTTON_SIZE - sound_surface->w) >> 1),
+            SCORE_OFFSET << 1,
+            sound_surface->w,
+            sound_surface->h
+    };
+
+    label sound = {
+            sound_texture,
+            &sound_rect
+    };
+
+    int field_size = (SCREEN_WIDTH - (SCORE_OFFSET<< 1)) - ((BUTTON_SIZE * 3) + SCORE_OFFSET * 6) >> 1;
+
+    SDL_Rect high_score_rect = {
+            sound_rect.x + field_size + SCORE_OFFSET + ((field_size - current_score_surface->w) >> 1),
+            SCORE_OFFSET << 1,
+            high_score_surface->w,
+            high_score_surface->h
+    };
+
+    label high_score = {
+            high_score_texture,
+            &high_score_rect
+    };
+
+    SDL_Rect current_score_rect = {
+            high_score_rect.x + field_size + SCORE_OFFSET + ((field_size - current_score_surface->w) >> 1),
+            SCORE_OFFSET << 1,
+            current_score_surface->w,
+            current_score_surface->h
+    };
+
+    label current_score = {
+            current_score_texture,
+            &current_score_rect
+    };
+
+    SDL_Rect lives_rect = {
+            current_score_rect.x + field_size + SCORE_OFFSET + ((BUTTON_SIZE - lives_surface->w) >> 1),
+            SCORE_OFFSET << 1,
+            lives_surface->w,
+            lives_surface->h
+    };
+
+    label lives = {
+            lives_texture,
+            &lives_rect
+    };
+
     score_box box = {
             music_on_icon,
             music_off_icon,
             sound_on_icon,
             sound_off_icon,
-            button_font,
-            label_font,
-            score_font
+            &music,
+            &sound,
+            &high_score,
+            &current_score,
+            &lives
     };
 
     breaker_game game = {

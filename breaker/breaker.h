@@ -23,6 +23,8 @@
 #define BRICK_WIDTH SCREEN_WIDTH / 12
 #define BRICK_HEIGHT 15
 #define CEILING 75
+#define BUTTON_SIZE 40
+#define SCORE_OFFSET 5
 
 #define WALL_BOUNCE "resources/sounds/breaker/effects/wall_bounce.wav"
 #define BRICK_BOUNCE "resources/sounds/breaker/effects/brick_bounce.wav"
@@ -43,14 +45,21 @@ typedef struct point {
     int y;
 } point;
 
+typedef struct label {
+    SDL_Texture *text;
+    SDL_Rect *bounds;
+} label;
+
 typedef struct score_box {
     SDL_Texture *music_on_icon;
     SDL_Texture *music_off_icon;
     SDL_Texture *sound_on_icon;
     SDL_Texture *sound_off_icon;
-    TTF_Font *button_font;
-    TTF_Font *label_font;
-    TTF_Font *score_font;
+    label *music;
+    label *sound;
+    label *high_score;
+    label *current_score;
+    label *lives;
 } score_box;
 
 typedef struct breaker_sounds {
