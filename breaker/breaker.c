@@ -12,6 +12,13 @@ play_sound_effect(Mix_Chunk *effect) {
 }
 
 static int8_t
+contains_point(point *p, SDL_Rect *rect) {
+    int8_t x_bounds = p->x > rect->x && p->x < rect->x + rect->w;
+    int8_t y_bounds = p->y > rect->y && p->y < rect->y + rect->h;
+    return x_bounds && y_bounds;
+}
+
+static int8_t
 render_brick(void *b) {
     breaker_brick *brick = b;
     if (brick->visible) {
@@ -588,7 +595,7 @@ process_event(SDL_Event *event, breaker_game * game, int8_t *running) {
             }
             break;
         case SDL_MOUSEMOTION:
-            SDL_GetMouseState(&game->mouse_x, &game->mouse_y);
+            SDL_GetMouseState(&game->mouse_loc->x, &game->mouse_loc->y);
             break;
         case SDL_MOUSEBUTTONUP:
             game->mouse_down = false;
@@ -743,6 +750,8 @@ run(void) {
             &lives
     };
 
+    point mouse_loc = {0,0};
+
     breaker_game game = {
             &ball,
             &paddle,
@@ -755,7 +764,7 @@ run(void) {
             99999,
             12345,
             false,
-            0, 0
+            &mouse_loc
     };
 
     int8_t running = true;

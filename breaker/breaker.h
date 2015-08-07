@@ -108,8 +108,7 @@ typedef struct breaker_game {
     int high_score;
     int current_score;
     int8_t mouse_down;
-    int mouse_x;
-    int mouse_y;
+    point *mouse_loc;
 } breaker_game;
 
 static const SDL_Color WHITE = {
