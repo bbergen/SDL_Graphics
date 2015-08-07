@@ -47,7 +47,8 @@ typedef struct point {
 
 typedef struct label {
     SDL_Texture *text;
-    SDL_Rect *bounds;
+    int text_width;
+    int text_height;
 } label;
 
 typedef struct score_box {

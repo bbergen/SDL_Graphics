@@ -273,8 +273,13 @@ render_paddle(SDL_Renderer *renderer, breaker_paddle *paddle) {
 }
 
 static void
-render_label(SDL_Renderer *renderer, label *l) {
-    SDL_RenderCopy(renderer, l->text, NULL, l->bounds);
+render_label(SDL_Renderer *renderer, label *l, SDL_Rect *bounds) {
+    SDL_RenderCopy(renderer, l->text, NULL, bounds);
+}
+
+static int
+find_mid_point(int width, int bounds) {
+    return (bounds >> 1) - (width >> 1);
 }
 
 static void
@@ -306,18 +311,23 @@ render_score_box(SDL_Renderer *renderer,
     SDL_RenderCopy(renderer, box->music_on_icon, NULL, &button); //TODO increase the quality of the icon rendering
     SDL_RenderDrawRect(renderer, &button);
 
-//    SDL_Rect text_box = {
-//            button.x + ((BUTTON_SIZE - music_surface->w) >> 1), OFFSET << 1, music_surface->w, music_surface->h
-//    };
-    render_label(renderer, box->music);
-//    SDL_RenderCopy(renderer, box->music->text, NULL, box->music->bounds);
+    SDL_Rect text_box = {
+        button.x + find_mid_point(box->music->text_width, BUTTON_SIZE),
+        SCORE_OFFSET << 1,
+        box->music->text_width,
+        box->music->text_height
+    };
+    render_label(renderer, box->music, &text_box);
 
     //draw sound button
     button.x += BUTTON_SIZE + SCORE_OFFSET;
     SDL_RenderCopy(renderer, box->sound_on_icon, NULL, &button); //TODO increase the quality of the icon rendering
     SDL_RenderDrawRect(renderer, &button);
 
-    render_label(renderer, box->sound);
+    text_box.x = button.x + find_mid_point(box->sound->text_width, BUTTON_SIZE);
+    text_box.w = box->sound->text_width;
+    text_box.h = box->sound->text_height;
+    render_label(renderer, box->sound, &text_box);
 
     //draw high score box
     int field_size = (score_box_width - ((BUTTON_SIZE * 3) + SCORE_OFFSET * 6)) >> 1;
@@ -325,20 +335,29 @@ render_score_box(SDL_Renderer *renderer,
     button.w = field_size;
     SDL_RenderDrawRect(renderer, &button);
 
-    render_label(renderer, box->high_score);
+    text_box.x = button.x + find_mid_point(box->high_score->text_width, field_size);
+    text_box.w = box->high_score->text_width;
+    text_box.h = box->high_score->text_height;
+    render_label(renderer, box->high_score, &text_box);
 
     //draw current score box
     button.x += field_size + SCORE_OFFSET;
     SDL_RenderDrawRect(renderer, &button);
 
-    render_label(renderer, box->current_score);
+    text_box.x = button.x + find_mid_point(box->current_score->text_width, field_size);
+    text_box.w = box->current_score->text_width;
+    text_box.h = box->current_score->text_height;
+    render_label(renderer, box->current_score, &text_box);
 
     //draw lives box
     button.x += field_size + SCORE_OFFSET;
     button.w = BUTTON_SIZE;
     SDL_RenderDrawRect(renderer, &button);
 
-    render_label(renderer, box->lives);
+    text_box.x = button.x + find_mid_point(box->lives->text_width, BUTTON_SIZE);
+    text_box.w = box->lives->text_width;
+    text_box.h = box->lives->text_height;
+    render_label(renderer, box->lives, &text_box);
 }
 
 static void
@@ -671,66 +690,24 @@ run(void) {
     SDL_Surface *lives_surface = TTF_RenderText_Blended(button_font, "Lives", BLACK);
     SDL_Texture *lives_texture = SDL_CreateTextureFromSurface(renderer, lives_surface);
 
-    SDL_Rect music_rect = {
-            (SCORE_OFFSET << 1) + ((BUTTON_SIZE - music_surface->w) >> 1),
-            SCORE_OFFSET << 1,
-            music_surface->w,
-            music_surface->h
-    };
-
     label music = {
-            music_texture,
-            &music_rect
-    };
-
-    SDL_Rect sound_rect = {
-            music_rect.x + BUTTON_SIZE + SCORE_OFFSET + ((BUTTON_SIZE - sound_surface->w) >> 1),
-            SCORE_OFFSET << 1,
-            sound_surface->w,
-            sound_surface->h
+            music_texture, music_surface->w, music_surface->h
     };
 
     label sound = {
-            sound_texture,
-            &sound_rect
-    };
-
-    int field_size = (SCREEN_WIDTH - (SCORE_OFFSET<< 1)) - ((BUTTON_SIZE * 3) + SCORE_OFFSET * 6) >> 1;
-
-    SDL_Rect high_score_rect = {
-            sound_rect.x + field_size + SCORE_OFFSET + ((field_size - current_score_surface->w) >> 1),
-            SCORE_OFFSET << 1,
-            high_score_surface->w,
-            high_score_surface->h
+            sound_texture, sound_surface->w, sound_surface->h
     };
 
     label high_score = {
-            high_score_texture,
-            &high_score_rect
-    };
-
-    SDL_Rect current_score_rect = {
-            high_score_rect.x + field_size + SCORE_OFFSET + ((field_size - current_score_surface->w) >> 1),
-            SCORE_OFFSET << 1,
-            current_score_surface->w,
-            current_score_surface->h
+            high_score_texture, high_score_surface->w, high_score_surface->h
     };
 
     label current_score = {
-            current_score_texture,
-            &current_score_rect
-    };
-
-    SDL_Rect lives_rect = {
-            current_score_rect.x + field_size + SCORE_OFFSET + ((BUTTON_SIZE - lives_surface->w) >> 1),
-            SCORE_OFFSET << 1,
-            lives_surface->w,
-            lives_surface->h
+            current_score_texture, current_score_surface->w, current_score_surface->h
     };
 
     label lives = {
-            lives_texture,
-            &lives_rect
+            lives_texture, lives_surface->w, lives_surface->h
     };
 
     score_box box = {
