@@ -281,8 +281,9 @@ render_paddle(SDL_Renderer *renderer, breaker_paddle *paddle) {
 }
 
 static void
-render_label(SDL_Renderer *renderer, label *l, SDL_Rect *bounds) {
-    SDL_RenderCopy(renderer, l->text, NULL, bounds);
+render_label(SDL_Renderer *renderer, label *l) {
+    SDL_Rect bounds = {l->location.x, l->location.y, l->text_width, l->text_height};
+    SDL_RenderCopy(renderer, l->text, NULL, &bounds);
 }
 
 static int
@@ -318,54 +319,31 @@ render_score_box(SDL_Renderer *renderer,
     };
     SDL_RenderCopy(renderer, box->music_on_icon, NULL, &button); //TODO increase the quality of the icon rendering
     SDL_RenderDrawRect(renderer, &button);
-
-    SDL_Rect text_box = {
-        button.x + find_mid_point(box->music->text_width, BUTTON_SIZE),
-        SCORE_OFFSET << 1,
-        box->music->text_width,
-        box->music->text_height
-    };
-    render_label(renderer, box->music, &text_box);
+    render_label(renderer, box->music);
 
     //draw sound button
     button.x += BUTTON_SIZE + SCORE_OFFSET;
     SDL_RenderCopy(renderer, box->sound_on_icon, NULL, &button); //TODO increase the quality of the icon rendering
     SDL_RenderDrawRect(renderer, &button);
-
-    text_box.x = button.x + find_mid_point(box->sound->text_width, BUTTON_SIZE);
-    text_box.w = box->sound->text_width;
-    text_box.h = box->sound->text_height;
-    render_label(renderer, box->sound, &text_box);
+    render_label(renderer, box->sound);
 
     //draw high score box
     int field_size = (score_box_width - ((BUTTON_SIZE * 3) + SCORE_OFFSET * 6)) >> 1;
     button.x += BUTTON_SIZE + SCORE_OFFSET;
     button.w = field_size;
     SDL_RenderDrawRect(renderer, &button);
-
-    text_box.x = button.x + find_mid_point(box->high_score->text_width, field_size);
-    text_box.w = box->high_score->text_width;
-    text_box.h = box->high_score->text_height;
-    render_label(renderer, box->high_score, &text_box);
+    render_label(renderer, box->high_score);
 
     //draw current score box
     button.x += field_size + SCORE_OFFSET;
     SDL_RenderDrawRect(renderer, &button);
-
-    text_box.x = button.x + find_mid_point(box->current_score->text_width, field_size);
-    text_box.w = box->current_score->text_width;
-    text_box.h = box->current_score->text_height;
-    render_label(renderer, box->current_score, &text_box);
+    render_label(renderer, box->current_score);
 
     //draw lives box
     button.x += field_size + SCORE_OFFSET;
     button.w = BUTTON_SIZE;
     SDL_RenderDrawRect(renderer, &button);
-
-    text_box.x = button.x + find_mid_point(box->lives->text_width, BUTTON_SIZE);
-    text_box.w = box->lives->text_width;
-    text_box.h = box->lives->text_height;
-    render_label(renderer, box->lives, &text_box);
+    render_label(renderer, box->lives);
 }
 
 static void
@@ -559,7 +537,47 @@ update_paddle(breaker_paddle *paddle, int8_t right_down, int8_t left_down, float
 }
 
 static void
+update_score_box(score_box *box,
+                 point *mouse_loc,
+                 int8_t mouse_down,
+                 int high_score,
+                 int current_score,
+                 int lives) {
+    int score_box_width = SCREEN_WIDTH - (SCORE_OFFSET<< 1);
+    int field_size = (score_box_width - ((BUTTON_SIZE * 3) + SCORE_OFFSET * 6)) >> 1;
+    int x = SCORE_OFFSET << 1;
+    int y = SCORE_OFFSET << 1;
+
+    //TODO add in scoring and button press handling
+
+    point music_point = {x + find_mid_point(box->music->text_width, BUTTON_SIZE), y};
+    box->music->location = music_point;
+
+    x += BUTTON_SIZE + SCORE_OFFSET;
+    point sound_point = {x + find_mid_point(box->sound->text_width, BUTTON_SIZE), y};
+    box->sound->location = sound_point;
+
+    x += BUTTON_SIZE + SCORE_OFFSET;
+    point high_score_point = {x + find_mid_point(box->high_score->text_width, field_size), y};
+    box->high_score->location = high_score_point;
+
+    x += field_size + SCORE_OFFSET;
+    point current_score_point = {x + find_mid_point(box->current_score->text_width, field_size), y};
+    box->current_score->location = current_score_point;
+
+    x += field_size + SCORE_OFFSET;
+    point lives_point = {x + find_mid_point(box->lives->text_width, BUTTON_SIZE), y};
+    box->lives->location = lives_point;
+}
+
+static void
 update(breaker_game *game, float delta_t) {
+    update_score_box(game->score,
+                     game->mouse_loc,
+                     game->mouse_down,
+                     game->high_score,
+                     game->current_score,
+                     game->lives);
     update_ball(game, delta_t);
     update_paddle(game->player, game->key_right_down, game->key_left_down, delta_t);
 }
@@ -718,24 +736,29 @@ run(void) {
     SDL_Surface *lives_surface = TTF_RenderText_Blended(button_font, "Lives", BLACK);
     SDL_Texture *lives_texture = SDL_CreateTextureFromSurface(renderer, lives_surface);
 
+    point music_point = {0,0};
     label music = {
-            music_texture, music_surface->w, music_surface->h
+            music_texture, music_point, music_surface->w, music_surface->h
     };
 
+    point sound_point = {0,0};
     label sound = {
-            sound_texture, sound_surface->w, sound_surface->h
+            sound_texture, sound_point, sound_surface->w, sound_surface->h
     };
 
+    point high_score_point = {0,0};
     label high_score = {
-            high_score_texture, high_score_surface->w, high_score_surface->h
+            high_score_texture, high_score_point, high_score_surface->w, high_score_surface->h
     };
 
+    point current_score_point = {0,0};
     label current_score = {
-            current_score_texture, current_score_surface->w, current_score_surface->h
+            current_score_texture, current_score_point, current_score_surface->w, current_score_surface->h
     };
 
+    point lives_point = {0,0};
     label lives = {
-            lives_texture, lives_surface->w, lives_surface->h
+            lives_texture, lives_point, lives_surface->w, lives_surface->h
     };
 
     score_box box = {
@@ -747,7 +770,9 @@ run(void) {
             &sound,
             &high_score,
             &current_score,
-            &lives
+            &lives,
+            true,
+            true
     };
 
     point mouse_loc = {0,0};
