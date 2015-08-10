@@ -52,16 +52,19 @@ typedef struct label {
     int text_height;
 } label;
 
+typedef struct component {
+    label *component_label;
+    SDL_Texture *icon;
+    SDL_Texture *alt_icon;
+    SDL_Rect *bounds;
+} component;
+
 typedef struct score_box {
-    SDL_Texture *music_on_icon;
-    SDL_Texture *music_off_icon;
-    SDL_Texture *sound_on_icon;
-    SDL_Texture *sound_off_icon;
-    label *music;
-    label *sound;
-    label *high_score;
-    label *current_score;
-    label *lives;
+    component *music_button;
+    component *sound_button;
+    component *high_score_field;
+    component *current_score_field;
+    component *lives_field;
     int8_t music_on;
     int8_t sound_on;
 } score_box;

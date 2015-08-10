@@ -317,33 +317,41 @@ render_score_box(SDL_Renderer *renderer,
             BUTTON_SIZE,
             BUTTON_SIZE
     };
-    SDL_RenderCopy(renderer, box->music_on_icon, NULL, &button); //TODO increase the quality of the icon rendering
+    if (box->music_on) {
+        SDL_RenderCopy(renderer, box->music_button->icon, NULL, &button); //TODO increase the quality of the icon rendering
+    } else {
+        SDL_RenderCopy(renderer, box->music_button->alt_icon, NULL, &button);
+    }
     SDL_RenderDrawRect(renderer, &button);
-    render_label(renderer, box->music);
+    render_label(renderer, box->music_button->component_label);
 
     //draw sound button
     button.x += BUTTON_SIZE + SCORE_OFFSET;
-    SDL_RenderCopy(renderer, box->sound_on_icon, NULL, &button); //TODO increase the quality of the icon rendering
+    if (box->sound_on) {
+        SDL_RenderCopy(renderer, box->sound_button->icon, NULL, &button); //TODO increase the quality of the icon rendering
+    } else {
+        SDL_RenderCopy(renderer, box->sound_button->alt_icon, NULL, &button);
+    }
     SDL_RenderDrawRect(renderer, &button);
-    render_label(renderer, box->sound);
+    render_label(renderer, box->sound_button->component_label);
 
     //draw high score box
     int field_size = (score_box_width - ((BUTTON_SIZE * 3) + SCORE_OFFSET * 6)) >> 1;
     button.x += BUTTON_SIZE + SCORE_OFFSET;
     button.w = field_size;
     SDL_RenderDrawRect(renderer, &button);
-    render_label(renderer, box->high_score);
+    render_label(renderer, box->high_score_field->component_label);
 
     //draw current score box
     button.x += field_size + SCORE_OFFSET;
     SDL_RenderDrawRect(renderer, &button);
-    render_label(renderer, box->current_score);
+    render_label(renderer, box->current_score_field->component_label);
 
     //draw lives box
     button.x += field_size + SCORE_OFFSET;
     button.w = BUTTON_SIZE;
     SDL_RenderDrawRect(renderer, &button);
-    render_label(renderer, box->lives);
+    render_label(renderer, box->lives_field->component_label);
 }
 
 static void
@@ -461,6 +469,7 @@ update_ball(breaker_game *game, float delta_t) {
     float speed_x = delta_t * STARTING_SPEED;
     float speed_y = delta_t * STARTING_SPEED;
     breaker_ball *ball = game->ball;
+    ball->sound_effects_on = game->score->sound_on;
 
     // check left
     if (ball->x <= ball->radius) {
@@ -549,25 +558,31 @@ update_score_box(score_box *box,
     int y = SCORE_OFFSET << 1;
 
     //TODO add in scoring and button press handling
+    //TODO add in button/text field boxes to component structs
 
-    point music_point = {x + find_mid_point(box->music->text_width, BUTTON_SIZE), y};
-    box->music->location = music_point;
+    label lbl = *box->music_button->component_label;
+    point music_point = {x + find_mid_point(lbl.text_width, BUTTON_SIZE), y};
+    box->music_button->component_label->location = music_point;
 
+    lbl = *box->sound_button->component_label;
     x += BUTTON_SIZE + SCORE_OFFSET;
-    point sound_point = {x + find_mid_point(box->sound->text_width, BUTTON_SIZE), y};
-    box->sound->location = sound_point;
+    point sound_point = {x + find_mid_point(lbl.text_width, BUTTON_SIZE), y};
+    box->sound_button->component_label->location = sound_point;
 
+    lbl = *box->high_score_field->component_label;
     x += BUTTON_SIZE + SCORE_OFFSET;
-    point high_score_point = {x + find_mid_point(box->high_score->text_width, field_size), y};
-    box->high_score->location = high_score_point;
+    point high_score_point = {x + find_mid_point(lbl.text_width, field_size), y};
+    box->high_score_field->component_label->location = high_score_point;
 
+    lbl = *box->current_score_field->component_label;
     x += field_size + SCORE_OFFSET;
-    point current_score_point = {x + find_mid_point(box->current_score->text_width, field_size), y};
-    box->current_score->location = current_score_point;
+    point current_score_point = {x + find_mid_point(lbl.text_width, field_size), y};
+    box->current_score_field->component_label->location = current_score_point;
 
+    lbl = *box->lives_field->component_label;
     x += field_size + SCORE_OFFSET;
-    point lives_point = {x + find_mid_point(box->lives->text_width, BUTTON_SIZE), y};
-    box->lives->location = lives_point;
+    point lives_point = {x + find_mid_point(lbl.text_width, BUTTON_SIZE), y};
+    box->lives_field->component_label->location = lives_point;
 }
 
 static void
@@ -761,16 +776,47 @@ run(void) {
             lives_texture, lives_point, lives_surface->w, lives_surface->h
     };
 
-    score_box box = {
+    component music_c = {
+            &music,
             music_on_icon,
             music_off_icon,
+            NULL
+    };
+
+    component sound_c = {
+            &sound,
             sound_on_icon,
             sound_off_icon,
-            &music,
-            &sound,
+            NULL
+    };
+
+    component high_score_c = {
             &high_score,
+            NULL,
+            NULL,
+            NULL
+    };
+
+    component current_score_c = {
             &current_score,
+            NULL,
+            NULL,
+            NULL
+    };
+
+    component lives_c = {
             &lives,
+            NULL,
+            NULL,
+            NULL
+    };
+
+    score_box box = {
+            &music_c,
+            &sound_c,
+            &high_score_c,
+            &current_score_c,
+            &lives_c,
             true,
             true
     };
