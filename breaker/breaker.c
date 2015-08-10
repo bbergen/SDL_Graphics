@@ -292,9 +292,7 @@ find_mid_point(int width, int bounds) {
 }
 
 static void
-render_score_box(SDL_Renderer *renderer,
-                 score_box *box,
-                 int high_score, int current_score, int lives) {
+render_score_box(SDL_Renderer *renderer, score_box *box) {
 
     int score_box_width = SCREEN_WIDTH - (SCORE_OFFSET<< 1);
 
@@ -311,46 +309,33 @@ render_score_box(SDL_Renderer *renderer,
     SDL_RenderDrawLine(renderer, 0, CEILING, SCREEN_WIDTH, CEILING);
 
     //draw music button
-    SDL_Rect button = {
-            SCORE_OFFSET << 1,
-            CEILING - (SCORE_OFFSET + BUTTON_SIZE),
-            BUTTON_SIZE,
-            BUTTON_SIZE
-    };
     if (box->music_on) {
-        SDL_RenderCopy(renderer, box->music_button->icon, NULL, &button); //TODO increase the quality of the icon rendering
+        SDL_RenderCopy(renderer, box->music_button->icon, NULL, box->music_button->bounds); //TODO increase the quality of the icon rendering
     } else {
-        SDL_RenderCopy(renderer, box->music_button->alt_icon, NULL, &button);
+        SDL_RenderCopy(renderer, box->music_button->alt_icon, NULL, box->music_button->bounds);
     }
-    SDL_RenderDrawRect(renderer, &button);
+    SDL_RenderDrawRect(renderer, box->music_button->bounds);
     render_label(renderer, box->music_button->component_label);
 
     //draw sound button
-    button.x += BUTTON_SIZE + SCORE_OFFSET;
     if (box->sound_on) {
-        SDL_RenderCopy(renderer, box->sound_button->icon, NULL, &button); //TODO increase the quality of the icon rendering
+        SDL_RenderCopy(renderer, box->sound_button->icon, NULL, box->sound_button->bounds); //TODO increase the quality of the icon rendering
     } else {
-        SDL_RenderCopy(renderer, box->sound_button->alt_icon, NULL, &button);
+        SDL_RenderCopy(renderer, box->sound_button->alt_icon, NULL, box->sound_button->bounds);
     }
-    SDL_RenderDrawRect(renderer, &button);
+    SDL_RenderDrawRect(renderer, box->sound_button->bounds);
     render_label(renderer, box->sound_button->component_label);
 
     //draw high score box
-    int field_size = (score_box_width - ((BUTTON_SIZE * 3) + SCORE_OFFSET * 6)) >> 1;
-    button.x += BUTTON_SIZE + SCORE_OFFSET;
-    button.w = field_size;
-    SDL_RenderDrawRect(renderer, &button);
+    SDL_RenderDrawRect(renderer, box->high_score_field->bounds);
     render_label(renderer, box->high_score_field->component_label);
 
     //draw current score box
-    button.x += field_size + SCORE_OFFSET;
-    SDL_RenderDrawRect(renderer, &button);
+    SDL_RenderDrawRect(renderer, box->current_score_field->bounds);
     render_label(renderer, box->current_score_field->component_label);
 
     //draw lives box
-    button.x += field_size + SCORE_OFFSET;
-    button.w = BUTTON_SIZE;
-    SDL_RenderDrawRect(renderer, &button);
+    SDL_RenderDrawRect(renderer, box->lives_field->bounds);
     render_label(renderer, box->lives_field->component_label);
 }
 
@@ -368,9 +353,9 @@ render(SDL_Renderer *renderer, breaker_game *game) {
     // render game objects
     render_ball(renderer, game->ball);
     render_paddle(renderer, game->player);
-    render_score_box(renderer, game->score, game->high_score, game->current_score, game->lives);
+    render_score_box(renderer, game->score);
 
-    //render bricks
+    // render bricks
     list_for_each(game->brick_list, render_brick);
 
     // present backbuffer
@@ -558,31 +543,48 @@ update_score_box(score_box *box,
     int y = SCORE_OFFSET << 1;
 
     //TODO add in scoring and button press handling
-    //TODO add in button/text field boxes to component structs
+
+    SDL_Rect button = {
+            SCORE_OFFSET << 1,
+            CEILING - (SCORE_OFFSET + BUTTON_SIZE),
+            BUTTON_SIZE,
+            BUTTON_SIZE
+    };
 
     label lbl = *box->music_button->component_label;
     point music_point = {x + find_mid_point(lbl.text_width, BUTTON_SIZE), y};
     box->music_button->component_label->location = music_point;
+    *box->music_button->bounds = button;
 
     lbl = *box->sound_button->component_label;
+    button.x += BUTTON_SIZE + SCORE_OFFSET;
     x += BUTTON_SIZE + SCORE_OFFSET;
     point sound_point = {x + find_mid_point(lbl.text_width, BUTTON_SIZE), y};
     box->sound_button->component_label->location = sound_point;
+    *box->sound_button->bounds = button;
 
     lbl = *box->high_score_field->component_label;
+    button.x += BUTTON_SIZE + SCORE_OFFSET;
+    button.w = field_size;
     x += BUTTON_SIZE + SCORE_OFFSET;
     point high_score_point = {x + find_mid_point(lbl.text_width, field_size), y};
     box->high_score_field->component_label->location = high_score_point;
+    *box->high_score_field->bounds = button;
 
     lbl = *box->current_score_field->component_label;
+    button.x += field_size + SCORE_OFFSET;
     x += field_size + SCORE_OFFSET;
     point current_score_point = {x + find_mid_point(lbl.text_width, field_size), y};
     box->current_score_field->component_label->location = current_score_point;
+    *box->current_score_field->bounds = button;
 
     lbl = *box->lives_field->component_label;
+    button.x += field_size + SCORE_OFFSET;
+    button.w = BUTTON_SIZE;
     x += field_size + SCORE_OFFSET;
     point lives_point = {x + find_mid_point(lbl.text_width, BUTTON_SIZE), y};
     box->lives_field->component_label->location = lives_point;
+    *box->lives_field->bounds = button;
 }
 
 static void
@@ -780,35 +782,35 @@ run(void) {
             &music,
             music_on_icon,
             music_off_icon,
-            NULL
+            malloc(sizeof(SDL_Rect))
     };
 
     component sound_c = {
             &sound,
             sound_on_icon,
             sound_off_icon,
-            NULL
+            malloc(sizeof(SDL_Rect))
     };
 
     component high_score_c = {
             &high_score,
             NULL,
             NULL,
-            NULL
+            malloc(sizeof(SDL_Rect))
     };
 
     component current_score_c = {
             &current_score,
             NULL,
             NULL,
-            NULL
+            malloc(sizeof(SDL_Rect))
     };
 
     component lives_c = {
             &lives,
             NULL,
             NULL,
-            NULL
+            malloc(sizeof(SDL_Rect))
     };
 
     score_box box = {
@@ -875,6 +877,11 @@ run(void) {
     //free resources
     //TODO free more stuff (font textures, etc.)
     free_list(game.brick_list);
+    free(music_c.bounds);
+    free(sound_c.bounds);
+    free(high_score_c.bounds);
+    free(current_score_c.bounds);
+    free(lives_c.bounds);
     Mix_FreeMusic(level_1);
     Mix_FreeChunk(wall_bounce);
     Mix_FreeChunk(brick_bounce);
