@@ -551,6 +551,25 @@ update_score_box(score_box *box,
             BUTTON_SIZE
     };
 
+    static uint32_t last_music_ticks = 0;
+    static uint32_t last_sound_ticks = 0;
+    uint32_t ticks = SDL_GetTicks();
+    uint32_t music_ticks_passed = ticks - last_music_ticks;
+    uint32_t sound_ticks_passed = ticks - last_sound_ticks;
+    int8_t music_pressed = contains_point(mouse_loc, box->music_button->bounds);
+    int8_t sound_pressed = contains_point(mouse_loc, box->sound_button->bounds);
+
+    if ((!last_music_ticks || SDL_TICKS_PASSED(music_ticks_passed, 100)) && music_pressed && mouse_down) {
+        pause_music();
+        box->music_on = !box->music_on;
+        last_music_ticks = ticks;
+    }
+
+    if ((!last_sound_ticks || SDL_TICKS_PASSED(sound_ticks_passed, 100)) && sound_pressed && mouse_down) {
+        box->sound_on = !box->sound_on;
+        last_sound_ticks = ticks;
+    }
+
     label lbl = *box->music_button->component_label;
     point music_point = {x + find_mid_point(lbl.text_width, BUTTON_SIZE), y};
     box->music_button->component_label->location = music_point;
