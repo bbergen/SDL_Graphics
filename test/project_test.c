@@ -90,12 +90,12 @@ run_itoa_test(void) {
 
     int n = 123;
     char *expected = "0000123";
-    char test[50];
+    char test[100];
     itoa(n, test, 7);
     printf("Expected: %s, Result: %s\n\n", expected, test);
 
-    n = 54321;
-    char test2[50];
+    n = -54321;
+    char test2[100];
     itoa(n, test2, 0);
     printf("Expected: %d, Result: %s\n\n", n, test2);
 

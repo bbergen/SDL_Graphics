@@ -19,24 +19,28 @@ reverse(char s[]) {
 }
 
 void
-itoa(int n, char s[], int pad) {
-    //ensure there is enough room in s including '/0'
-    assert(count(s) - 1 >= pad)
+itoa(int n, char buffer[], int pad) {
 
     int i;
-    int digit = 0;
+    int sign;
+
+    if ((sign = n) < 0) {
+        n = -n;
+    }
 
     i = 0;
     do {
-        s[i++] = (char) (n % 10 + '0');
-        digit++;
+        buffer[i++] = (char) (n % 10 + '0');
     } while ((n /= 10) > 0);
 
-    while (pad > digit) {
-        s[i++] = '0';
-        pad--;
+    if (sign < 0) {
+        buffer[i++] = '-';
     }
 
-    s[i] = '\0';
-    reverse(s);
+    while (i < pad) {
+        buffer[i++] = '0';
+    }
+
+    buffer[i] = '\0';
+    reverse(buffer);
 }

@@ -25,6 +25,11 @@
 #define CEILING 75
 #define BUTTON_SIZE 40
 #define SCORE_OFFSET 5
+#define BUTTON_DELAY 100
+#define STARTING_LIVES 3
+#define STARTING_SCORE 0
+#define SCORE_PADDING 15
+
 
 #define WALL_BOUNCE "resources/sounds/breaker/effects/wall_bounce.wav"
 #define BRICK_BOUNCE "resources/sounds/breaker/effects/brick_bounce.wav"
@@ -131,6 +136,14 @@ static const SDL_Color BLACK = {
 
 static const SDL_Color BLUE = {
         0x14, 0xAD, 0xDB, 0x00
+};
+
+static const SDL_Color GREEN = {
+        0x00, 0xFF, 0x33, 0x00
+};
+
+static const SDL_Color RED = {
+        0xFF, 0x00, 0x00, 0x00
 };
 
 #endif //SDL_GRAPHICS_BREAKER_H

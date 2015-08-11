@@ -4,6 +4,7 @@
 #include <SDL2/SDL_image.h>
 #include <x86intrin.h>
 #include <list.h>
+#include <util.h>
 #include "breaker.h"
 
 static void
@@ -328,14 +329,17 @@ render_score_box(SDL_Renderer *renderer, score_box *box) {
 
     //draw high score box
     SDL_RenderDrawRect(renderer, box->high_score_field->bounds);
+    SDL_RenderCopy(renderer, box->high_score_field->icon, NULL, box->high_score_field->bounds);
     render_label(renderer, box->high_score_field->component_label);
 
     //draw current score box
     SDL_RenderDrawRect(renderer, box->current_score_field->bounds);
+    SDL_RenderCopy(renderer, box->current_score_field->icon, NULL, box->current_score_field->bounds);
     render_label(renderer, box->current_score_field->component_label);
 
     //draw lives box
     SDL_RenderDrawRect(renderer, box->lives_field->bounds);
+    SDL_RenderCopy(renderer, box->lives_field->icon, NULL, box->lives_field->bounds);
     render_label(renderer, box->lives_field->component_label);
 }
 
@@ -542,14 +546,7 @@ update_score_box(score_box *box,
     int x = SCORE_OFFSET << 1;
     int y = SCORE_OFFSET << 1;
 
-    //TODO add in scoring and button press handling
-
-    SDL_Rect button = {
-            SCORE_OFFSET << 1,
-            CEILING - (SCORE_OFFSET + BUTTON_SIZE),
-            BUTTON_SIZE,
-            BUTTON_SIZE
-    };
+    //TODO add in scoring
 
     static uint32_t last_music_ticks = 0;
     static uint32_t last_sound_ticks = 0;
@@ -559,16 +556,23 @@ update_score_box(score_box *box,
     int8_t music_pressed = contains_point(mouse_loc, box->music_button->bounds);
     int8_t sound_pressed = contains_point(mouse_loc, box->sound_button->bounds);
 
-    if ((!last_music_ticks || SDL_TICKS_PASSED(music_ticks_passed, 100)) && music_pressed && mouse_down) {
+    if ((!last_music_ticks || SDL_TICKS_PASSED(music_ticks_passed, BUTTON_DELAY)) && music_pressed && mouse_down) {
         pause_music();
         box->music_on = !box->music_on;
         last_music_ticks = ticks;
     }
 
-    if ((!last_sound_ticks || SDL_TICKS_PASSED(sound_ticks_passed, 100)) && sound_pressed && mouse_down) {
+    if ((!last_sound_ticks || SDL_TICKS_PASSED(sound_ticks_passed, BUTTON_DELAY)) && sound_pressed && mouse_down) {
         box->sound_on = !box->sound_on;
         last_sound_ticks = ticks;
     }
+
+    SDL_Rect button = {
+            SCORE_OFFSET << 1,
+            CEILING - (SCORE_OFFSET + BUTTON_SIZE),
+            BUTTON_SIZE,
+            BUTTON_SIZE
+    };
 
     label lbl = *box->music_button->component_label;
     point music_point = {x + find_mid_point(lbl.text_width, BUTTON_SIZE), y};
@@ -735,11 +739,10 @@ run(void) {
     list brick_list;
     build_brick_list(&brick_list, renderer, brick_break, 60);
 
-    TTF_Font *button_font = TTF_OpenFont(SCORE_FONT, 18);
-    TTF_Font *label_font = TTF_OpenFont(SCORE_FONT, 28);
-    TTF_Font *score_font = TTF_OpenFont(SCORE_FONT, 25);
+    TTF_Font *label_font = TTF_OpenFont(SCORE_FONT, 18);
+    TTF_Font *score_font = TTF_OpenFont(SCORE_FONT, 30);
 
-    if (!button_font || !score_font || !label_font) {
+    if (!label_font || !score_font ) {
         error(TTF_GetError);
     }
 
@@ -761,15 +764,31 @@ run(void) {
         error(SDL_GetError);
     }
 
-    SDL_Surface *music_surface = TTF_RenderText_Blended(button_font, "Music", BLACK);
+    SDL_Surface *music_surface = TTF_RenderText_Blended(label_font, "Music", BLACK);
     SDL_Texture *music_texture = SDL_CreateTextureFromSurface(renderer, music_surface);
-    SDL_Surface *sound_surface = TTF_RenderText_Blended(button_font, "Sound", BLACK);
+    SDL_Surface *sound_surface = TTF_RenderText_Blended(label_font, "Sound", BLACK);
     SDL_Texture *sound_texture = SDL_CreateTextureFromSurface(renderer, sound_surface);
-    SDL_Surface *high_score_surface = TTF_RenderText_Blended(button_font, "High Score", BLACK);
+    SDL_Surface *high_score_label_surface = TTF_RenderText_Blended(label_font, "High Score", BLACK);
+    SDL_Texture *high_score_label_texture = SDL_CreateTextureFromSurface(renderer, high_score_label_surface);
+    SDL_Surface *current_score_label_surface = TTF_RenderText_Blended(label_font, "Current Score", BLACK);
+    SDL_Texture *current_score_label_texture = SDL_CreateTextureFromSurface(renderer, current_score_label_surface);
+    SDL_Surface *lives_label_surface = TTF_RenderText_Blended(label_font, "Lives", BLACK);
+    SDL_Texture *lives_label_texture = SDL_CreateTextureFromSurface(renderer, lives_label_surface);
+
+    //score surfaces
+    char high_score[SCORE_PADDING + 1];
+    itoa(STARTING_SCORE, high_score, SCORE_PADDING);
+    SDL_Surface *high_score_surface = TTF_RenderText_Blended(score_font, high_score, GREEN);
     SDL_Texture *high_score_texture = SDL_CreateTextureFromSurface(renderer, high_score_surface);
-    SDL_Surface *current_score_surface = TTF_RenderText_Blended(button_font, "Current Score", BLACK);
+
+    char current_score[SCORE_PADDING + 1];
+    itoa(STARTING_SCORE, current_score, SCORE_PADDING);
+    SDL_Surface *current_score_surface = TTF_RenderText_Blended(score_font, high_score, GREEN);
     SDL_Texture *current_score_texture = SDL_CreateTextureFromSurface(renderer, current_score_surface);
-    SDL_Surface *lives_surface = TTF_RenderText_Blended(button_font, "Lives", BLACK);
+
+    char lives[3];
+    itoa(STARTING_LIVES, lives, 0);
+    SDL_Surface *lives_surface = TTF_RenderText_Blended(score_font, lives, RED);
     SDL_Texture *lives_texture = SDL_CreateTextureFromSurface(renderer, lives_surface);
 
     point music_point = {0,0};
@@ -783,18 +802,18 @@ run(void) {
     };
 
     point high_score_point = {0,0};
-    label high_score = {
-            high_score_texture, high_score_point, high_score_surface->w, high_score_surface->h
+    label high_score_label = {
+            high_score_label_texture, high_score_point, high_score_label_surface->w, high_score_label_surface->h
     };
 
     point current_score_point = {0,0};
-    label current_score = {
-            current_score_texture, current_score_point, current_score_surface->w, current_score_surface->h
+    label current_score_label = {
+            current_score_label_texture, current_score_point, current_score_label_surface->w, current_score_label_surface->h
     };
 
     point lives_point = {0,0};
-    label lives = {
-            lives_texture, lives_point, lives_surface->w, lives_surface->h
+    label lives_label = {
+            lives_label_texture, lives_point, lives_label_surface->w, lives_label_surface->h
     };
 
     component music_c = {
@@ -812,22 +831,22 @@ run(void) {
     };
 
     component high_score_c = {
-            &high_score,
-            NULL,
+            &high_score_label,
+            high_score_texture,
             NULL,
             malloc(sizeof(SDL_Rect))
     };
 
     component current_score_c = {
-            &current_score,
-            NULL,
+            &current_score_label,
+            current_score_texture,
             NULL,
             malloc(sizeof(SDL_Rect))
     };
 
     component lives_c = {
-            &lives,
-            NULL,
+            &lives_label,
+            lives_texture,
             NULL,
             malloc(sizeof(SDL_Rect))
     };
@@ -852,9 +871,9 @@ run(void) {
             false,
             false,
             &brick_list,
-            3,
-            99999,
-            12345,
+            STARTING_LIVES,
+            STARTING_SCORE,
+            STARTING_SCORE,
             false,
             &mouse_loc
     };
@@ -905,7 +924,7 @@ run(void) {
     Mix_FreeChunk(wall_bounce);
     Mix_FreeChunk(brick_bounce);
     Mix_FreeChunk(brick_break);
-    TTF_CloseFont(button_font);
+    TTF_CloseFont(label_font);
     TTF_CloseFont(score_font);
 }
 
