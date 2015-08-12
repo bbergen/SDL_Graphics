@@ -1,6 +1,7 @@
 //
 // Created by bryan on 7/23/15.
 //
+#include "common.h"
 
 #ifndef SDL_GRAPHICS_PONG_H
 #define SDL_GRAPHICS_PONG_H
@@ -59,15 +60,15 @@ typedef struct game_state {
     sound_effects *sound;
 } game_state;
 
-static const SDL_Color WHITE = {
+global const SDL_Color WHITE = {
         0x00, 0x00, 0x00, 0x00
 };
 
-static const SDL_Color BALL_COLOR = {
+global const SDL_Color BALL_COLOR = {
         0x39, 0xFF, 0x14, 0x00
 };
 
-static const SDL_Color PADDLE_COLOR = {
+global const SDL_Color PADDLE_COLOR = {
         0x39, 0xFF, 0x14, 0x00
 };
 

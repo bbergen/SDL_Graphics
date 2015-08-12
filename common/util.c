@@ -6,7 +6,7 @@
 #include "util.h"
 #include "common.h"
 
-static void
+internal void
 reverse(char s[]) {
     int tmp;
     int j;

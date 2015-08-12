@@ -13,7 +13,7 @@ typedef struct test_data {
     int *y;
 } test_data;
 
-static void
+internal void
 test_free(void *data) {
     test_data *test = (test_data*) data;
     printf("Freeing: %s\n", test->display_text);
@@ -23,7 +23,7 @@ test_free(void *data) {
     free(test->y);
 }
 
-static int8_t
+internal int8_t
 print_test_node(void *data) {
     test_data *test = (test_data*) data;
     printf("Printing: %s\n", test->display_text);
@@ -31,7 +31,7 @@ print_test_node(void *data) {
     return true;
 }
 
-static int8_t
+internal int8_t
 print_test_node_params(void *data, void *param) {
     test_data *test = (test_data*) data;
     char *param_string = (char*) param;
@@ -40,7 +40,7 @@ print_test_node_params(void *data, void *param) {
     return true;
 }
 
-static void
+internal void
 allocate_test_data(test_data *test, char *display_text, int x, int y) {
 
     test->display_text = malloc(strlen(display_text) + 1);
@@ -52,7 +52,7 @@ allocate_test_data(test_data *test, char *display_text, int x, int y) {
     *test->y = y;
 }
 
-static void
+internal void
 run_list_test(void) {
     printf("Starting List Tests...\n");
 
@@ -84,7 +84,7 @@ run_list_test(void) {
     printf("List Test Completed\n\n");
 }
 
-static void
+internal void
 run_itoa_test(void) {
     printf("Starting Util Tests...\n");
 

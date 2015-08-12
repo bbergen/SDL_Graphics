@@ -27,7 +27,7 @@
 #define SCORE_OFFSET 5
 #define BUTTON_DELAY 100
 #define STARTING_LIVES 3
-#define STARTING_SCORE 0
+#define STARTING_SCORE 1234567890
 #define SCORE_PADDING 15
 
 
@@ -130,27 +130,27 @@ typedef struct breaker_game {
     point *mouse_loc;
 } breaker_game;
 
-static const SDL_Color WHITE = {
+global const SDL_Color WHITE = {
         0xFF, 0xFF, 0xFF, 0x00
 };
 
-static const SDL_Color PURPLE = {
+global const SDL_Color PURPLE = {
         0x4B, 0x00, 0x82, 0x00
 };
 
-static const SDL_Color BLACK = {
+global const SDL_Color BLACK = {
         0x00, 0x00, 0x00, 0x00
 };
 
-static const SDL_Color BLUE = {
+global const SDL_Color BLUE = {
         0x14, 0xAD, 0xDB, 0x00
 };
 
-static const SDL_Color GREEN = {
+global const SDL_Color GREEN = {
         0x2F, 0xB0, 0x04, 0x00
 };
 
-static const SDL_Color RED = {
+global const SDL_Color RED = {
         0xFF, 0x00, 0x00, 0x00
 };
 

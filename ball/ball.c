@@ -10,7 +10,7 @@
 #define VARIANCE 0.025f
 #define BALL_SPEED 200
 
-static uint8_t running = true;
+global uint8_t running = true;
 
 typedef struct pong_ball {
     float x;
@@ -18,7 +18,7 @@ typedef struct pong_ball {
     int radius;
 } pong_ball;
 
-static void
+internal void
 draw_ball(SDL_Renderer *renderer, pong_ball *ball) {
     int x = ball->radius;
     int y = 0;
@@ -46,7 +46,7 @@ draw_ball(SDL_Renderer *renderer, pong_ball *ball) {
     }
 }
 
-static void
+internal void
 fill_ball(SDL_Renderer *renderer, pong_ball *ball) {
     // Using Midpoint circle algorithm
     int x = ball->radius;
@@ -90,10 +90,10 @@ fill_ball(SDL_Renderer *renderer, pong_ball *ball) {
     }
 }
 
-static void
+internal void
 update(pong_ball *ball, float speed) {
-    static int dir_x = 1;
-    static int dir_y = 1;
+    persistent int dir_x = 1;
+    persistent int dir_y = 1;
     float speed_x = speed * BALL_SPEED;
     float speed_y = speed * BALL_SPEED;
 
@@ -126,7 +126,7 @@ update(pong_ball *ball, float speed) {
     ball->y += speed_y * dir_y + VARIANCE * dir_y;
 }
 
-static void
+internal void
 render(SDL_Renderer *renderer, pong_ball *ball) {
     // Clear screen to red
     SDL_SetRenderDrawColor(renderer, 0xFF, 0x00, 0x00, 0xFF);
@@ -136,7 +136,7 @@ render(SDL_Renderer *renderer, pong_ball *ball) {
     draw_ball(renderer, ball);
 }
 
-static void
+internal void
 handle_event(SDL_Event *event, uint8_t *running) {
     switch (event->type) {
         case SDL_QUIT:

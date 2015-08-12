@@ -6,19 +6,18 @@
 #include <SDL2/SDL_mixer.h>
 #include <stdint-gcc.h>
 #include "pong.h"
-#include "common.h"
 
-static int8_t
+internal int8_t
 random_bool(void) {
     return rand() % 2 == 0;
 }
 
-static void
+internal void
 play_sound_effect(Mix_Chunk *chunk) {
     Mix_PlayChannel(-1, chunk, 0);
 }
 
-static void
+internal void
 reset_game(game_state *game) {
     game->x_dir = random_bool() ? 1 : -1;
     game->y_dir = random_bool() ? 1 : -1;
@@ -26,7 +25,7 @@ reset_game(game_state *game) {
     game->ball->y = SCREEN_HEIGHT >> 1;
 }
 
-static int8_t
+internal int8_t
 has_collided(pong_ball *ball, pong_paddle *paddle) {
     return ball->x >= paddle->x &&
             ball->x <= paddle->x + PADDLE_WIDTH &&
@@ -34,7 +33,7 @@ has_collided(pong_ball *ball, pong_paddle *paddle) {
             ball->y <= paddle->y + PADDLE_HEIGHT;
 }
 
-static void
+internal void
 update_ball(game_state *game, float delta_t) {
     float speed_x = delta_t * BALL_SPEED;
     float speed_y = delta_t * BALL_SPEED + VARIANCE;
@@ -97,7 +96,7 @@ update_ball(game_state *game, float delta_t) {
 
 }
 
-static void
+internal void
 update_paddle(game_state *game, float delta_t) {
     if (game->key_up_down) {
         if (game->player->y > 0) {
@@ -115,7 +114,7 @@ update_paddle(game_state *game, float delta_t) {
     }
 }
 
-static void
+internal void
 update_ai(game_state *game, float delta_t) {
 
     float paddle_top = game->ai->y;
@@ -132,14 +131,14 @@ update_ai(game_state *game, float delta_t) {
     }
 }
 
-static void
+internal void
 update(game_state *game, float delta_t) {
     update_paddle(game, delta_t);
     update_ai(game, delta_t);
     update_ball(game, delta_t);
 }
 
-static void
+internal void
 render_ball(SDL_Renderer *renderer, pong_ball *ball) {
     int x = ball->radius;
     int y = 0;
@@ -186,7 +185,7 @@ render_ball(SDL_Renderer *renderer, pong_ball *ball) {
     }
 }
 
-static void
+internal void
 render_paddle(SDL_Renderer *renderer, pong_paddle *paddle) {
     SDL_SetRenderDrawColor(renderer,
                            PADDLE_COLOR.r,
@@ -203,7 +202,7 @@ render_paddle(SDL_Renderer *renderer, pong_paddle *paddle) {
     SDL_RenderFillRect(renderer, &rect);
 }
 
-static void
+internal void
 render_score(SDL_Renderer *renderer, score_box *score) {
     char score_string[5];
     sprintf(score_string, score->score < 10 ? "0%d" : "%d", score->score);
@@ -213,7 +212,7 @@ render_score(SDL_Renderer *renderer, score_box *score) {
     SDL_DestroyTexture(texture);
 }
 
-static void
+internal void
 render_center_line(SDL_Renderer *renderer) {
     SDL_SetRenderDrawColor(renderer, 0xFF, 0xFF, 0xFF, 0xFF);
     for (int i = 0; i < SCREEN_HEIGHT; i += 5) {
@@ -221,7 +220,7 @@ render_center_line(SDL_Renderer *renderer) {
     }
 }
 
-static void
+internal void
 render(SDL_Renderer *renderer, game_state *game) {
     // clear screen
     SDL_SetRenderDrawColor(renderer,
@@ -243,7 +242,7 @@ render(SDL_Renderer *renderer, game_state *game) {
     SDL_RenderPresent(renderer);
 }
 
-static void
+internal void
 process_event(SDL_Event *event, game_state *game, uint8_t *running) {
     switch (event->type) {
         case SDL_QUIT:
@@ -278,13 +277,13 @@ process_event(SDL_Event *event, game_state *game, uint8_t *running) {
     }
 }
 
-static void
+internal void
 error(const char*(*error_function)(void)) {
     fprintf(stderr, "Error: %s\n", error_function());
     exit(EXIT_FAILURE);
 }
 
-static void
+internal void
 run(void) {
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) < 0) {
         error(SDL_GetError);
@@ -435,7 +434,7 @@ run(void) {
     TTF_CloseFont(font);
 }
 
-static void
+internal void
 close(void) {
     Mix_Quit();
     TTF_Quit();

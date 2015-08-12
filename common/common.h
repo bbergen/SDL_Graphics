@@ -10,6 +10,10 @@
 #define PI 3.14159265359
 #define count(array) (sizeof(array) / sizeof((array)[0]))
 
+#define persistent static
+#define internal static
+#define global static
+
 #if DEBUG
 #define assert(expression) if(!(expression)) {*(int*) 0 = 0;}
 #else

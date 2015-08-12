@@ -7,19 +7,19 @@
 #include <util.h>
 #include "breaker.h"
 
-static void
+internal void
 play_sound_effect(Mix_Chunk *effect) {
     Mix_PlayChannel(-1, effect, 0);
 }
 
-static int8_t
+internal int8_t
 contains_point(point *p, SDL_Rect *rect) {
     int8_t x_bounds = p->x > rect->x && p->x < rect->x + rect->w;
     int8_t y_bounds = p->y > rect->y && p->y < rect->y + rect->h;
     return x_bounds && y_bounds;
 }
 
-static int8_t
+internal int8_t
 render_brick(void *b) {
     breaker_brick *brick = b;
     if (brick->visible) {
@@ -38,7 +38,7 @@ render_brick(void *b) {
     return true;
 }
 
-static point
+internal point
 circle_intersect(int angle, int x, int y, int radius) {
     double theta = angle * (180 / PI);
 
@@ -49,7 +49,7 @@ circle_intersect(int angle, int x, int y, int radius) {
     return p;
 }
 
-static int8_t
+internal int8_t
 has_brick_ball_collided(void *brick_arg, void *ball_arg) {
     breaker_brick *brick = brick_arg;
     breaker_ball *ball = ball_arg;
@@ -59,7 +59,7 @@ has_brick_ball_collided(void *brick_arg, void *ball_arg) {
     }
 
     int8_t has_collided = false;
-    static int SIZE = 2;
+    persistent int SIZE = 2;
 
     // collision boxes
     SDL_Rect top_right = { brick->x, brick->y, SIZE, SIZE};
@@ -141,7 +141,7 @@ has_brick_ball_collided(void *brick_arg, void *ball_arg) {
     return !has_collided;
 }
 
-static void
+internal void
 random_color(SDL_Color *color) {
     uint8_t red = (uint8_t) (rand() % 255);
     uint8_t blue = (uint8_t) (rand() % 255);
@@ -152,7 +152,7 @@ random_color(SDL_Color *color) {
     *color = c;
 }
 
-static void
+internal void
 build_brick(breaker_brick *brick,
             SDL_Renderer *renderer,
             Mix_Chunk *brick_break,
@@ -169,13 +169,13 @@ build_brick(breaker_brick *brick,
     *brick->color = color;
 }
 
-static void
+internal void
 free_brick(void *b) {
     breaker_brick *brick = b;
     free(brick->color);
 }
 
-static void
+internal void
 build_brick_list(list *l, SDL_Renderer *renderer, Mix_Chunk *brick_break, int bricks) {
     init_list(l, sizeof(breaker_brick), free_brick);
 
@@ -202,12 +202,12 @@ build_brick_list(list *l, SDL_Renderer *renderer, Mix_Chunk *brick_break, int br
     }
 }
 
-static void
+internal void
 start_music(Mix_Music *track) {
     Mix_PlayMusic(track, -1);
 }
 
-static void
+internal void
 pause_music(void) {
     if (Mix_PlayingMusic()) {
         if (Mix_PausedMusic()) {
@@ -218,7 +218,7 @@ pause_music(void) {
     }
 }
 
-static void
+internal void
 render_circle(SDL_Renderer *renderer, const SDL_Color *color, int mid_x, int mid_y, int radius) {
     int x = radius;
     int y = 0;
@@ -265,12 +265,12 @@ render_circle(SDL_Renderer *renderer, const SDL_Color *color, int mid_x, int mid
     }
 }
 
-static void
+internal void
 render_ball(SDL_Renderer *renderer, breaker_ball *ball) {
     render_circle(renderer, &PURPLE, (int) ball->x, (int) ball->y, ball->radius);
 }
 
-static void
+internal void
 render_paddle(SDL_Renderer *renderer, breaker_paddle *paddle) {
     SDL_Rect rect = {
             (int) paddle->x, (int) paddle->y, paddle->width, paddle->height
@@ -281,18 +281,18 @@ render_paddle(SDL_Renderer *renderer, breaker_paddle *paddle) {
     SDL_RenderDrawRect(renderer, &rect);
 }
 
-static void
+internal void
 render_label(SDL_Renderer *renderer, label *l) {
     SDL_Rect bounds = {l->location.x, l->location.y, l->text_width, l->text_height};
     SDL_RenderCopy(renderer, l->text, NULL, &bounds);
 }
 
-static int
+internal int
 find_mid_point(int width, int bounds) {
     return (bounds >> 1) - (width >> 1);
 }
 
-static void
+internal void
 render_component(SDL_Renderer *renderer, component *c, int8_t alt_icon) {
     SDL_Texture *icon = alt_icon ? c->alt_icon : c->icon;
     SDL_Rect inset_rect = {
@@ -307,7 +307,7 @@ render_component(SDL_Renderer *renderer, component *c, int8_t alt_icon) {
     render_label(renderer, c->component_label);
 }
 
-static void
+internal void
 render_score_box(SDL_Renderer *renderer, score_box *box) {
 
     int score_box_width = SCREEN_WIDTH - (SCORE_OFFSET<< 1);
@@ -340,7 +340,7 @@ render_score_box(SDL_Renderer *renderer, score_box *box) {
     render_component(renderer, box->lives_field, false);
 }
 
-static void
+internal void
 render(SDL_Renderer *renderer, breaker_game *game) {
     // clear screen
     SDL_SetRenderDrawColor(renderer,
@@ -363,11 +363,11 @@ render(SDL_Renderer *renderer, breaker_game *game) {
     SDL_RenderPresent(renderer);
 }
 
-static int8_t
+internal int8_t
 check_paddle_collisions(breaker_paddle *paddle, breaker_ball *ball) {
 
-    static int CORNER_HEIGHT = 3;
-    static int CORNER_WIDTH = 15;
+    persistent int CORNER_HEIGHT = 3;
+    persistent int CORNER_WIDTH = 15;
 
     int p_x = (int) paddle->x;
     int p_y = (int) paddle->y;
@@ -450,7 +450,7 @@ check_paddle_collisions(breaker_paddle *paddle, breaker_ball *ball) {
     return has_collided;
 }
 
-static void
+internal void
 update_ball(breaker_game *game, float delta_t) {
     float speed_x = delta_t * STARTING_SPEED;
     float speed_y = delta_t * STARTING_SPEED;
@@ -511,7 +511,7 @@ update_ball(breaker_game *game, float delta_t) {
     ball->y += speed_y * ball->y_dir;
 }
 
-static void
+internal void
 update_paddle(breaker_paddle *paddle, int8_t right_down, int8_t left_down, float delta_t) {
 
     if (right_down) {
@@ -531,7 +531,7 @@ update_paddle(breaker_paddle *paddle, int8_t right_down, int8_t left_down, float
     }
 }
 
-static void
+internal void
 init_score_box(score_box *box, SDL_Surface **surfaces) {
     int score_box_width = SCREEN_WIDTH - (SCORE_OFFSET<< 1);
     int field_size = (score_box_width - ((BUTTON_SIZE * 3) + SCORE_OFFSET * 6)) >> 1;
@@ -606,37 +606,48 @@ init_score_box(score_box *box, SDL_Surface **surfaces) {
 
 }
 
-static void
-update_score_box(score_box *box, point *mouse_loc, int8_t mouse_down) {
+internal void
+update_score_box(score_box *box,
+                 point *mouse_loc,
+                 int8_t mouse_down,
+                 int current_score,
+                 int lives) {
 
-    static uint32_t last_music_ticks = 0;
-    static uint32_t last_sound_ticks = 0;
+    persistent uint32_t last_music_ticks = 0;
+    persistent uint32_t last_sound_ticks = 0;
     uint32_t ticks = SDL_GetTicks();
     uint32_t music_ticks_passed = ticks - last_music_ticks;
     uint32_t sound_ticks_passed = ticks - last_sound_ticks;
     int8_t music_pressed = contains_point(mouse_loc, box->music_button->bounds);
     int8_t sound_pressed = contains_point(mouse_loc, box->sound_button->bounds);
 
-    if ((!last_music_ticks || SDL_TICKS_PASSED(music_ticks_passed, BUTTON_DELAY)) && music_pressed && mouse_down) {
+    if ((!last_music_ticks || SDL_TICKS_PASSED(music_ticks_passed, BUTTON_DELAY))
+        && music_pressed && mouse_down) {
         pause_music();
         box->music_on = !box->music_on;
         last_music_ticks = ticks;
     }
 
-    if ((!last_sound_ticks || SDL_TICKS_PASSED(sound_ticks_passed, BUTTON_DELAY)) && sound_pressed && mouse_down) {
+    if ((!last_sound_ticks || SDL_TICKS_PASSED(sound_ticks_passed, BUTTON_DELAY))
+        && sound_pressed && mouse_down) {
         box->sound_on = !box->sound_on;
         last_sound_ticks = ticks;
     }
+
 }
 
-static void
+internal void
 update(breaker_game *game, float delta_t) {
-    update_score_box(game->score, game->mouse_loc, game->mouse_down);
+    update_score_box(game->score,
+                     game->mouse_loc,
+                     game->mouse_down,
+                     game->current_score,
+                     game->lives);
     update_ball(game, delta_t);
     update_paddle(game->player, game->key_right_down, game->key_left_down, delta_t);
 }
 
-static void
+internal void
 process_event(SDL_Event *event, breaker_game * game, int8_t *running) {
     switch (event->type) {
         case SDL_QUIT:
@@ -680,13 +691,13 @@ process_event(SDL_Event *event, breaker_game * game, int8_t *running) {
     }
 }
 
-static void
+internal void
 error(const char*(*error_function)(void)) {
     fprintf(stderr, "Error: %s\n", error_function());
     exit(EXIT_FAILURE);
 }
 
-static void
+internal void
 performance_profiling(uint64_t per_count_freq, uint64_t *last_count, uint64_t *last_cycles) {
     uint64_t end_counter = SDL_GetPerformanceCounter();
     uint64_t counter_elapsed = end_counter - *last_count;
@@ -701,7 +712,7 @@ performance_profiling(uint64_t per_count_freq, uint64_t *last_count, uint64_t *l
     *last_cycles = end_cycle_count;
 }
 
-static void
+internal void
 run(void) {
     SDL_Window *window = SDL_CreateWindow("Brick Breaker!",
                                           SDL_WINDOWPOS_UNDEFINED,
@@ -946,7 +957,7 @@ run(void) {
     TTF_CloseFont(score_font);
 }
 
-static void
+internal void
 init(void) {
 
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) < 0) {
@@ -970,7 +981,7 @@ init(void) {
 
 }
 
-static void
+internal void
 close(void) {
     Mix_Quit();
     SDL_Quit();
