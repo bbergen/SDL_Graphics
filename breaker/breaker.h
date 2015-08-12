@@ -50,6 +50,13 @@ typedef struct point {
     int y;
 } point;
 
+typedef struct insets {
+    int left;
+    int right;
+    int top;
+    int bottom;
+} insets;
+
 typedef struct label {
     SDL_Texture *text;
     point location;
@@ -62,6 +69,7 @@ typedef struct component {
     SDL_Texture *icon;
     SDL_Texture *alt_icon;
     SDL_Rect *bounds;
+    insets inset;
 } component;
 
 typedef struct score_box {
