@@ -486,7 +486,7 @@ check_paddle_collisions(breaker_paddle *paddle, breaker_ball *ball) {
 }
 
 internal void
-update_ball(breaker_game *game, int *score) {
+update_ball(breaker_game *game) {
     float speed_x = STARTING_SPEED;
     float speed_y = STARTING_SPEED;
     breaker_ball *ball = game->ball;
@@ -670,7 +670,7 @@ update_score_box(score_box *box, point *mouse_loc, int8_t mouse_down) {
 internal void
 update(breaker_game *game) {
     update_score_box(game->score, game->mouse_loc, game->mouse_down);
-    update_ball(game, &game->current_score);
+    update_ball(game);
     update_paddle(game->player, game->key_right_down, game->key_left_down);
 }
 
