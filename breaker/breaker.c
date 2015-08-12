@@ -295,7 +295,13 @@ find_mid_point(int width, int bounds) {
 static void
 render_component(SDL_Renderer *renderer, component *c, int8_t alt_icon) {
     SDL_Texture *icon = alt_icon ? c->alt_icon : c->icon;
-    SDL_RenderCopy(renderer, icon, NULL, c->bounds);
+    SDL_Rect inset_rect = {
+            c->bounds->x + c->inset.left,
+            c->bounds->y + c->inset.top,
+            c->bounds->w - (c->inset.left + c->inset.right),
+            c->bounds->h - (c->inset.top + c->inset.bottom)
+    };
+    SDL_RenderCopy(renderer, icon, NULL, &inset_rect);
     SDL_SetRenderDrawColor(renderer, BLACK.r, BLACK.g, BLACK.b, BLACK.a);
     SDL_RenderDrawRect(renderer, c->bounds);
     render_label(renderer, c->component_label);
@@ -526,40 +532,17 @@ update_paddle(breaker_paddle *paddle, int8_t right_down, int8_t left_down, float
 }
 
 static void
-update_score_box(score_box *box, point *mouse_loc, int8_t mouse_down) {
+init_score_box(score_box *box) {
     int score_box_width = SCREEN_WIDTH - (SCORE_OFFSET<< 1);
     int field_size = (score_box_width - ((BUTTON_SIZE * 3) + SCORE_OFFSET * 6)) >> 1;
     int x = SCORE_OFFSET << 1;
     int y = SCORE_OFFSET << 1;
-
-    static uint32_t last_music_ticks = 0;
-    static uint32_t last_sound_ticks = 0;
-    uint32_t ticks = SDL_GetTicks();
-    uint32_t music_ticks_passed = ticks - last_music_ticks;
-    uint32_t sound_ticks_passed = ticks - last_sound_ticks;
-    int8_t music_pressed = contains_point(mouse_loc, box->music_button->bounds);
-    int8_t sound_pressed = contains_point(mouse_loc, box->sound_button->bounds);
-
-    if ((!last_music_ticks || SDL_TICKS_PASSED(music_ticks_passed, BUTTON_DELAY)) && music_pressed && mouse_down) {
-        pause_music();
-        box->music_on = !box->music_on;
-        last_music_ticks = ticks;
-    }
-
-    if ((!last_sound_ticks || SDL_TICKS_PASSED(sound_ticks_passed, BUTTON_DELAY)) && sound_pressed && mouse_down) {
-        box->sound_on = !box->sound_on;
-        last_sound_ticks = ticks;
-    }
 
     SDL_Rect button = {
             SCORE_OFFSET << 1,
             CEILING - (SCORE_OFFSET + BUTTON_SIZE),
             BUTTON_SIZE,
             BUTTON_SIZE
-    };
-
-    insets inset = {
-            5, 5, 5, 5
     };
 
     label lbl = *box->music_button->component_label;
@@ -581,7 +564,6 @@ update_score_box(score_box *box, point *mouse_loc, int8_t mouse_down) {
     point high_score_point = {x + find_mid_point(lbl.text_width, field_size), y};
     box->high_score_field->component_label->location = high_score_point;
     *box->high_score_field->bounds = button;
-    box->high_score_field->inset = inset;
 
     lbl = *box->current_score_field->component_label;
     button.x += field_size + SCORE_OFFSET;
@@ -589,7 +571,6 @@ update_score_box(score_box *box, point *mouse_loc, int8_t mouse_down) {
     point current_score_point = {x + find_mid_point(lbl.text_width, field_size), y};
     box->current_score_field->component_label->location = current_score_point;
     *box->current_score_field->bounds = button;
-    box->current_score_field->inset = inset;
 
     lbl = *box->lives_field->component_label;
     button.x += field_size + SCORE_OFFSET;
@@ -598,7 +579,30 @@ update_score_box(score_box *box, point *mouse_loc, int8_t mouse_down) {
     point lives_point = {x + find_mid_point(lbl.text_width, BUTTON_SIZE), y};
     box->lives_field->component_label->location = lives_point;
     *box->lives_field->bounds = button;
-    box->lives_field->inset = inset;
+
+}
+
+static void
+update_score_box(score_box *box, point *mouse_loc, int8_t mouse_down) {
+
+    static uint32_t last_music_ticks = 0;
+    static uint32_t last_sound_ticks = 0;
+    uint32_t ticks = SDL_GetTicks();
+    uint32_t music_ticks_passed = ticks - last_music_ticks;
+    uint32_t sound_ticks_passed = ticks - last_sound_ticks;
+    int8_t music_pressed = contains_point(mouse_loc, box->music_button->bounds);
+    int8_t sound_pressed = contains_point(mouse_loc, box->sound_button->bounds);
+
+    if ((!last_music_ticks || SDL_TICKS_PASSED(music_ticks_passed, BUTTON_DELAY)) && music_pressed && mouse_down) {
+        pause_music();
+        box->music_on = !box->music_on;
+        last_music_ticks = ticks;
+    }
+
+    if ((!last_sound_ticks || SDL_TICKS_PASSED(sound_ticks_passed, BUTTON_DELAY)) && sound_pressed && mouse_down) {
+        box->sound_on = !box->sound_on;
+        last_sound_ticks = ticks;
+    }
 }
 
 static void
@@ -846,6 +850,8 @@ run(void) {
             true,
             true
     };
+
+    init_score_box(&box);
 
     point mouse_loc = {0,0};
 
