@@ -16,8 +16,8 @@
 #define AUDIO_CHANNELS 2
 #define AUDIO_CHUNK_SIZE 2048
 #define BALL_SIZE 5
-#define DEFAULT_PADDLE_SPEED 300
-#define STARTING_SPEED 300
+#define DEFAULT_PADDLE_SPEED 3.5
+#define STARTING_SPEED 3.5
 #define PADDLE_HEIGHT 10
 #define PADDLE_WIDTH 75
 #define BRICK_WIDTH SCREEN_WIDTH / 12
@@ -80,6 +80,7 @@ typedef struct score_box {
     component *lives_field;
     int8_t music_on;
     int8_t sound_on;
+    TTF_Font *text_font;
 } score_box;
 
 typedef struct breaker_sounds {
@@ -93,6 +94,7 @@ typedef struct breaker_brick {
     int y;
     int width;
     int height;
+    int value;
     int8_t visible;
     SDL_Color *color;
     SDL_Renderer *renderer;

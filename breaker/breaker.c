@@ -50,9 +50,9 @@ circle_intersect(int angle, int x, int y, int radius) {
 }
 
 internal int8_t
-has_brick_ball_collided(void *brick_arg, void *ball_arg) {
+has_brick_ball_collided(void *brick_arg, void *game_arg) {
     breaker_brick *brick = brick_arg;
-    breaker_ball *ball = ball_arg;
+    breaker_ball *ball = ((breaker_game*) game_arg)->ball;
 
     if (!brick->visible) {
         return true;
@@ -137,6 +137,10 @@ has_brick_ball_collided(void *brick_arg, void *ball_arg) {
         play_sound_effect(brick->brick_break);
     }
 
+    if (has_collided) {
+        ((breaker_game*) game_arg)->current_score += brick->value;
+    }
+
     brick->visible = !has_collided;
     return !has_collided;
 }
@@ -157,11 +161,12 @@ build_brick(breaker_brick *brick,
             SDL_Renderer *renderer,
             Mix_Chunk *brick_break,
             SDL_Color color,
-            int x, int y, int width, int height) {
+            int x, int y, int width, int height, int value) {
     brick->x = x;
     brick->y = y;
     brick->width = width;
     brick->height = height;
+    brick->value = value;
     brick->renderer = renderer;
     brick->brick_break = brick_break;
     brick->visible = true;
@@ -195,7 +200,7 @@ build_brick_list(list *l, SDL_Renderer *renderer, Mix_Chunk *brick_break, int br
         int width = BRICK_WIDTH;
         int height = BRICK_HEIGHT;
         breaker_brick brick;
-        build_brick(&brick, renderer, brick_break, color, x, y, width, height);
+        build_brick(&brick, renderer, brick_break, color, x, y, width, height, 5);
         add(l, &brick);
         x += BRICK_WIDTH;
 
@@ -308,7 +313,37 @@ render_component(SDL_Renderer *renderer, component *c, int8_t alt_icon) {
 }
 
 internal void
-render_score_box(SDL_Renderer *renderer, score_box *box) {
+update_text_field(SDL_Renderer *renderer, component *c, TTF_Font *font, SDL_Color *color, int updated_value) {
+    char string[SCORE_PADDING + 1];
+    itoa(updated_value, string, SCORE_PADDING);
+    SDL_Surface *new_surface = TTF_RenderText_Blended(font, string, *color);
+    SDL_Texture *new_texture = SDL_CreateTextureFromSurface(renderer, new_surface);
+    c->icon = new_texture;
+    SDL_FreeSurface(new_surface);
+}
+
+internal void
+update_score_and_lives(SDL_Renderer *renderer, score_box *box, int current_score, int current_lives) {
+
+    persistent int score = STARTING_SCORE;
+    persistent int lives = STARTING_LIVES;
+
+    if (current_score > score) {
+        score = current_score;
+        update_text_field(renderer, box->current_score_field, box->text_font, &GREEN, current_score);
+    }
+
+    if (current_lives > lives) {
+        lives = current_lives;
+        update_text_field(renderer, box->lives_field, box->text_font, &RED, current_lives);
+    }
+
+}
+
+internal void
+render_score_box(SDL_Renderer *renderer, score_box *box, int current_score, int current_lives) {
+
+    update_score_and_lives(renderer, box, current_score, current_lives);
 
     int score_box_width = SCREEN_WIDTH - (SCORE_OFFSET<< 1);
 
@@ -354,7 +389,7 @@ render(SDL_Renderer *renderer, breaker_game *game) {
     // render game objects
     render_ball(renderer, game->ball);
     render_paddle(renderer, game->player);
-    render_score_box(renderer, game->score);
+    render_score_box(renderer, game->score, game->current_score, game->lives);
 
     // render bricks
     list_for_each(game->brick_list, render_brick);
@@ -451,9 +486,9 @@ check_paddle_collisions(breaker_paddle *paddle, breaker_ball *ball) {
 }
 
 internal void
-update_ball(breaker_game *game, float delta_t) {
-    float speed_x = delta_t * STARTING_SPEED;
-    float speed_y = delta_t * STARTING_SPEED;
+update_ball(breaker_game *game, int *score) {
+    float speed_x = STARTING_SPEED;
+    float speed_y = STARTING_SPEED;
     breaker_ball *ball = game->ball;
     ball->sound_effects_on = game->score->sound_on;
 
@@ -496,7 +531,7 @@ update_ball(breaker_game *game, float delta_t) {
     // check brick collisions
     list_for_each_with_param(game->brick_list,
                              has_brick_ball_collided,
-                             game->ball);
+                             game);
 
     // check paddle collision
     if (check_paddle_collisions(game->player, ball)) {
@@ -512,11 +547,11 @@ update_ball(breaker_game *game, float delta_t) {
 }
 
 internal void
-update_paddle(breaker_paddle *paddle, int8_t right_down, int8_t left_down, float delta_t) {
+update_paddle(breaker_paddle *paddle, int8_t right_down, int8_t left_down) {
 
     if (right_down) {
         if (paddle->x <= SCREEN_WIDTH - PADDLE_WIDTH) {
-            paddle->x += STARTING_SPEED * delta_t;
+            paddle->x += STARTING_SPEED;
         } else {
             paddle->x = SCREEN_WIDTH - PADDLE_WIDTH;
         }
@@ -524,7 +559,7 @@ update_paddle(breaker_paddle *paddle, int8_t right_down, int8_t left_down, float
 
     if (left_down) {
         if (paddle->x >= 0) {
-            paddle->x -= STARTING_SPEED * delta_t;
+            paddle->x -= STARTING_SPEED;
         } else {
             paddle->x = 0;
         }
@@ -607,11 +642,7 @@ init_score_box(score_box *box, SDL_Surface **surfaces) {
 }
 
 internal void
-update_score_box(score_box *box,
-                 point *mouse_loc,
-                 int8_t mouse_down,
-                 int current_score,
-                 int lives) {
+update_score_box(score_box *box, point *mouse_loc, int8_t mouse_down) {
 
     persistent uint32_t last_music_ticks = 0;
     persistent uint32_t last_sound_ticks = 0;
@@ -637,14 +668,10 @@ update_score_box(score_box *box,
 }
 
 internal void
-update(breaker_game *game, float delta_t) {
-    update_score_box(game->score,
-                     game->mouse_loc,
-                     game->mouse_down,
-                     game->current_score,
-                     game->lives);
-    update_ball(game, delta_t);
-    update_paddle(game->player, game->key_right_down, game->key_left_down, delta_t);
+update(breaker_game *game) {
+    update_score_box(game->score, game->mouse_loc, game->mouse_down);
+    update_ball(game, &game->current_score);
+    update_paddle(game->player, game->key_right_down, game->key_left_down);
 }
 
 internal void
@@ -883,7 +910,8 @@ run(void) {
             &current_score_c,
             &lives_c,
             true,
-            true
+            true,
+            score_font
     };
 
     SDL_Surface *surfaces[3] = {high_score_surface, current_score_surface, lives_surface};
@@ -923,17 +951,23 @@ run(void) {
     uint64_t last_cycle_count = _rdtsc();
 #endif
 
+    const uint64_t update_freq = 1000 / 60;
+    double ticks_passed = 0.0;
+
     //game loop
     while (running) {
         then = now;
         now = SDL_GetTicks();
-        delta_t = (now - then) / 1000.0f;
+        ticks_passed += now - then;
 
         while (SDL_PollEvent(&event) !=0) {
             process_event(&event, &game, &running);
         }
 
-        update(&game, delta_t);
+        if (ticks_passed >= update_freq) {
+            update(&game);
+            ticks_passed -= update_freq;
+        }
         render(renderer, &game);
 
 #if DEBUG
