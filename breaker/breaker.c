@@ -51,8 +51,8 @@ circle_intersect(int angle, int x, int y, int radius) {
 
 static int8_t
 has_brick_ball_collided(void *brick_arg, void *ball_arg) {
-    breaker_brick *brick = (breaker_brick*) brick_arg;
-    breaker_ball *ball = (breaker_ball*) ball_arg;
+    breaker_brick *brick = brick_arg;
+    breaker_ball *ball = ball_arg;
 
     if (!brick->visible) {
         return true;
