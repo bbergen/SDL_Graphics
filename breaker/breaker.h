@@ -28,7 +28,7 @@
 #define BUTTON_DELAY 100
 #define STARTING_LIVES 3
 #define STARTING_SCORE 0
-#define SCORE_PADDING 10
+#define SCORE_PADDING 15
 
 
 #define WALL_BOUNCE "resources/sounds/breaker/effects/wall_bounce.wav"
@@ -147,7 +147,7 @@ static const SDL_Color BLUE = {
 };
 
 static const SDL_Color GREEN = {
-        0x00, 0xFF, 0x33, 0x00
+        0x2F, 0xB0, 0x04, 0x00
 };
 
 static const SDL_Color RED = {

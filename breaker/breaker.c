@@ -532,7 +532,7 @@ update_paddle(breaker_paddle *paddle, int8_t right_down, int8_t left_down, float
 }
 
 static void
-init_score_box(score_box *box) {
+init_score_box(score_box *box, SDL_Surface **surfaces) {
     int score_box_width = SCREEN_WIDTH - (SCORE_OFFSET<< 1);
     int field_size = (score_box_width - ((BUTTON_SIZE * 3) + SCORE_OFFSET * 6)) >> 1;
     int x = SCORE_OFFSET << 1;
@@ -564,6 +564,14 @@ init_score_box(score_box *box) {
     point high_score_point = {x + find_mid_point(lbl.text_width, field_size), y};
     box->high_score_field->component_label->location = high_score_point;
     *box->high_score_field->bounds = button;
+    SDL_Surface *high_score_surface = *surfaces++;
+    insets high_score_insets = {
+            (field_size - high_score_surface->w) >> 1,
+            (field_size - high_score_surface->w) >> 1,
+            (BUTTON_SIZE - high_score_surface->h) >> 1,
+            (BUTTON_SIZE - high_score_surface->h) >> 1
+    };
+    box->high_score_field->inset = high_score_insets;
 
     lbl = *box->current_score_field->component_label;
     button.x += field_size + SCORE_OFFSET;
@@ -571,6 +579,14 @@ init_score_box(score_box *box) {
     point current_score_point = {x + find_mid_point(lbl.text_width, field_size), y};
     box->current_score_field->component_label->location = current_score_point;
     *box->current_score_field->bounds = button;
+    SDL_Surface *current_score_surface = *surfaces++;
+    insets current_score_insets = {
+            (field_size - current_score_surface->w) >> 1,
+            (field_size - current_score_surface->w) >> 1,
+            (BUTTON_SIZE - current_score_surface->h) >> 1,
+            (BUTTON_SIZE - current_score_surface->h) >> 1
+    };
+    box->current_score_field->inset = current_score_insets;
 
     lbl = *box->lives_field->component_label;
     button.x += field_size + SCORE_OFFSET;
@@ -579,6 +595,14 @@ init_score_box(score_box *box) {
     point lives_point = {x + find_mid_point(lbl.text_width, BUTTON_SIZE), y};
     box->lives_field->component_label->location = lives_point;
     *box->lives_field->bounds = button;
+    SDL_Surface *lives_surface = *surfaces;
+    insets lives_insets = {
+            (BUTTON_SIZE - lives_surface->w) >> 1,
+            (BUTTON_SIZE - lives_surface->w) >> 1,
+            (BUTTON_SIZE - lives_surface->h) >> 1,
+            (BUTTON_SIZE - lives_surface->h) >> 1
+    };
+    box->lives_field->inset = lives_insets;
 
 }
 
@@ -730,7 +754,7 @@ run(void) {
     build_brick_list(&brick_list, renderer, brick_break, 60);
 
     TTF_Font *label_font = TTF_OpenFont(SCORE_FONT, 18);
-    TTF_Font *score_font = TTF_OpenFont(SCORE_FONT, 30);
+    TTF_Font *score_font = TTF_OpenFont(SCORE_FONT, 35);
 
     if (!label_font || !score_font ) {
         error(TTF_GetError);
@@ -851,7 +875,9 @@ run(void) {
             true
     };
 
-    init_score_box(&box);
+    SDL_Surface *surfaces[3] = {high_score_surface, current_score_surface, lives_surface};
+
+    init_score_box(&box, surfaces);
 
     point mouse_loc = {0,0};
 
