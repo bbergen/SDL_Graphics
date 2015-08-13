@@ -5,7 +5,7 @@
 #include "menu.h"
 
 menu*
-init_menu(int menu_count,
+init_menu(int item_count,
           callback_function *call_backs,
           char **menu_items,
           SDL_Color *bg,

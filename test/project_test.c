@@ -6,6 +6,7 @@
 #include <string.h>
 #include "list.h"
 #include "util.h"
+#include "map.h"
 
 typedef struct test_data {
     char *display_text;
@@ -102,9 +103,60 @@ run_itoa_test(void) {
     printf("Util Tests Completed\n\n");
 }
 
+internal void
+run_map_test(void) {
+    printf("Starting Map Tests...\n");
+
+    hash_map map;
+    map = init_map();
+
+    // test put
+    printf("Starting put test...\n");
+    char *key_1 = "key_1";
+    char *value_1 = "hello world!";
+    put(map, key_1, value_1, strlen(value_1));
+    printf("Expected: %s, Result: %s\n", value_1, (char*) get(map, key_1 ));
+    printf("End put test\n\n");
+
+    // test overwrite
+    printf("Starting overwrite test...\n");
+    char *value_2 = "good bye!";
+    put(map, key_1, value_2, strlen(value_2));
+    printf("Expected: %s, Result: %s\n", value_2, (char*) get(map, key_1));
+    printf("End overwrite test\n\n");
+
+    // test delete
+    printf("Starting removal test...\n");
+    remove_entry(map, key_1);
+    printf("Entry Removal %s\n", get(map, key_1) ? "Failed" : "Succeeded");
+
+    // test idempotency of delete
+    remove_entry(map, key_1);
+    printf("End removal test\n\n");
+
+    // test map growth
+    printf("Starting growth test...\n");
+    char buffer[512];
+    int i;
+    for (i = 0; i < 10000; i++) {
+        sprintf(buffer, "%d", i);
+        put(map, buffer, buffer, strlen(buffer));
+    }
+    for (i = 0; i < 10000; i += 1000) {
+        sprintf(buffer, "%d", i);
+        printf("Stored Value: %s\n", (char*) get(map, buffer));
+    }
+    printf("End growth test\n");
+
+    //test map freeing
+    free_map(map);
+    printf("Map Tests Completed\n\n");
+}
+
 int
 main(int argc, char **argv) {
     run_list_test();
     run_itoa_test();
+    run_map_test();
     return EXIT_SUCCESS;
 }
