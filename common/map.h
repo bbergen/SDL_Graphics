@@ -38,6 +38,9 @@ void* get(hash_map, const char *);
 
 /*
  * Removes the key value pair associated with passed key
+ * Currently only removes a single value from a bucket.
+ * If there was a collision, only the most recent entry will
+ * be removed, and multiple calls are needed to remove chained values
  */
 void remove_entry(hash_map, const char *);
 

@@ -145,6 +145,7 @@ get(hash_map map, const char *key) {
 
 void
 remove_entry(hash_map map, const char *key) {
+    //TODO make this delete all chained values if there were collisions.
     entry **prev;
     entry *e;
 

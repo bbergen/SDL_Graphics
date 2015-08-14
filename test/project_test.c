@@ -25,7 +25,7 @@ test_free(void *data) {
 }
 
 internal int8_t
-print_test_node(void *data) {
+print_test_data(void *data) {
     test_data *test = (test_data*) data;
     printf("Printing: %s\n", test->display_text);
     printf("X: %d, Y: %d\n\n", *test->x, *test->y);
@@ -75,7 +75,7 @@ run_list_test(void) {
     add(&test_list, &third);
 
     printf("Size of test_list: %d\n", list_size(&test_list));
-    list_for_each(&test_list, print_test_node);
+    list_for_each(&test_list, print_test_data);
     list_for_each_with_param(&test_list, print_test_node_params, "Dynamic Parameter");
 
     printf("Address of allocated test_list head: %p\n", test_list.head);
@@ -114,24 +114,26 @@ run_map_test(void) {
     printf("Starting put test...\n");
     char *key_1 = "key_1";
     char *value_1 = "hello world!";
-    put(map, key_1, value_1, strlen(value_1));
+    put(map, key_1, value_1, strlen(value_1) + 1);
     printf("Expected: %s, Result: %s\n", value_1, (char*) get(map, key_1 ));
     printf("End put test\n\n");
 
     // test overwrite
     printf("Starting overwrite test...\n");
     char *value_2 = "good bye!";
-    put(map, key_1, value_2, strlen(value_2));
+    put(map, key_1, value_2, strlen(value_2) + 1);
     printf("Expected: %s, Result: %s\n", value_2, (char*) get(map, key_1));
     printf("End overwrite test\n\n");
 
     // test delete
     printf("Starting removal test...\n");
-    remove_entry(map, key_1);
-    printf("Entry Removal %s\n", get(map, key_1) ? "Failed" : "Succeeded");
+    char *key_2 = "KEY_TWO";
+    put(map, key_2, value_2, strlen(value_2) + 1);
+    remove_entry(map, key_2);
+    printf("Entry Removal %s\n", get(map, key_2) ? "Failed" : "Succeeded");
 
     // test idempotency of delete
-    remove_entry(map, key_1);
+    remove_entry(map, key_2);
     printf("End removal test\n\n");
 
     // test map growth
@@ -146,10 +148,51 @@ run_map_test(void) {
         sprintf(buffer, "%d", i);
         printf("Stored Value: %s\n", (char*) get(map, buffer));
     }
-    printf("End growth test\n");
+    printf("End growth test\n\n");
 
     //test map freeing
     free_map(map);
+
+    // new map
+    map =  init_map();
+
+    // testing struct values
+    test_data data_1;
+    test_data data_2;
+    test_data data_3;
+    allocate_test_data(&data_1, "Test Struct One!", 42, 42);
+    allocate_test_data(&data_2, "Test Struct Two!", 11, 21);
+    allocate_test_data(&data_3, "Test Struct Three!", 400, -67);
+    char *key_3 = "struct_key";
+    char *key_4 = "duplicate_key";
+    char *key_5 = "duplicate_key";
+
+    printf("Starting struct value test...\n");
+    put(map, key_3, &data_1, sizeof(test_data));
+    put(map, key_4, &data_2, sizeof(test_data));
+    put(map, key_5, &data_3, sizeof(test_data));
+
+    printf("Expected: \n");
+    print_test_data(&data_1);
+    printf("Result: \n");
+    print_test_data(get(map, key_3));
+
+    printf("Expected: \n");
+    print_test_data(&data_3);
+    printf("Result: \n");
+    print_test_data(get(map, key_4));
+
+    printf("Expected: \n");
+    print_test_data(&data_3);
+    printf("Result: \n");
+    print_test_data(get(map, key_5));
+
+    test_free(&data_1);
+    test_free(&data_2);
+    test_free(&data_3);
+    printf("End struct value test\n\n");
+    free_map(map);
+
     printf("Map Tests Completed\n\n");
 }
 
