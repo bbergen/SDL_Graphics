@@ -741,6 +741,25 @@ performance_profiling(uint64_t per_count_freq, uint64_t *last_count, uint64_t *l
 }
 
 internal void
+starting_menu_callback(void *menu_item, void *param) {
+    //do nothing for now
+}
+
+internal void
+display_breaker_menu(SDL_Renderer *renderer, int8_t paused) {
+    char *menu_items[2] = {"New Game", "Quit"};
+    callback_function  callbacks[2] = {starting_menu_callback, starting_menu_callback};
+    SDL_Rect bounds = {0, 0, SCREEN_WIDTH, SCREEN_HEIGHT};
+    menu starting_menu = init_menu(2, callbacks, menu_items, &BLACK, &WHITE, &bounds);
+    int8_t result = display_menu(renderer, starting_menu, NULL);
+    destroy_menu(starting_menu);
+    if (result == QUIT_FROM_MENU) {
+//        close();
+        exit(EXIT_SUCCESS);
+    }
+}
+
+internal void
 run(void) {
     SDL_Window *window = SDL_CreateWindow("Brick Breaker!",
                                           SDL_WINDOWPOS_UNDEFINED,
@@ -936,14 +955,18 @@ run(void) {
             &mouse_loc
     };
 
+
+    //start music
+    start_music(game.sounds->music);
+
+    // display menu
+    display_breaker_menu(renderer, false);
+
     int8_t running = true;
     SDL_Event event;
     uint32_t then;
     uint32_t now = SDL_GetTicks();
     float delta_t;
-
-    //start music
-    start_music(game.sounds->music);
 
 #if DEBUG
     //performance tracking

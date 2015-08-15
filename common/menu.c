@@ -14,6 +14,16 @@ typedef struct _menu {
     SDL_Rect *bounds;
 } _menu;
 
+typedef struct menu_data {
+    _menu *m;
+    int8_t menu_running;
+    int8_t return_status;
+    SDL_Renderer *renderer;
+    SDL_Event *event;
+    int selected_index;
+    void *callback_arg;
+} menu_data ;
+
 menu
 init_menu(int item_count,
           callback_function *call_backs,
@@ -49,9 +59,78 @@ init_menu(int item_count,
     return m;
 }
 
-void
-display_menu(SDL_Renderer *renderer, menu m) {
-    //TODO implement
+internal void
+render_menu(SDL_Renderer *renderer, _menu *m, int selected_index) {
+
+    // clear screen
+    SDL_SetRenderDrawColor(renderer, m->bg->r, m->bg->g, m->bg->b, m->bg->a);
+    SDL_RenderClear(renderer);
+
+    SDL_SetRenderDrawColor(renderer, m->fg->r, m->fg->g, m->fg->b, m->fg->a);
+    SDL_Rect test_rect = {
+            m->bounds->w >> 2,
+            m->bounds->h >> 2,
+            m->bounds->w >> 1,
+            m->bounds->h >> 1
+    };
+    SDL_RenderFillRect(renderer, &test_rect);
+
+    // display menu
+    SDL_RenderPresent(renderer);
+}
+
+internal void
+process_menu_event(menu_data *data) {
+    switch (data->event->type) {
+        case SDL_QUIT:
+            data->menu_running = false;
+            data->return_status = QUIT_FROM_MENU;
+            break;
+        case SDL_KEYDOWN:
+            switch (data->event->key.keysym.sym) {
+                case SDLK_SPACE:
+                case SDLK_ESCAPE:
+                case SDLK_PAUSE:
+                case SDLK_RETURN:
+                    data->menu_running = false;
+                    break;
+                default:
+                    break;
+            }
+            break;
+        case SDL_WINDOWEVENT:
+            render_menu(data->renderer, data->m, data->selected_index);
+            break;
+        case SDL_MOUSEMOTION:
+            break;
+        case SDL_MOUSEBUTTONDOWN:
+            break;
+        default:
+            break;
+    }
+}
+
+int8_t
+display_menu(SDL_Renderer *renderer, menu m, void *callback_arg) {
+
+    SDL_Event event;
+    menu_data data = {
+            m,
+            true,
+            NULL,
+            renderer,
+            &event,
+            0,
+            callback_arg
+    };
+
+    // menu loop
+    while (data.menu_running) {
+        while (SDL_PollEvent(&event) != 0) {
+            process_menu_event(&data);
+        }
+    }
+    return data.return_status;
 }
 
 void
