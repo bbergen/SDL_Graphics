@@ -30,5 +30,17 @@ else
     exit
 fi
 
-output_file="mem_report_${executable}.txt"
+output_file="mem_report_${executable}.html"
+
+# run valigrind
 eval "${base_command} ${output_file} 2>&1"
+
+# now let's pretty up the report
+sed -i 's/$/<br>/' ${output_file}
+sed -i 's/<br><br>/<br>/' ${output_file}
+
+# lets open it up to view
+if [ -x '/usr/bin/xdg-open' ];
+then
+    xdg-open ${output_file} &
+fi
