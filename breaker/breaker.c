@@ -5,6 +5,7 @@
 #include <x86intrin.h>
 #include <list.h>
 #include <util.h>
+#include "menu.h"
 #include "breaker.h"
 
 internal void

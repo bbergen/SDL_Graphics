@@ -32,7 +32,7 @@ fi
 
 output_file="mem_report_${executable}.html"
 
-# run valigrind
+# run valgrind
 eval "${base_command} ${output_file} 2>&1"
 
 # now let's pretty up the report

@@ -8,29 +8,33 @@
 #include <SDL2/SDL.h>
 #include "common.h"
 
+/*
+ * Callback called when menu item activated
+ * first arg is the menu item, second arg is the...
+ */
 typedef void (*callback_function) (void *, void *);
 
-typedef struct menu {
-    int item_count;
-    char **menu_items;
-    callback_function *call_backs;
-    SDL_Color *bg;
-    SDL_Color *fg;
-    SDL_Rect *bounds;
-} menu;
+/*
+ * Menu implementation hidden behind interface
+ */
+typedef void* menu;
 
-menu*
-init_menu(int menu_count,
-          callback_function *call_backs,
-          char **menu_items,
-          SDL_Color *bg,
-          SDL_Color *bg,
-          SDL_Rect *bounds);
+/*
+ * Creates and returns a menu based on the passed parameters.
+ * There should be one callback per menu item (not necessarily unique).
+ */
+menu init_menu(int, callback_function*, char**, SDL_Color*, SDL_Color*, SDL_Rect*);
 
-void
-display_menu(SDL_Renderer *renderer, menu *m);
+/*
+ * Displays the menu.
+ * Activating any menu item will run the associated callback
+ * then dispose of the menu
+ */
+void display_menu(SDL_Renderer*, menu);
 
-void
-destroy_menu(menu *m);
+/*
+ * Free the memory associate with the passed menu
+ */
+void destroy_menu(menu);
 
 #endif //SDL_GRAPHICS_MENU_H

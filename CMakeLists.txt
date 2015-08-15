@@ -10,7 +10,14 @@ include_directories(common)
 set(TEST_SOURCE test/project_test.c common/list.c common/util.c common/map.c)
 set(BALL_SOURCE ball/ball.c)
 set(PONG_SOURCE pong/pong.c pong/pong.h)
-set(BREAKER_SOURCE breaker/breaker.c breaker/breaker.h common/list.c common/util.c)
+set(BREAKER_SOURCE
+    breaker/breaker.c
+    breaker/breaker.h
+    common/list.c
+    common/util.c
+    common/map.c
+    common/menu.c
+)
 add_executable(SDL_Ball ${BALL_SOURCE})
 add_executable(SDL_Pong ${PONG_SOURCE})
 add_executable(SDL_Breaker ${BREAKER_SOURCE})
