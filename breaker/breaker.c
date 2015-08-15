@@ -740,8 +740,8 @@ performance_profiling(uint64_t per_count_freq, uint64_t *last_count, uint64_t *l
     *last_cycles = end_cycle_count;
 }
 
-internal void
-starting_menu_callback(void *menu_item, void *param) {
+internal int8_t
+starting_menu_callback(int menu_index, void *param) {
     //do nothing for now
 }
 

@@ -12,9 +12,11 @@ static const int8_t QUIT_FROM_MENU = -1;
 
 /*
  * Callback called when menu item activated
- * first arg is the menu item, second arg is an optional dynamic parameter
+ * arg 1: Index of the selected menu item
+ * arg 2: optional parameter passed via init_menu
+ * return: anything but 0 if the menu should continue displaying
  */
-typedef void (*callback_function) (void *, void *);
+typedef int8_t (*callback_function) (int, void *);
 
 /*
  * Menu implementation hidden behind interface
