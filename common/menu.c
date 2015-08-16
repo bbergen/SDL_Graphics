@@ -21,6 +21,7 @@ typedef struct menu_data {
     SDL_Renderer *renderer;
     SDL_Event *event;
     int selected_index;
+    TTF_Font *font;
     void *callback_arg;
 } menu_data ;
 
@@ -60,20 +61,27 @@ init_menu(int item_count,
 }
 
 internal void
-render_menu(SDL_Renderer *renderer, _menu *m, int selected_index) {
+render_menu(SDL_Renderer *renderer, _menu *m, TTF_Font *font, int selected_index) {
 
     // clear screen
     SDL_SetRenderDrawColor(renderer, m->bg->r, m->bg->g, m->bg->b, m->bg->a);
     SDL_RenderClear(renderer);
 
-    SDL_SetRenderDrawColor(renderer, m->fg->r, m->fg->g, m->fg->b, m->fg->a);
-    SDL_Rect test_rect = {
-            m->bounds->w >> 2,
-            m->bounds->h >> 2,
-            m->bounds->w >> 1,
-            m->bounds->h >> 1
-    };
-    SDL_RenderFillRect(renderer, &test_rect);
+    int i;
+    SDL_Rect item_bounds;
+    int menu_y = m->bounds->h >> 2;
+    for (i = 0; i < m->item_count; ++i) {
+        char *menu_item = m->menu_items[i];
+        SDL_Surface *surface = TTF_RenderText_Blended(font, menu_item, *m->fg);
+        SDL_Texture *texture = SDL_CreateTextureFromSurface(renderer, surface);
+        item_bounds.x = (m->bounds->w >> 1) - (surface->w >> 1);
+        item_bounds.y = menu_y;
+        item_bounds.w = surface->w;
+        item_bounds.h = surface->h;
+        menu_y += surface->h;
+        SDL_RenderCopy(renderer, texture, NULL, &item_bounds);
+        SDL_FreeSurface(surface);
+    }
 
     // display menu
     SDL_RenderPresent(renderer);
@@ -99,7 +107,7 @@ process_menu_event(menu_data *data) {
             }
             break;
         case SDL_WINDOWEVENT:
-            render_menu(data->renderer, data->m, data->selected_index);
+            render_menu(data->renderer, data->m, data->font, data->selected_index);
             break;
         case SDL_MOUSEMOTION:
             break;
@@ -111,7 +119,7 @@ process_menu_event(menu_data *data) {
 }
 
 int8_t
-display_menu(SDL_Renderer *renderer, menu m, void *callback_arg) {
+display_menu(SDL_Renderer *renderer, menu m, TTF_Font *font, void *callback_arg) {
 
     SDL_Event event;
     menu_data data = {
@@ -121,6 +129,7 @@ display_menu(SDL_Renderer *renderer, menu m, void *callback_arg) {
             renderer,
             &event,
             0,
+            font,
             callback_arg
     };
 

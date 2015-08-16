@@ -6,6 +6,7 @@
 #define SDL_GRAPHICS_MENU_H
 
 #include <SDL2/SDL.h>
+#include <SDL2/SDL_ttf.h>
 #include "common.h"
 
 static const int8_t QUIT_FROM_MENU = -1;
@@ -38,7 +39,7 @@ menu init_menu(int, callback_function*, char**, SDL_Color*, SDL_Color*, SDL_Rect
  *
  * returns QUIT_FROM_MENU if the application should close, NULL otherwise
  */
-int8_t display_menu(SDL_Renderer*, menu, void*);
+int8_t display_menu(SDL_Renderer*, menu, TTF_Font *font, void*);
 
 /*
  * Free the memory associate with the passed menu

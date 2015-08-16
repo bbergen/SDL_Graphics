@@ -380,11 +380,10 @@ internal void
 render(SDL_Renderer *renderer, breaker_game *game) {
     // clear screen
     SDL_SetRenderDrawColor(renderer,
-                           0xAE,
-                           0xC6,
-                           0xCF,
-                           0xFF);
-    //TODO make this constant color if I want to keep it.
+                           SCREEN.r,
+                           SCREEN.g,
+                           SCREEN.b,
+                           SCREEN.a);
     SDL_RenderClear(renderer);
 
     // render game objects
@@ -746,12 +745,12 @@ starting_menu_callback(int menu_index, void *param) {
 }
 
 internal void
-display_breaker_menu(SDL_Renderer *renderer, int8_t paused) {
+display_breaker_menu(SDL_Renderer *renderer, TTF_Font *font, int8_t paused) {
     char *menu_items[2] = {"New Game", "Quit"};
     callback_function  callbacks[2] = {starting_menu_callback, starting_menu_callback};
     SDL_Rect bounds = {0, 0, SCREEN_WIDTH, SCREEN_HEIGHT};
-    menu starting_menu = init_menu(2, callbacks, menu_items, &BLACK, &WHITE, &bounds);
-    int8_t result = display_menu(renderer, starting_menu, NULL);
+    menu starting_menu = init_menu(2, callbacks, menu_items, &SCREEN, &BLACK, &bounds);
+    int8_t result = display_menu(renderer, starting_menu, font, NULL);
     destroy_menu(starting_menu);
     if (result == QUIT_FROM_MENU) {
 //        close();
@@ -772,7 +771,7 @@ run(void) {
         error(SDL_GetError);
     }
 
-    SDL_Renderer *renderer = SDL_CreateRenderer(window, - 1, SDL_RENDERER_ACCELERATED);
+    SDL_Renderer *renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
 
     if (!renderer) {
         error(SDL_GetError);
@@ -813,8 +812,9 @@ run(void) {
 
     TTF_Font *label_font = TTF_OpenFont(SCORE_FONT, 18);
     TTF_Font *score_font = TTF_OpenFont(SCORE_FONT, 35);
+    TTF_Font *menu_font = TTF_OpenFont(SCORE_FONT, 50);
 
-    if (!label_font || !score_font ) {
+    if (!label_font || !score_font || !menu_font) {
         error(TTF_GetError);
     }
 
@@ -960,13 +960,12 @@ run(void) {
     start_music(game.sounds->music);
 
     // display menu
-    display_breaker_menu(renderer, false);
+    display_breaker_menu(renderer, menu_font, false);
 
     int8_t running = true;
     SDL_Event event;
     uint32_t then;
     uint32_t now = SDL_GetTicks();
-    float delta_t;
 
 #if DEBUG
     //performance tracking

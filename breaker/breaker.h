@@ -156,4 +156,8 @@ global const SDL_Color RED = {
         0xFF, 0x00, 0x00, 0x00
 };
 
+global const SDL_Color SCREEN = {
+        0xAE, 0xC6, 0xCF, 0xFF
+};
+
 #endif //SDL_GRAPHICS_BREAKER_H
