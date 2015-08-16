@@ -165,6 +165,10 @@ display_menu(SDL_Renderer *renderer, menu m, char *font_file, void *callback_arg
         SDL_Init(SDL_INIT_AUDIO);
     }
 
+    if (!TTF_WasInit()) {
+        TTF_Init();
+    }
+
     SDL_Event event;
     _menu *mnu = m;
     mnu->menu_running = true;
