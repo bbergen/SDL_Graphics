@@ -739,10 +739,26 @@ performance_profiling(uint64_t per_count_freq, uint64_t *last_count, uint64_t *l
     *last_cycles = end_cycle_count;
 }
 
+internal void
+close(void) {
+    Mix_Quit();
+    SDL_Quit();
+}
+
 internal int8_t
 starting_menu_callback(int menu_index, void *param) {
-    //TODO add menu logic here
-    return false;
+    int8_t menu_running = true;
+    switch (menu_index) {
+        case 0:
+            menu_running = false;
+            break;
+        case 1:
+            close();
+            exit(EXIT_SUCCESS);
+        default:
+            break;
+    }
+    return menu_running;
 }
 
 internal void
@@ -753,7 +769,7 @@ display_breaker_menu(SDL_Renderer *renderer, TTF_Font *font, int8_t paused) {
     int8_t result = display_menu(renderer, starting_menu, font, NULL);
     destroy_menu(starting_menu);
     if (result == QUIT_FROM_MENU) {
-//        close();
+        close();
         exit(EXIT_SUCCESS);
     }
 }
@@ -1036,12 +1052,6 @@ init(void) {
         error(Mix_GetError);
     }
 
-}
-
-internal void
-close(void) {
-    Mix_Quit();
-    SDL_Quit();
 }
 
 int
