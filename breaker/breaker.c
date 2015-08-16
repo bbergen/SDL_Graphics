@@ -741,15 +741,15 @@ performance_profiling(uint64_t per_count_freq, uint64_t *last_count, uint64_t *l
 
 internal int8_t
 starting_menu_callback(int menu_index, void *param) {
-    //do nothing for now
+    //TODO add menu logic here
+    return false;
 }
 
 internal void
 display_breaker_menu(SDL_Renderer *renderer, TTF_Font *font, int8_t paused) {
     char *menu_items[2] = {"New Game", "Quit"};
-    callback_function  callbacks[2] = {starting_menu_callback, starting_menu_callback};
     SDL_Rect bounds = {0, 0, SCREEN_WIDTH, SCREEN_HEIGHT};
-    menu starting_menu = init_menu(2, callbacks, menu_items, &SCREEN, &BLACK, &bounds);
+    menu starting_menu = init_menu(2, starting_menu_callback, menu_items, &SCREEN, &BLACK, &bounds);
     int8_t result = display_menu(renderer, starting_menu, font, NULL);
     destroy_menu(starting_menu);
     if (result == QUIT_FROM_MENU) {

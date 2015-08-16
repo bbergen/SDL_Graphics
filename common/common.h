@@ -9,6 +9,8 @@
 #define false 0
 #define PI 3.14159265359
 #define count(array) (sizeof(array) / sizeof((array)[0]))
+#define MAX(x, y) (((x) > (y)) ? (x) : (y))
+#define MIN(x, y) (((x) < (y)) ? (x) : (y))
 
 #define persistent static
 #define internal static

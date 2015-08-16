@@ -28,7 +28,7 @@ typedef void* menu;
  * Creates and returns a menu based on the passed parameters.
  * There should be one callback per menu item (not necessarily unique).
  */
-menu init_menu(int, callback_function*, char**, SDL_Color*, SDL_Color*, SDL_Rect*);
+menu init_menu(int, callback_function, char**, SDL_Color*, SDL_Color*, SDL_Rect*);
 
 /*
  * Displays the menu.
