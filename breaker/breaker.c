@@ -850,7 +850,8 @@ display_breaker_menu(SDL_Renderer *renderer, breaker_game *game, int8_t paused) 
 
     SDL_Rect bounds = {0, 0, SCREEN_WIDTH, SCREEN_HEIGHT};
     menu starting_menu = init_menu(i, callback, menu_items, &SCREEN, &BLACK, &bounds);
-    int8_t result = display_menu(renderer, starting_menu, SCORE_FONT, game);
+    char *title = paused ? "Game Paused" : "Breaker!";
+    int8_t result = display_menu(renderer, starting_menu, SCORE_FONT, title, game);
     destroy_menu(starting_menu);
     if (result == QUIT_FROM_MENU) {
         close();

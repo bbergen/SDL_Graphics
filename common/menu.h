@@ -27,20 +27,28 @@ typedef void* menu;
 
 /*
  * Creates and returns a menu based on the passed parameters.
- * There should be one callback per menu item (not necessarily unique).
+ * arg 1: number of menu items
+ * arg 2: pointer to function called on menu item activation
+ * arg 3: menu items
+ * arg 4: menu background
+ * arg 5: menu foreground
+ * arg 6: menu bounds
+ *
+ * return: an initialized menu, ready to be displayed using display_menu
  */
 menu init_menu(int, callback_function, char**, SDL_Color*, SDL_Color*, SDL_Rect*);
 
 /*
  * Displays the menu.
- * Activating any menu item will run the associated callback
- * then dispose of the menu
+ * arg 1: Renderer used to render the menu
+ * arg 2: menu created from init_menu
+ * arg 3: font file path used to display menu
+ * arg 4: optional title for the menu
+ * arg 5: optional generic pointer to pass to the callback function
  *
- * Third parameter is the optional argument passed to the callback functions
- *
- * returns QUIT_FROM_MENU if the application should close, NULL otherwise
+ * return: QUIT_FROM_MENU if the application should close, NULL otherwise
  */
-int8_t display_menu(SDL_Renderer*, menu, char*, void*);
+int8_t display_menu(SDL_Renderer*, menu, char*, char*, void*);
 
 /*
  * Free the memory associate with the passed menu

@@ -12,6 +12,7 @@
 typedef struct _menu {
     int item_count;
     char **menu_items;
+    char *title;
     callback_function callback;
     void *arg;
     SDL_Color *bg;
@@ -19,6 +20,7 @@ typedef struct _menu {
     SDL_Rect *bounds;
     TTF_Font *font;
     TTF_Font *selected_font;
+    TTF_Font *title_font;
     SDL_Renderer *renderer;
     int selected_index;
     int8_t menu_running;
@@ -77,9 +79,20 @@ render_menu(_menu *m) {
     SDL_SetRenderDrawColor(m->renderer, m->bg->r, m->bg->g, m->bg->b, m->bg->a);
     SDL_RenderClear(m->renderer);
 
+    SDL_Surface *title_surface = TTF_RenderText_Blended(m->title_font, m->title, *m->fg);
+    SDL_Texture *title_texture = SDL_CreateTextureFromSurface(m->renderer, title_surface);
+    SDL_Rect title_rect = {
+            (m->bounds->w >> 1) - (title_surface->w >> 1),
+            (int) (m->bounds->h * .05),
+            title_surface->w,
+            title_surface->h
+    };
+    SDL_RenderCopy(m->renderer, title_texture, NULL, &title_rect);
+    SDL_FreeSurface(title_surface);
+
     int i;
     SDL_Rect item_bounds;
-    int menu_y = m->bounds->h >> 2;
+    int menu_y = (int) (m->bounds->h * .3);
     for (i = 0; i < m->item_count; ++i) {
         char *menu_item = m->menu_items[i];
         SDL_Color menu_item_color = i == m->selected_index ? lighten_color(*m->fg, .5) : *m->fg;
@@ -159,7 +172,7 @@ process_menu_event(_menu *m, SDL_Event *event) {
 }
 
 int8_t
-display_menu(SDL_Renderer *renderer, menu m, char *font_file, void *callback_arg) {
+display_menu(SDL_Renderer *renderer, menu m, char *font_file, char *title, void *callback_arg) {
 
     if (!SDL_WasInit(SDL_INIT_AUDIO)) {
         SDL_Init(SDL_INIT_AUDIO);
@@ -173,8 +186,10 @@ display_menu(SDL_Renderer *renderer, menu m, char *font_file, void *callback_arg
     _menu *mnu = m;
     mnu->menu_running = true;
     mnu->renderer = renderer;
+    mnu->title = title;
     mnu->font = TTF_OpenFont(font_file, 50);
     mnu->selected_font = TTF_OpenFont(font_file, 75);
+    mnu->title_font = TTF_OpenFont(font_file, 100);
     mnu->arg = callback_arg;
     mnu->selected_index = 0;
     mnu->menu_change = Mix_LoadWAV(MENU_CHANGE);
@@ -193,6 +208,7 @@ display_menu(SDL_Renderer *renderer, menu m, char *font_file, void *callback_arg
     Mix_FreeChunk(mnu->menu_select);
     TTF_CloseFont(mnu->font);
     TTF_CloseFont(mnu->selected_font);
+    TTF_CloseFont(mnu->title_font);
     return mnu->return_status;
 }
 
