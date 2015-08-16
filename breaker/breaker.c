@@ -675,7 +675,76 @@ update(breaker_game *game) {
 }
 
 internal void
-process_event(SDL_Event *event, breaker_game * game, int8_t *running) {
+close(void) {
+    Mix_Quit();
+    SDL_Quit();
+}
+
+internal int8_t
+starting_menu_callback(int menu_index, void *param) {
+    int8_t menu_running = true;
+    switch (menu_index) {
+        case 0:
+            SDL_FlushEvent(SDL_KEYDOWN);
+            menu_running = false;
+            break;
+        case 1:
+            close();
+            exit(EXIT_SUCCESS);
+        default:
+            break;
+    }
+    return menu_running;
+}
+
+internal int8_t
+paused_menu_callback(int menu_index, void *param) {
+    breaker_game *game = param;
+    switch (menu_index) {
+        case 0:
+            if (game->score->music_on) {
+                pause_music();
+            }
+            return false;
+        case 1:
+            //TODO initialize new game
+            if (game->score->music_on) {
+                pause_music();
+            }
+            return false;
+        case 2:
+            close();
+            exit(EXIT_SUCCESS);
+        default:
+            return true;
+    }
+}
+
+internal void
+display_breaker_menu(SDL_Renderer *renderer, breaker_game *game, int8_t paused) {
+
+    char *menu_items[3];
+    int i = 0;
+    callback_function callback = starting_menu_callback;
+    if (paused) {
+        callback = paused_menu_callback;
+        menu_items[i++] = "Continue...";
+    }
+    menu_items[i++] = "New Game";
+    menu_items[i++] = "Quit";
+
+    SDL_Rect bounds = {0, 0, SCREEN_WIDTH, SCREEN_HEIGHT};
+    menu starting_menu = init_menu(i, callback, menu_items, &SCREEN, &BLACK, &bounds);
+    int8_t result = display_menu(renderer, starting_menu, SCORE_FONT, game);
+    destroy_menu(starting_menu);
+    if (result == QUIT_FROM_MENU) {
+        close();
+        exit(EXIT_SUCCESS);
+    }
+}
+
+internal void
+process_event(SDL_Event *event, breaker_game *game, int8_t *running) {
     switch (event->type) {
         case SDL_QUIT:
             *running = false;
@@ -688,6 +757,16 @@ process_event(SDL_Event *event, breaker_game * game, int8_t *running) {
                 case SDLK_LEFT:
                     game->key_left_down = true;
                     break;
+                case SDLK_SPACE:
+                case SDLK_ESCAPE:
+                case SDLK_PAUSE: {
+                    game->key_right_down = false;
+                    game->key_left_down = false;
+                    SDL_Window *window = SDL_GetWindowFromID(event->window.windowID);
+                    SDL_Renderer *renderer = SDL_GetRenderer(window);
+                    pause_music();
+                    display_breaker_menu(renderer, game, true);
+                } break;
                 default:
                     break;
             }
@@ -737,41 +816,6 @@ performance_profiling(uint64_t per_count_freq, uint64_t *last_count, uint64_t *l
 
     *last_count = end_counter;
     *last_cycles = end_cycle_count;
-}
-
-internal void
-close(void) {
-    Mix_Quit();
-    SDL_Quit();
-}
-
-internal int8_t
-starting_menu_callback(int menu_index, void *param) {
-    int8_t menu_running = true;
-    switch (menu_index) {
-        case 0:
-            menu_running = false;
-            break;
-        case 1:
-            close();
-            exit(EXIT_SUCCESS);
-        default:
-            break;
-    }
-    return menu_running;
-}
-
-internal void
-display_breaker_menu(SDL_Renderer *renderer, TTF_Font *font, int8_t paused) {
-    char *menu_items[2] = {"New Game", "Quit"};
-    SDL_Rect bounds = {0, 0, SCREEN_WIDTH, SCREEN_HEIGHT};
-    menu starting_menu = init_menu(2, starting_menu_callback, menu_items, &SCREEN, &BLACK, &bounds);
-    int8_t result = display_menu(renderer, starting_menu, font, NULL);
-    destroy_menu(starting_menu);
-    if (result == QUIT_FROM_MENU) {
-        close();
-        exit(EXIT_SUCCESS);
-    }
 }
 
 internal void
@@ -828,9 +872,8 @@ run(void) {
 
     TTF_Font *label_font = TTF_OpenFont(SCORE_FONT, 18);
     TTF_Font *score_font = TTF_OpenFont(SCORE_FONT, 35);
-    TTF_Font *menu_font = TTF_OpenFont(SCORE_FONT, 50);
 
-    if (!label_font || !score_font || !menu_font) {
+    if (!label_font || !score_font ) {
         error(TTF_GetError);
     }
 
@@ -976,7 +1019,7 @@ run(void) {
     start_music(game.sounds->music);
 
     // display menu
-    display_breaker_menu(renderer, menu_font, false);
+    display_breaker_menu(renderer, &game, false);
 
     int8_t running = true;
     SDL_Event event;
@@ -1005,7 +1048,7 @@ run(void) {
 
         if (ticks_passed >= update_freq) {
             update(&game);
-            ticks_passed -= update_freq;
+            ticks_passed = 0.0;
         }
         render(renderer, &game);
 

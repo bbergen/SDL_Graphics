@@ -14,6 +14,7 @@ typedef struct _menu {
     SDL_Color *fg;
     SDL_Rect *bounds;
     TTF_Font *font;
+    TTF_Font *selected_font;
     SDL_Renderer *renderer;
     int selected_index;
     int8_t menu_running;
@@ -76,7 +77,8 @@ render_menu(_menu *m) {
     for (i = 0; i < m->item_count; ++i) {
         char *menu_item = m->menu_items[i];
         SDL_Color menu_item_color = i == m->selected_index ? lighten_color(*m->fg, .5) : *m->fg;
-        SDL_Surface *surface = TTF_RenderText_Blended(m->font, menu_item, menu_item_color);
+        TTF_Font *render_font = i == m->selected_index ? m->selected_font :m->font;
+        SDL_Surface *surface = TTF_RenderText_Blended(render_font, menu_item, menu_item_color);
         SDL_Texture *texture = SDL_CreateTextureFromSurface(m->renderer, surface);
         item_bounds.x = (m->bounds->w >> 1) - (surface->w >> 1);
         item_bounds.y = menu_y;
@@ -141,15 +143,18 @@ process_menu_event(_menu *m, SDL_Event *event) {
 }
 
 int8_t
-display_menu(SDL_Renderer *renderer, menu m, TTF_Font *font, void *callback_arg) {
+display_menu(SDL_Renderer *renderer, menu m, char *font_file, void *callback_arg) {
 
     SDL_Event event;
     _menu *mnu = m;
     mnu->menu_running = true;
     mnu->renderer = renderer;
-    mnu->font = font;
+    mnu->font = TTF_OpenFont(font_file, 50);
+    mnu->selected_font = TTF_OpenFont(font_file, 75);
     mnu->arg = callback_arg;
     mnu->selected_index = 0;
+
+    render_menu(m);
 
     // menu loop
     while (mnu->menu_running) {
@@ -157,6 +162,9 @@ display_menu(SDL_Renderer *renderer, menu m, TTF_Font *font, void *callback_arg)
             process_menu_event(mnu, &event);
         }
     }
+
+    TTF_CloseFont(mnu->font);
+    TTF_CloseFont(mnu->selected_font);
     return mnu->return_status;
 }
 

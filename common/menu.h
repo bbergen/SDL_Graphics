@@ -39,7 +39,7 @@ menu init_menu(int, callback_function, char**, SDL_Color*, SDL_Color*, SDL_Rect*
  *
  * returns QUIT_FROM_MENU if the application should close, NULL otherwise
  */
-int8_t display_menu(SDL_Renderer*, menu, TTF_Font *font, void*);
+int8_t display_menu(SDL_Renderer*, menu, char*, void*);
 
 /*
  * Free the memory associate with the passed menu
