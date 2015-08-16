@@ -2,8 +2,12 @@
 // Created by bryan on 8/12/15.
 //
 
+#include <SDL2/SDL_mixer.h>
 #include "menu.h"
 #include "map.h"
+
+#define MENU_CHANGE "resources/sounds/common/menu_change.wav"
+#define MENU_SELECT "resources/sounds/common/menu_select.wav"
 
 typedef struct _menu {
     int item_count;
@@ -19,6 +23,8 @@ typedef struct _menu {
     int selected_index;
     int8_t menu_running;
     int8_t return_status;
+    Mix_Chunk *menu_change;
+    Mix_Chunk *menu_select;
 } _menu;
 
 internal SDL_Color
@@ -94,6 +100,11 @@ render_menu(_menu *m) {
 }
 
 internal void
+play_menu_effect(Mix_Chunk *chunk) {
+    Mix_PlayChannel(-1, chunk, 0);
+}
+
+internal void
 process_menu_event(_menu *m, SDL_Event *event) {
     int8_t render = false;
     callback_function callback = m->callback;
@@ -110,9 +121,11 @@ process_menu_event(_menu *m, SDL_Event *event) {
                 case SDLK_RETURN: {
                     SDL_Window *window = SDL_GetWindowFromID(event->window.windowID);
                     SDL_Renderer *renderer = SDL_GetRenderer(window);
+                    play_menu_effect(m->menu_select);
                     m->menu_running = callback(renderer, m->selected_index, m->arg);
                 } break;
                 case SDLK_UP:
+                    play_menu_effect(m->menu_change);
                     m->selected_index--;
                     if (m->selected_index < 0) {
                         m->selected_index = m->item_count - 1;
@@ -120,6 +133,7 @@ process_menu_event(_menu *m, SDL_Event *event) {
                     render = true;
                     break;
                 case SDLK_DOWN:
+                    play_menu_effect(m->menu_change);
                     m->selected_index++;
                     m->selected_index %= m->item_count;
                     render = true;
@@ -147,6 +161,10 @@ process_menu_event(_menu *m, SDL_Event *event) {
 int8_t
 display_menu(SDL_Renderer *renderer, menu m, char *font_file, void *callback_arg) {
 
+    if (!SDL_WasInit(SDL_INIT_AUDIO)) {
+        SDL_Init(SDL_INIT_AUDIO);
+    }
+
     SDL_Event event;
     _menu *mnu = m;
     mnu->menu_running = true;
@@ -155,6 +173,8 @@ display_menu(SDL_Renderer *renderer, menu m, char *font_file, void *callback_arg
     mnu->selected_font = TTF_OpenFont(font_file, 75);
     mnu->arg = callback_arg;
     mnu->selected_index = 0;
+    mnu->menu_change = Mix_LoadWAV(MENU_CHANGE);
+    mnu->menu_select = Mix_LoadWAV(MENU_SELECT);
 
     render_menu(m);
 
@@ -165,6 +185,8 @@ display_menu(SDL_Renderer *renderer, menu m, char *font_file, void *callback_arg
         }
     }
 
+    Mix_FreeChunk(mnu->menu_change);
+    Mix_FreeChunk(mnu->menu_select);
     TTF_CloseFont(mnu->font);
     TTF_CloseFont(mnu->selected_font);
     return mnu->return_status;

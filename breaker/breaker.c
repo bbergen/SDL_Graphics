@@ -1050,12 +1050,11 @@ run(void) {
             &mouse_loc
     };
 
+    // display menu
+    display_breaker_menu(renderer, &game, false);
 
     //start music
     start_music(game.sounds->music);
-
-    // display menu
-    display_breaker_menu(renderer, &game, false);
 
     int8_t running = true;
     SDL_Event event;
