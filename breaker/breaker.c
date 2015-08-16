@@ -3,8 +3,9 @@
 //
 #include <SDL2/SDL_image.h>
 #include <x86intrin.h>
-#include <list.h>
-#include <util.h>
+#include <sys/stat.h>
+#include "list.h"
+#include "util.h"
 #include "menu.h"
 #include "breaker.h"
 
@@ -209,8 +210,75 @@ build_brick_list(list *l, SDL_Renderer *renderer, Mix_Chunk *brick_break, int br
 }
 
 internal void
-save_game_state(int high_score, int8_t music_on, int8_t sound_on) {
-    //TODO implement
+save_game_state(breaker_game *game) {
+
+    const int PREF_COUNT = 3;
+    char *preferences[PREF_COUNT];
+    preferences[0] = PREF_KEY_SCORE;
+    preferences[1] = PREF_KEY_MUSIC;
+    preferences[2] = PREF_KEY_SOUND;
+
+    int score = game->current_score > game->high_score ? game->current_score : game->high_score;
+    int values[PREF_COUNT];
+    values[0] = score;
+    values[1] = game->score->music_on;
+    values[2] = game->score->sound_on;
+
+    char *home = getenv("HOME");
+    char path[100] = {};
+    strcat(path, home);
+    strcat(path, CONFIG_FILE_DIR);
+    struct stat st = {};
+    if (stat(path, &st) == -1) {
+        mkdir(path, 0700);
+    }
+    strcat(path, CONFIG_FILE);
+
+    FILE *config_file = fopen(path, "w");
+    if (config_file) {
+        int i;
+        for (i = 0; i < PREF_COUNT; ++i) {
+            fprintf(config_file, "%s=%d\n", preferences[i], values[i]);
+        }
+        fclose(config_file);
+    } else {
+        //TODO change to logging (Issue #13)
+        fprintf(stderr, "Cannot open file: %s", path);
+    }
+}
+
+internal void
+load_game_state(breaker_game *game) {
+
+    char path[100] = {};
+    char *home = getenv("HOME");
+    strcat(path, home);
+    strcat(path, CONFIG_FILE_DIR);
+    struct stat st = {};
+    if (stat(path, &st) != -1) {
+        strcat(path, CONFIG_FILE);
+        FILE *config_file = fopen(path, "r");
+        if (config_file) {
+            char line[100];
+            while (fscanf(config_file, "%s", line) != EOF) {
+                char *preference = strtok(line, "=");
+                char *value_string = strtok(NULL, "=");
+                int value = atoi(value_string);
+                if (strcmp(preference, PREF_KEY_SCORE) == 0) {
+                    game->high_score = value;
+                } else if (strcmp(preference, PREF_KEY_MUSIC) == 0) {
+                    game->score->music_on = value;
+                } else if (strcmp(preference, PREF_KEY_SOUND) == 0) {
+                    game->score->sound_on = value;
+                    game->ball->sound_effects_on = value;
+                }
+            }
+            fclose(config_file);
+        } else {
+            //TODO change to logging with (Issue #13)
+            fprintf(stderr, "Cannot open file: %s", path);
+        }
+    }
 }
 
 internal void
@@ -233,10 +301,11 @@ reset_game(breaker_game *game, SDL_Renderer *renderer) {
     build_brick_list(&brick_list, renderer, brick_break, 60);
     *game->brick_list = brick_list;
 
-    //TODO save high score if applicable
     if (game->current_score > game->high_score) {
-        save_game_state(game->current_score, game->score->music_on, game->score->sound_on);
+        game->high_score = game->current_score;
     }
+
+    save_game_state(game);
 
     // reset score
     game->current_score = STARTING_SCORE;
@@ -361,10 +430,20 @@ update_text_field(SDL_Renderer *renderer, component *c, TTF_Font *font, SDL_Colo
 }
 
 internal void
-update_score_and_lives(SDL_Renderer *renderer, score_box *box, int current_score, int current_lives) {
+update_score_and_lives(SDL_Renderer *renderer,
+                       score_box *box,
+                       int high_score,
+                       int current_score,
+                       int current_lives) {
 
     persistent int score = STARTING_SCORE;
     persistent int lives = STARTING_LIVES;
+    persistent int high = STARTING_SCORE;
+
+    if (high != high_score) {
+        high = high_score;
+        update_text_field(renderer, box->high_score_field, box->text_font, &GREEN, high_score);
+    }
 
     if (current_score != score) {
         score = current_score;
@@ -379,9 +458,13 @@ update_score_and_lives(SDL_Renderer *renderer, score_box *box, int current_score
 }
 
 internal void
-render_score_box(SDL_Renderer *renderer, score_box *box, int current_score, int current_lives) {
+render_score_box(SDL_Renderer *renderer,
+                 score_box *box,
+                 int high_score,
+                 int current_score,
+                 int current_lives) {
 
-    update_score_and_lives(renderer, box, current_score, current_lives);
+    update_score_and_lives(renderer, box, high_score, current_score, current_lives);
 
     int score_box_width = SCREEN_WIDTH - (SCORE_OFFSET<< 1);
 
@@ -426,7 +509,7 @@ render(SDL_Renderer *renderer, breaker_game *game) {
     // render game objects
     render_ball(renderer, game->ball);
     render_paddle(renderer, game->player);
-    render_score_box(renderer, game->score, game->current_score, game->lives);
+    render_score_box(renderer, game->score, game->high_score, game->current_score, game->lives);
 
     // render bricks
     list_for_each(game->brick_list, render_brick);
@@ -744,6 +827,7 @@ paused_menu_callback(SDL_Renderer *renderer, int menu_index, void *param) {
             reset_game(game, renderer);
             return false;
         case 2:
+            save_game_state(game);
             close();
             exit(EXIT_SUCCESS);
         default:
@@ -1050,11 +1134,17 @@ run(void) {
             &mouse_loc
     };
 
+    // load previous preferences
+    load_game_state(&game);
+
     // display menu
     display_breaker_menu(renderer, &game, false);
 
     //start music
     start_music(game.sounds->music);
+    if (!game.score->music_on) {
+        pause_music();
+    }
 
     int8_t running = true;
     SDL_Event event;

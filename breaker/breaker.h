@@ -44,6 +44,12 @@
 #define SOUND_OFF "resources/icons/sound_off.png"
 #define SCORE_TEXTURE "resources/textures/score_box.png"
 #define SCORE_FONT "resources/fonts/built_tiling.ttf"
+#define CONFIG_FILE_DIR "/.sdl"
+#define CONFIG_FILE "/breaker.conf"
+
+#define PREF_KEY_SCORE "HIGH_SCORE"
+#define PREF_KEY_MUSIC "MUSIC_ON"
+#define PREF_KEY_SOUND "SOUND_ON"
 
 typedef struct point {
     int x;
