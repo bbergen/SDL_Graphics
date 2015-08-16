@@ -209,6 +209,43 @@ build_brick_list(list *l, SDL_Renderer *renderer, Mix_Chunk *brick_break, int br
 }
 
 internal void
+save_game_state(int high_score, int8_t music_on, int8_t sound_on) {
+    //TODO implement
+}
+
+internal void
+reset_game(breaker_game *game, SDL_Renderer *renderer) {
+
+    // reset ball
+    game->ball->x = SCREEN_WIDTH >> 1;
+    game->ball->y = SCREEN_HEIGHT >> 1;
+    game->ball->x_dir = 1;
+    game->ball->y_dir = 1;
+
+    // reset paddle
+    game->player->x = (SCREEN_WIDTH >> 1) - (PADDLE_WIDTH >> 1);
+
+    // reset bricks
+    breaker_brick *brick = game->brick_list->head->data;
+    Mix_Chunk *brick_break = brick->brick_break;
+    free_list(game->brick_list);
+    list brick_list;
+    build_brick_list(&brick_list, renderer, brick_break, 60);
+    *game->brick_list = brick_list;
+
+    //TODO save high score if applicable
+    if (game->current_score > game->high_score) {
+        save_game_state(game->current_score, game->score->music_on, game->score->sound_on);
+    }
+
+    // reset score
+    game->current_score = STARTING_SCORE;
+
+    // reset lives
+    game->lives = STARTING_LIVES;
+}
+
+internal void
 start_music(Mix_Music *track) {
     Mix_PlayMusic(track, -1);
 }
@@ -329,12 +366,12 @@ update_score_and_lives(SDL_Renderer *renderer, score_box *box, int current_score
     persistent int score = STARTING_SCORE;
     persistent int lives = STARTING_LIVES;
 
-    if (current_score > score) {
+    if (current_score != score) {
         score = current_score;
         update_text_field(renderer, box->current_score_field, box->text_font, &GREEN, current_score);
     }
 
-    if (current_lives > lives) {
+    if (current_lives != lives) {
         lives = current_lives;
         update_text_field(renderer, box->lives_field, box->text_font, &RED, current_lives);
     }
@@ -681,7 +718,7 @@ close(void) {
 }
 
 internal int8_t
-starting_menu_callback(int menu_index, void *param) {
+starting_menu_callback(SDL_Renderer *renderer, int menu_index, void *param) {
     int8_t menu_running = true;
     switch (menu_index) {
         case 0:
@@ -698,19 +735,13 @@ starting_menu_callback(int menu_index, void *param) {
 }
 
 internal int8_t
-paused_menu_callback(int menu_index, void *param) {
+paused_menu_callback(SDL_Renderer *renderer, int menu_index, void *param) {
     breaker_game *game = param;
     switch (menu_index) {
         case 0:
-            if (game->score->music_on) {
-                pause_music();
-            }
             return false;
         case 1:
-            //TODO initialize new game
-            if (game->score->music_on) {
-                pause_music();
-            }
+            reset_game(game, renderer);
             return false;
         case 2:
             close();
@@ -764,8 +795,13 @@ process_event(SDL_Event *event, breaker_game *game, int8_t *running) {
                     game->key_left_down = false;
                     SDL_Window *window = SDL_GetWindowFromID(event->window.windowID);
                     SDL_Renderer *renderer = SDL_GetRenderer(window);
-                    pause_music();
+                    if (game->score->music_on) {
+                        pause_music();
+                    }
                     display_breaker_menu(renderer, game, true);
+                    if (game->score->music_on) {
+                        pause_music();
+                    }
                 } break;
                 default:
                     break;

@@ -107,9 +107,11 @@ process_menu_event(_menu *m, SDL_Event *event) {
                 case SDLK_SPACE:
                 case SDLK_ESCAPE:
                 case SDLK_PAUSE:
-                case SDLK_RETURN:
-                    m->menu_running = callback(m->selected_index, m->arg);
-                    break;
+                case SDLK_RETURN: {
+                    SDL_Window *window = SDL_GetWindowFromID(event->window.windowID);
+                    SDL_Renderer *renderer = SDL_GetRenderer(window);
+                    m->menu_running = callback(renderer, m->selected_index, m->arg);
+                } break;
                 case SDLK_UP:
                     m->selected_index--;
                     if (m->selected_index < 0) {

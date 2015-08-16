@@ -14,10 +14,11 @@ static const int8_t QUIT_FROM_MENU = -1;
 /*
  * Callback called when menu item activated
  * arg 1: Index of the selected menu item
- * arg 2: optional parameter passed via init_menu
+ * arg 2: The renderer associated with the current window
+ * arg 3: optional parameter passed via init_menu
  * return: anything but 0 if the menu should continue displaying
  */
-typedef int8_t (*callback_function) (int, void *);
+typedef int8_t (*callback_function) (SDL_Renderer *renderer, int, void *);
 
 /*
  * Menu implementation hidden behind interface
