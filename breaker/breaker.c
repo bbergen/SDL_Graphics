@@ -15,6 +15,11 @@ play_sound_effect(Mix_Chunk *effect) {
 }
 
 internal int8_t
+random_bool(void) {
+    return rand() % 2 == 0;
+}
+
+internal int8_t
 contains_point(point *p, SDL_Rect *rect) {
     int8_t x_bounds = p->x > rect->x && p->x < rect->x + rect->w;
     int8_t y_bounds = p->y > rect->y && p->y < rect->y + rect->h;
@@ -282,16 +287,26 @@ load_game_state(breaker_game *game) {
 }
 
 internal void
+reset_ball(breaker_ball *ball) {
+    ball->x = SCREEN_WIDTH >> 1;
+    ball->y = SCREEN_HEIGHT >> 1;
+    ball->x_dir = random_bool() ? 1 : -1;
+    ball->y_dir = 1;
+}
+
+internal void
+reset_paddle(breaker_paddle *paddle) {
+    paddle->x = (SCREEN_WIDTH >> 1) - (paddle->width >> 1);
+}
+
+internal void
 reset_game(breaker_game *game, SDL_Renderer *renderer) {
 
     // reset ball
-    game->ball->x = SCREEN_WIDTH >> 1;
-    game->ball->y = SCREEN_HEIGHT >> 1;
-    game->ball->x_dir = 1;
-    game->ball->y_dir = 1;
+    reset_ball(game->ball);
 
     // reset paddle
-    game->player->x = (SCREEN_WIDTH >> 1) - (PADDLE_WIDTH >> 1);
+    reset_paddle(game->player);
 
     // reset bricks
     breaker_brick *brick = game->brick_list->head->data;
@@ -420,9 +435,9 @@ render_component(SDL_Renderer *renderer, component *c, int8_t alt_icon) {
 }
 
 internal void
-update_text_field(SDL_Renderer *renderer, component *c, TTF_Font *font, SDL_Color *color, int updated_value) {
+update_text_field(SDL_Renderer *renderer, component *c, TTF_Font *font, SDL_Color *color, int value, int8_t pad) {
     char string[SCORE_PADDING + 1];
-    itoa(updated_value, string, SCORE_PADDING);
+    itoa(value, string, pad ? SCORE_PADDING : 0);
     SDL_Surface *new_surface = TTF_RenderText_Blended(font, string, *color);
     SDL_Texture *new_texture = SDL_CreateTextureFromSurface(renderer, new_surface);
     c->icon = new_texture;
@@ -442,17 +457,17 @@ update_score_and_lives(SDL_Renderer *renderer,
 
     if (high != high_score) {
         high = high_score;
-        update_text_field(renderer, box->high_score_field, box->text_font, &GREEN, high_score);
+        update_text_field(renderer, box->high_score_field, box->text_font, &GREEN, high_score, true);
     }
 
     if (current_score != score) {
         score = current_score;
-        update_text_field(renderer, box->current_score_field, box->text_font, &GREEN, current_score);
+        update_text_field(renderer, box->current_score_field, box->text_font, &GREEN, current_score, true);
     }
 
     if (current_lives != lives) {
         lives = current_lives;
-        update_text_field(renderer, box->lives_field, box->text_font, &RED, current_lives);
+        update_text_field(renderer, box->lives_field, box->text_font, &RED, current_lives, false);
     }
 
 }
@@ -644,7 +659,16 @@ update_ball(breaker_game *game) {
         ball->y = SCREEN_HEIGHT - ball->radius;
         ball->y_dir *= -1;
         if (game->ball->sound_effects_on) {
-            play_sound_effect(game->sounds->wall_bounce);
+            game->lives -= 1;
+            Mix_Chunk *chunk;
+            if (game->lives == 0) {
+                chunk = game->sounds->game_over;
+            } else {
+                chunk = game->sounds->life_lost;
+                reset_ball(game->ball);
+                reset_paddle(game->player);
+            }
+            play_sound_effect(chunk);
         }
     }
 
@@ -803,12 +827,17 @@ close(void) {
 internal int8_t
 starting_menu_callback(SDL_Renderer *renderer, int menu_index, void *param) {
     int8_t menu_running = true;
+    breaker_game *game = param;
     switch (menu_index) {
         case 0:
-            SDL_FlushEvent(SDL_KEYDOWN);
+            reset_game(game, renderer);
             menu_running = false;
+            if (game->score->music_on) {
+                pause_music();
+            }
             break;
         case 1:
+            save_game_state(game);
             close();
             exit(EXIT_SUCCESS);
         default:
@@ -940,6 +969,18 @@ performance_profiling(uint64_t per_count_freq, uint64_t *last_count, uint64_t *l
 }
 
 internal void
+check_game_over(SDL_Renderer *renderer, breaker_game *game) {
+    if (game->lives <= 0) {
+        game->key_right_down = false;
+        game->key_left_down = false;
+        if (game->score->music_on) {
+            pause_music();
+        }
+        display_breaker_menu(renderer, game, false);
+    }
+}
+
+internal void
 run(void) {
     SDL_Window *window = SDL_CreateWindow("Brick Breaker!",
                                           SDL_WINDOWPOS_UNDEFINED,
@@ -962,8 +1003,10 @@ run(void) {
     Mix_Chunk *wall_bounce = Mix_LoadWAV(WALL_BOUNCE);
     Mix_Chunk *brick_bounce = Mix_LoadWAV(BRICK_BOUNCE);
     Mix_Chunk *brick_break = Mix_LoadWAV(BRICK_BREAK);
+    Mix_Chunk *life_lost = Mix_LoadWAV(LIFE_LOST);
+    Mix_Chunk *game_over = Mix_LoadWAV(GAME_OVER);
 
-    if (!level_1 || !wall_bounce || !brick_bounce || !brick_break) {
+    if (!level_1 || !wall_bounce || !brick_bounce || !brick_break || !life_lost || !game_over) {
         error(Mix_GetError);
     }
 
@@ -971,13 +1014,16 @@ run(void) {
             level_1,
             wall_bounce,
             brick_bounce,
+            life_lost,
+            game_over
     };
 
     breaker_ball ball = {
             SCREEN_WIDTH >> 1,
             SCREEN_HEIGHT >> 1,
             BALL_SIZE,
-            1, 1,
+            random_bool() ? 1 : -1,
+            1,
             true
     };
 
@@ -1172,11 +1218,13 @@ run(void) {
             process_event(&event, &game, &running);
         }
 
+
         if (ticks_passed >= update_freq) {
             update(&game);
             ticks_passed = 0.0;
         }
         render(renderer, &game);
+        check_game_over(renderer, &game);
 
 #if DEBUG
         performance_profiling(per_count_frequency, &last_counter, &last_cycle_count);

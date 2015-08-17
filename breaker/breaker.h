@@ -17,7 +17,7 @@
 #define AUDIO_CHUNK_SIZE 2048
 #define BALL_SIZE 5
 #define DEFAULT_PADDLE_SPEED 3.5
-#define STARTING_SPEED 3.5
+#define STARTING_SPEED 5
 #define PADDLE_HEIGHT 10
 #define PADDLE_WIDTH 75
 #define BRICK_WIDTH SCREEN_WIDTH / 12
@@ -34,6 +34,8 @@
 #define WALL_BOUNCE "resources/sounds/breaker/effects/wall_bounce.wav"
 #define BRICK_BOUNCE "resources/sounds/breaker/effects/brick_bounce.wav"
 #define BRICK_BREAK "resources/sounds/breaker/effects/brick_break.wav"
+#define LIFE_LOST "resources/sounds/breaker/effects/life_lost.wav"
+#define GAME_OVER "resources/sounds/breaker/effects/game_over.wav"
 #define LEVEL_1_TRACK "resources/sounds/breaker/music/level_1.wav"
 #define LEVEL_2_TRACK "resources/sounds/breaker/music/level_2.wav"
 #define LEVEL_3_TRACK "resources/sounds/breaker/music/level_3.wav"
@@ -93,6 +95,8 @@ typedef struct breaker_sounds {
     Mix_Music *music;
     Mix_Chunk *wall_bounce;
     Mix_Chunk *brick_bounce;
+    Mix_Chunk *life_lost;
+    Mix_Chunk *game_over;
 } breaker_sounds;
 
 typedef struct breaker_brick {
