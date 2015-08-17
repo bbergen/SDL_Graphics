@@ -8,6 +8,7 @@
 #include "util.h"
 #include "menu.h"
 #include "breaker.h"
+#include "colors.h"
 
 internal void
 play_sound_effect(Mix_Chunk *effect) {
@@ -17,6 +18,17 @@ play_sound_effect(Mix_Chunk *effect) {
 internal int8_t
 random_bool(void) {
     return rand() % 2 == 0;
+}
+
+internal SDL_Color
+lighten_brick(SDL_Color color, double factor) {
+    SDL_Color new_color = {
+            (uint8_t) MIN(255, color.r + 255 * factor),
+            (uint8_t) MIN(255, color.g + 255 * factor),
+            (uint8_t) MIN(255, color.b + 255 * factor),
+            0x00
+    };
+    return new_color;
 }
 
 internal int8_t
@@ -30,8 +42,23 @@ internal int8_t
 render_brick(void *b) {
     breaker_brick *brick = b;
     if (brick->visible) {
-        SDL_Color *color = brick->color;
-        SDL_SetRenderDrawColor(brick->renderer, color->r, color->g, color->b, color->a);
+        SDL_Color color;
+        switch (brick->type) {
+            case TRIPLE:
+                color = *brick->base_color;
+                break;
+            case DOUBLE:
+                color = lighten_brick(*brick->base_color, .25);
+                break;
+            case UNBREAKABLE:
+                color = BLACK;
+                break;
+            case NORMAL:
+            default:
+                color = lighten_brick(*brick->base_color, .50);
+                break;
+        }
+        SDL_SetRenderDrawColor(brick->renderer, color.r, color.g, color.b, color.a);
         SDL_Rect rect = {
                 brick->x,
                 brick->y,
@@ -141,14 +168,23 @@ has_brick_ball_collided(void *brick_arg, void *game_arg) {
     }
 
     if (has_collided && ball->sound_effects_on) {
-        play_sound_effect(brick->brick_break);
+        if (brick->type == NORMAL) {
+            play_sound_effect(brick->brick_break);
+        } else {
+            play_sound_effect(brick->brick_bounce);
+        }
     }
 
-    if (has_collided) {
+    if (has_collided && brick->type <= 0) {
         ((breaker_game*) game_arg)->current_score += brick->value;
+        brick->visible = false;
     }
 
-    brick->visible = !has_collided;
+    if (has_collided && brick->type != UNBREAKABLE) {
+        brick->type--;
+    }
+
+
     return !has_collided;
 }
 
@@ -164,53 +200,51 @@ random_color(SDL_Color *color) {
 }
 
 internal void
-build_brick(breaker_brick *brick,
-            SDL_Renderer *renderer,
-            Mix_Chunk *brick_break,
-            SDL_Color color,
-            int x, int y, int width, int height, int value) {
-    brick->x = x;
-    brick->y = y;
-    brick->width = width;
-    brick->height = height;
-    brick->value = value;
-    brick->renderer = renderer;
-    brick->brick_break = brick_break;
-    brick->visible = true;
-    brick->color = malloc(sizeof(SDL_Color));
-    *brick->color = color;
-}
-
-internal void
 free_brick(void *b) {
     breaker_brick *brick = b;
-    free(brick->color);
+    free(brick->base_color);
 }
 
 internal void
-build_brick_list(list *l, SDL_Renderer *renderer, Mix_Chunk *brick_break, int bricks) {
+build_brick_list(list *l, SDL_Renderer *renderer, Mix_Chunk *brick_break, Mix_Chunk *brick_bounce, int bricks) {
     init_list(l, sizeof(breaker_brick), free_brick);
 
     int step = 0;
     int x = 0;
     SDL_Color color = {};
     random_color(&color);
+    BRICK_TYPE base_type = TRIPLE;
     for (int i = 0; i < bricks; i++) {
 
         if (i % 12 == 0) {
             step++;
             x = 0;
-            random_color(&color);
+            if (step % 2 == 0) {
+                base_type--;
+            }
         }
 
+        int8_t unbreakable = step == 1 && random_bool();
         int y = (int) (SCREEN_HEIGHT * 0.2f) + (step * BRICK_HEIGHT);
         int width = BRICK_WIDTH;
         int height = BRICK_HEIGHT;
         breaker_brick brick;
-        build_brick(&brick, renderer, brick_break, color, x, y, width, height, 5);
+
+        brick.x = x;
+        brick.y = y;
+        brick.width = width;
+        brick.height = height;
+        brick.renderer = renderer;
+        brick.brick_break = brick_break;
+        brick.brick_bounce = brick_bounce;
+        brick.visible = true;
+        brick.base_color = malloc(sizeof(SDL_Color));
+        *brick.base_color = color;
+        brick.type = unbreakable ? UNBREAKABLE : base_type;
+        brick.value = BASE_BRICK_VALUE * (brick.type + 1);
+
         add(l, &brick);
         x += BRICK_WIDTH;
-
     }
 }
 
@@ -311,9 +345,10 @@ reset_game(breaker_game *game, SDL_Renderer *renderer) {
     // reset bricks
     breaker_brick *brick = game->brick_list->head->data;
     Mix_Chunk *brick_break = brick->brick_break;
+    Mix_Chunk *brick_bounce = brick->brick_bounce;
     free_list(game->brick_list);
     list brick_list;
-    build_brick_list(&brick_list, renderer, brick_break, 60);
+    build_brick_list(&brick_list, renderer, brick_break, brick_bounce, 60);
     *game->brick_list = brick_list;
 
     if (game->current_score > game->high_score) {
@@ -622,8 +657,8 @@ check_paddle_collisions(breaker_paddle *paddle, breaker_ball *ball) {
 
 internal void
 update_ball(breaker_game *game) {
-    float speed_x = STARTING_SPEED;
-    float speed_y = STARTING_SPEED;
+    float speed_x = BASE_BALL_SPEED;
+    float speed_y = BASE_BALL_SPEED;
     breaker_ball *ball = game->ball;
     ball->sound_effects_on = game->score->sound_on;
 
@@ -695,7 +730,7 @@ update_paddle(breaker_paddle *paddle, int8_t right_down, int8_t left_down) {
 
     if (right_down) {
         if (paddle->x <= SCREEN_WIDTH - PADDLE_WIDTH) {
-            paddle->x += STARTING_SPEED;
+            paddle->x += BASE_PADDLE_SPEED;
         } else {
             paddle->x = SCREEN_WIDTH - PADDLE_WIDTH;
         }
@@ -703,7 +738,7 @@ update_paddle(breaker_paddle *paddle, int8_t right_down, int8_t left_down) {
 
     if (left_down) {
         if (paddle->x >= 0) {
-            paddle->x -= STARTING_SPEED;
+            paddle->x -= BASE_PADDLE_SPEED;
         } else {
             paddle->x = 0;
         }
@@ -1013,7 +1048,6 @@ run(void) {
     breaker_sounds sounds = {
             level_1,
             wall_bounce,
-            brick_bounce,
             life_lost,
             game_over
     };
@@ -1035,7 +1069,7 @@ run(void) {
     };
 
     list brick_list;
-    build_brick_list(&brick_list, renderer, brick_break, 60);
+    build_brick_list(&brick_list, renderer, brick_break, brick_bounce, 60);
 
     TTF_Font *label_font = TTF_OpenFont(SCORE_FONT, 18);
     TTF_Font *score_font = TTF_OpenFont(SCORE_FONT, 35);

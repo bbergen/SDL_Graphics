@@ -16,8 +16,9 @@
 #define AUDIO_CHANNELS 2
 #define AUDIO_CHUNK_SIZE 2048
 #define BALL_SIZE 5
-#define DEFAULT_PADDLE_SPEED 3.5
-#define STARTING_SPEED 5
+#define BASE_PADDLE_SPEED 5
+#define BASE_BALL_SPEED 5
+#define BASE_BRICK_VALUE 100
 #define PADDLE_HEIGHT 10
 #define PADDLE_WIDTH 75
 #define BRICK_WIDTH SCREEN_WIDTH / 12
@@ -52,6 +53,13 @@
 #define PREF_KEY_SCORE "HIGH_SCORE"
 #define PREF_KEY_MUSIC "MUSIC_ON"
 #define PREF_KEY_SOUND "SOUND_ON"
+
+typedef enum BRICK_TYPE {
+    NORMAL,
+    DOUBLE,
+    TRIPLE,
+    UNBREAKABLE
+} BRICK_TYPE;
 
 typedef struct point {
     int x;
@@ -94,7 +102,6 @@ typedef struct score_box {
 typedef struct breaker_sounds {
     Mix_Music *music;
     Mix_Chunk *wall_bounce;
-    Mix_Chunk *brick_bounce;
     Mix_Chunk *life_lost;
     Mix_Chunk *game_over;
 } breaker_sounds;
@@ -106,9 +113,11 @@ typedef struct breaker_brick {
     int height;
     int value;
     int8_t visible;
-    SDL_Color *color;
+    SDL_Color *base_color;
     SDL_Renderer *renderer;
     Mix_Chunk *brick_break;
+    Mix_Chunk *brick_bounce;
+    BRICK_TYPE type;
 } breaker_brick;
 
 typedef struct breaker_paddle {
@@ -141,33 +150,5 @@ typedef struct breaker_game {
     int8_t mouse_down;
     point *mouse_loc;
 } breaker_game;
-
-global const SDL_Color WHITE = {
-        0xFF, 0xFF, 0xFF, 0x00
-};
-
-global const SDL_Color PURPLE = {
-        0x4B, 0x00, 0x82, 0x00
-};
-
-global const SDL_Color BLACK = {
-        0x00, 0x00, 0x00, 0x00
-};
-
-global const SDL_Color BLUE = {
-        0x14, 0xAD, 0xDB, 0x00
-};
-
-global const SDL_Color GREEN = {
-        0x2F, 0xB0, 0x04, 0x00
-};
-
-global const SDL_Color RED = {
-        0xFF, 0x00, 0x00, 0x00
-};
-
-global const SDL_Color SCREEN = {
-        0xAE, 0xC6, 0xCF, 0xFF
-};
 
 #endif //SDL_GRAPHICS_BREAKER_H

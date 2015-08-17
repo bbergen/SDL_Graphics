@@ -34,7 +34,7 @@ lighten_color(SDL_Color color, double factor) {
     SDL_Color new_color = {
             (uint8_t) MIN(255, color.r + 255 * factor),
             (uint8_t) MIN(255, color.g + 255 * factor),
-            (uint8_t) MIN(255, color.g + 255 * factor),
+            (uint8_t) MIN(255, color.b + 255 * factor),
             0x00
     };
     return new_color;
