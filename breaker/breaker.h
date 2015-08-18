@@ -31,6 +31,9 @@
 #define STARTING_SCORE 0
 #define SCORE_PADDING 15
 
+#define LEVEL_WIDTH 12
+#define MAX_ROWS 10
+#define LEVEL_ONE_MAP "resources/levels/breaker/level1.csv"
 
 #define WALL_BOUNCE "resources/sounds/breaker/effects/wall_bounce.wav"
 #define BRICK_BOUNCE "resources/sounds/breaker/effects/brick_bounce.wav"
@@ -54,11 +57,19 @@
 #define PREF_KEY_MUSIC "MUSIC_ON"
 #define PREF_KEY_SOUND "SOUND_ON"
 
+typedef struct level {
+    list brick_list;
+    Mix_Music *music;
+    SDL_Color *bg;
+    double difficulty_modifier;
+} level;
+
 typedef enum BRICK_TYPE {
     NORMAL,
     DOUBLE,
     TRIPLE,
-    UNBREAKABLE
+    UNBREAKABLE,
+    SPACE
 } BRICK_TYPE;
 
 typedef struct point {
@@ -149,6 +160,7 @@ typedef struct breaker_game {
     int current_score;
     int8_t mouse_down;
     point *mouse_loc;
+    level current_level;
 } breaker_game;
 
 #endif //SDL_GRAPHICS_BREAKER_H

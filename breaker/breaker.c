@@ -216,7 +216,7 @@ build_brick_list(list *l, SDL_Renderer *renderer, Mix_Chunk *brick_break, Mix_Ch
     BRICK_TYPE base_type = TRIPLE;
     for (int i = 0; i < bricks; i++) {
 
-        if (i % 12 == 0) {
+        if (i % LEVEL_WIDTH == 0) {
             step++;
             x = 0;
             if (step % 2 == 0) {
@@ -246,6 +246,67 @@ build_brick_list(list *l, SDL_Renderer *renderer, Mix_Chunk *brick_break, Mix_Ch
         add(l, &brick);
         x += BRICK_WIDTH;
     }
+}
+
+internal void
+build_level(SDL_Renderer *renderer, level *l, const char *csv_file) {
+
+    char symbol_matrix[MAX_ROWS][LEVEL_WIDTH] = {};
+    FILE *stream = fopen(csv_file, "r");
+    char line[1024];
+    int row = 0;
+    while (fgets(line, 1024, stream)) {
+        char *tmp = strdup(line);
+        if (tmp[0] == ';') {
+            //comment line
+            free(tmp);
+            continue;
+        }
+
+        int column = 0;
+        const char *tok;
+        for (tok = strtok(line, ","); tok && *tok; tok = strtok(NULL, ",")) {
+            symbol_matrix[row][column++] = tok[0];
+        }
+        row++;
+        free(tmp);
+    }
+
+    BRICK_TYPE brick_matrix[MAX_ROWS][LEVEL_WIDTH];
+    int i;
+    for (i = 0; i < MAX_ROWS && symbol_matrix[i][0]; ++i) {
+        int j;
+        for (j = 0; j < LEVEL_WIDTH; ++j) {
+            BRICK_TYPE type;
+            switch (symbol_matrix[i][j]) {
+                case '#':
+                    type = UNBREAKABLE;
+                    break;
+                case '$':
+                    type = TRIPLE;
+                    break;
+                case '%':
+                    type = DOUBLE;
+                    break;
+                case '^':
+                    type = NORMAL;
+                    break;
+                case '_':
+                default:
+                    type = SPACE;
+                    break;
+            }
+            printf("%d ", type);
+            brick_matrix[i][j] = type;
+        }
+        printf("\n");
+    }
+
+}
+
+internal void
+free_level(level *l) {
+
 }
 
 internal void
@@ -1241,6 +1302,10 @@ run(void) {
 
     const uint64_t update_freq = 1000 / 60;
     double ticks_passed = 0.0;
+
+    //test
+    level one;
+    build_level(renderer, &one, LEVEL_ONE_MAP);
 
     //game loop
     while (running) {
