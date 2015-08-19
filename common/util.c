@@ -2,7 +2,9 @@
 // Created by bryan on 8/1/15.
 //
 
+#include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 #include "util.h"
 #include "common.h"
 
@@ -43,4 +45,10 @@ itoa(int n, char buffer[], int pad) {
 
     buffer[i] = '\0';
     reverse(buffer);
+}
+
+void
+error(const char*(*error_function)(void)) {
+    fprintf(stderr, "Error: %s\n", error_function());
+    exit(EXIT_FAILURE);
 }

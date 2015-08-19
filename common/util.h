@@ -11,4 +11,10 @@
  */
 void itoa(int, char[], int);
 
+/*
+ * Generic error function designed to take a pointer to and print the
+ * results of any of the various SDL error functions
+ */
+void error(const char*(*error_function)(void));
+
 #endif //SDL_GRAPHICS_UTIL_H

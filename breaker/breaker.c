@@ -4,6 +4,7 @@
 #include <SDL2/SDL_image.h>
 #include <x86intrin.h>
 #include <sys/stat.h>
+#include <list.h>
 #include "list.h"
 #include "util.h"
 #include "menu.h"
@@ -206,46 +207,58 @@ free_brick(void *b) {
 }
 
 internal void
-build_brick_list(list *l, SDL_Renderer *renderer, Mix_Chunk *brick_break, Mix_Chunk *brick_bounce, int bricks) {
-    init_list(l, sizeof(breaker_brick), free_brick);
+build_brick_list(SDL_Renderer *renderer, level *l, BRICK_TYPE brick_matrix[MAX_ROWS][LEVEL_WIDTH], int rows) {
+    l->brick_list = malloc(sizeof(list));
+    init_list(l->brick_list, sizeof(breaker_brick), free_brick);
 
-    int step = 0;
-    int x = 0;
     SDL_Color color = {};
     random_color(&color);
-    BRICK_TYPE base_type = TRIPLE;
-    for (int i = 0; i < bricks; i++) {
 
-        if (i % LEVEL_WIDTH == 0) {
-            step++;
-            x = 0;
-            if (step % 2 == 0) {
-                base_type--;
+    Mix_Chunk *brick_break = Mix_LoadWAV(BRICK_BREAK);
+    Mix_Chunk *brick_bounce = Mix_LoadWAV(BRICK_BOUNCE);
+
+
+    int y = (int) (SCREEN_HEIGHT * 0.2);
+    int i;
+    for (i = 0; i < rows; ++i) {
+        int x = 0;
+        int j;
+        for (j = 0; j < LEVEL_WIDTH; ++j) {
+            BRICK_TYPE type = brick_matrix[i][j];
+            if (type == SPACE) {
+                x += BRICK_WIDTH;
+                continue;
             }
+            breaker_brick brick;
+            brick.x = x;
+            brick.y = y;
+            brick.width = BRICK_WIDTH;
+            brick.height = BRICK_HEIGHT;
+            brick.renderer = renderer;
+            brick.brick_break = brick_break;
+            brick.brick_bounce = brick_bounce;
+            brick.visible = true;
+            brick.base_color = malloc(sizeof(SDL_Color));
+            *brick.base_color = color;
+            brick.type = type;
+            brick.value = BASE_BRICK_VALUE * (type + 1);
+
+            add(l->brick_list, &brick);
+            x += BRICK_WIDTH;
         }
-
-        int8_t unbreakable = step == 1 && random_bool();
-        int y = (int) (SCREEN_HEIGHT * 0.2f) + (step * BRICK_HEIGHT);
-        int width = BRICK_WIDTH;
-        int height = BRICK_HEIGHT;
-        breaker_brick brick;
-
-        brick.x = x;
-        brick.y = y;
-        brick.width = width;
-        brick.height = height;
-        brick.renderer = renderer;
-        brick.brick_break = brick_break;
-        brick.brick_bounce = brick_bounce;
-        brick.visible = true;
-        brick.base_color = malloc(sizeof(SDL_Color));
-        *brick.base_color = color;
-        brick.type = unbreakable ? UNBREAKABLE : base_type;
-        brick.value = BASE_BRICK_VALUE * (brick.type + 1);
-
-        add(l, &brick);
-        x += BRICK_WIDTH;
+        y += BRICK_HEIGHT;
     }
+}
+
+internal void
+free_level(level *l) {
+    //to free
+    Mix_FreeChunk(((breaker_brick*)(l->brick_list->head->data))->brick_break);
+    Mix_FreeChunk(((breaker_brick*)(l->brick_list->head->data))->brick_bounce);
+    Mix_FreeMusic(l->music);
+    free_list(l->brick_list);
+    free(l->brick_list);
+    free(l);
 }
 
 internal void
@@ -271,8 +284,10 @@ build_level(SDL_Renderer *renderer, level *l, const char *csv_file) {
         row++;
         free(tmp);
     }
+    fclose(stream);
 
     BRICK_TYPE brick_matrix[MAX_ROWS][LEVEL_WIDTH];
+    int rows = 0;
     int i;
     for (i = 0; i < MAX_ROWS && symbol_matrix[i][0]; ++i) {
         int j;
@@ -296,17 +311,21 @@ build_level(SDL_Renderer *renderer, level *l, const char *csv_file) {
                     type = SPACE;
                     break;
             }
-            printf("%d ", type);
             brick_matrix[i][j] = type;
         }
-        printf("\n");
+        rows++;
     }
 
-}
+    Mix_Music *level_music = Mix_LoadMUS(LEVEL_1_TRACK);
 
-internal void
-free_level(level *l) {
+    if (!level_music) {
+        error(Mix_GetError);
+    }
 
+    build_brick_list(renderer, l, brick_matrix, rows);
+    l->bg = SCREEN;
+    l->music = level_music;
+    l->difficulty_modifier = 1.0; //TODO for now...
 }
 
 internal void
@@ -403,14 +422,12 @@ reset_game(breaker_game *game, SDL_Renderer *renderer) {
     // reset paddle
     reset_paddle(game->player);
 
-    // reset bricks
-    breaker_brick *brick = game->brick_list->head->data;
-    Mix_Chunk *brick_break = brick->brick_break;
-    Mix_Chunk *brick_bounce = brick->brick_bounce;
-    free_list(game->brick_list);
-    list brick_list;
-    build_brick_list(&brick_list, renderer, brick_break, brick_bounce, 60);
-    *game->brick_list = brick_list;
+    // reset level
+    if (game->current_level) {
+        free_level(game->current_level);
+    }
+    game->current_level = malloc(sizeof(level));
+    build_level(renderer, game->current_level, LEVEL_ONE_MAP); //TODO for now just always level 1
 
     if (game->current_score > game->high_score) {
         game->high_score = game->current_score;
@@ -611,10 +628,10 @@ internal void
 render(SDL_Renderer *renderer, breaker_game *game) {
     // clear screen
     SDL_SetRenderDrawColor(renderer,
-                           SCREEN.r,
-                           SCREEN.g,
-                           SCREEN.b,
-                           SCREEN.a);
+                           game->current_level->bg.r,
+                           game->current_level->bg.g,
+                           game->current_level->bg.b,
+                           game->current_level->bg.a);
     SDL_RenderClear(renderer);
 
     // render game objects
@@ -623,7 +640,7 @@ render(SDL_Renderer *renderer, breaker_game *game) {
     render_score_box(renderer, game->score, game->high_score, game->current_score, game->lives);
 
     // render bricks
-    list_for_each(game->brick_list, render_brick);
+    list_for_each(game->current_level->brick_list, render_brick);
 
     // present backbuffer
     SDL_RenderPresent(renderer);
@@ -769,7 +786,7 @@ update_ball(breaker_game *game) {
     }
 
     // check brick collisions
-    list_for_each_with_param(game->brick_list,
+    list_for_each_with_param(game->current_level->brick_list,
                              has_brick_ball_collided,
                              game);
 
@@ -1044,12 +1061,6 @@ process_event(SDL_Event *event, breaker_game *game, int8_t *running) {
 }
 
 internal void
-error(const char*(*error_function)(void)) {
-    fprintf(stderr, "Error: %s\n", error_function());
-    exit(EXIT_FAILURE);
-}
-
-internal void
 performance_profiling(uint64_t per_count_freq, uint64_t *last_count, uint64_t *last_cycles) {
     uint64_t end_counter = SDL_GetPerformanceCounter();
     uint64_t counter_elapsed = end_counter - *last_count;
@@ -1095,19 +1106,15 @@ run(void) {
         error(SDL_GetError);
     }
 
-    Mix_Music *level_1 = Mix_LoadMUS(LEVEL_1_TRACK);
     Mix_Chunk *wall_bounce = Mix_LoadWAV(WALL_BOUNCE);
-    Mix_Chunk *brick_bounce = Mix_LoadWAV(BRICK_BOUNCE);
-    Mix_Chunk *brick_break = Mix_LoadWAV(BRICK_BREAK);
     Mix_Chunk *life_lost = Mix_LoadWAV(LIFE_LOST);
     Mix_Chunk *game_over = Mix_LoadWAV(GAME_OVER);
 
-    if (!level_1 || !wall_bounce || !brick_bounce || !brick_break || !life_lost || !game_over) {
+    if (!wall_bounce || !life_lost || !game_over) {
         error(Mix_GetError);
     }
 
     breaker_sounds sounds = {
-            level_1,
             wall_bounce,
             life_lost,
             game_over
@@ -1128,9 +1135,6 @@ run(void) {
             PADDLE_WIDTH,
             PADDLE_HEIGHT,
     };
-
-    list brick_list;
-    build_brick_list(&brick_list, renderer, brick_break, brick_bounce, 60);
 
     TTF_Font *label_font = TTF_OpenFont(SCORE_FONT, 18);
     TTF_Font *score_font = TTF_OpenFont(SCORE_FONT, 35);
@@ -1261,6 +1265,9 @@ run(void) {
 
     point mouse_loc = {0,0};
 
+    level *current_level = malloc(sizeof(level));
+    build_level(renderer, current_level, LEVEL_ONE_MAP);
+
     breaker_game game = {
             &ball,
             &paddle,
@@ -1268,12 +1275,12 @@ run(void) {
             &sounds,
             false,
             false,
-            &brick_list,
             STARTING_LIVES,
             STARTING_SCORE,
             STARTING_SCORE,
             false,
-            &mouse_loc
+            &mouse_loc,
+            current_level
     };
 
     // load previous preferences
@@ -1283,7 +1290,7 @@ run(void) {
     display_breaker_menu(renderer, &game, false);
 
     //start music
-    start_music(game.sounds->music);
+    start_music(game.current_level->music);
     if (!game.score->music_on) {
         pause_music();
     }
@@ -1302,10 +1309,6 @@ run(void) {
 
     const uint64_t update_freq = 1000 / 60;
     double ticks_passed = 0.0;
-
-    //test
-    level one;
-    build_level(renderer, &one, LEVEL_ONE_MAP);
 
     //game loop
     while (running) {
@@ -1332,16 +1335,13 @@ run(void) {
 
     //free resources
     //TODO free more stuff (font textures, etc.)
-    free_list(game.brick_list);
+    free_level(game.current_level);
     free(music_c.bounds);
     free(sound_c.bounds);
     free(high_score_c.bounds);
     free(current_score_c.bounds);
     free(lives_c.bounds);
-    Mix_FreeMusic(level_1);
     Mix_FreeChunk(wall_bounce);
-    Mix_FreeChunk(brick_bounce);
-    Mix_FreeChunk(brick_break);
     TTF_CloseFont(label_font);
     TTF_CloseFont(score_font);
 }

@@ -58,9 +58,9 @@
 #define PREF_KEY_SOUND "SOUND_ON"
 
 typedef struct level {
-    list brick_list;
+    list *brick_list;
     Mix_Music *music;
-    SDL_Color *bg;
+    SDL_Color bg;
     double difficulty_modifier;
 } level;
 
@@ -111,7 +111,6 @@ typedef struct score_box {
 } score_box;
 
 typedef struct breaker_sounds {
-    Mix_Music *music;
     Mix_Chunk *wall_bounce;
     Mix_Chunk *life_lost;
     Mix_Chunk *game_over;
@@ -154,13 +153,12 @@ typedef struct breaker_game {
     breaker_sounds *sounds;
     int8_t key_right_down;
     int8_t key_left_down;
-    list *brick_list;
     int lives;
     int high_score;
     int current_score;
     int8_t mouse_down;
     point *mouse_loc;
-    level current_level;
+    level *current_level;
 } breaker_game;
 
 #endif //SDL_GRAPHICS_BREAKER_H
