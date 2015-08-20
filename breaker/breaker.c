@@ -4,7 +4,6 @@
 #include <SDL2/SDL_image.h>
 #include <x86intrin.h>
 #include <sys/stat.h>
-#include <list.h>
 #include "list.h"
 #include "util.h"
 #include "menu.h"
@@ -414,6 +413,22 @@ reset_paddle(breaker_paddle *paddle) {
 }
 
 internal void
+start_music(Mix_Music *track) {
+    Mix_PlayMusic(track, -1);
+}
+
+internal void
+pause_music(void) {
+    if (Mix_PlayingMusic()) {
+        if (Mix_PausedMusic()) {
+            Mix_ResumeMusic();
+        } else {
+            Mix_PauseMusic();
+        }
+    }
+}
+
+internal void
 reset_game(breaker_game *game, SDL_Renderer *renderer) {
 
     // reset ball
@@ -429,6 +444,12 @@ reset_game(breaker_game *game, SDL_Renderer *renderer) {
     game->current_level = malloc(sizeof(level));
     build_level(renderer, game->current_level, LEVEL_ONE_MAP); //TODO for now just always level 1
 
+    //start music
+    start_music(game->current_level->music);
+    if (!game->score->music_on) {
+        pause_music();
+    }
+
     if (game->current_score > game->high_score) {
         game->high_score = game->current_score;
     }
@@ -440,22 +461,6 @@ reset_game(breaker_game *game, SDL_Renderer *renderer) {
 
     // reset lives
     game->lives = STARTING_LIVES;
-}
-
-internal void
-start_music(Mix_Music *track) {
-    Mix_PlayMusic(track, -1);
-}
-
-internal void
-pause_music(void) {
-    if (Mix_PlayingMusic()) {
-        if (Mix_PausedMusic()) {
-            Mix_ResumeMusic();
-        } else {
-            Mix_PauseMusic();
-        }
-    }
 }
 
 internal void
@@ -939,24 +944,18 @@ close(void) {
 
 internal int8_t
 starting_menu_callback(SDL_Renderer *renderer, int menu_index, void *param) {
-    int8_t menu_running = true;
     breaker_game *game = param;
     switch (menu_index) {
         case 0:
             reset_game(game, renderer);
-            menu_running = false;
-            if (game->score->music_on) {
-                pause_music();
-            }
-            break;
+            return false;
         case 1:
             save_game_state(game);
             close();
             exit(EXIT_SUCCESS);
         default:
-            break;
+            return true;
     }
-    return menu_running;
 }
 
 internal int8_t
@@ -1026,7 +1025,7 @@ process_event(SDL_Event *event, breaker_game *game, int8_t *running) {
                         pause_music();
                     }
                     display_breaker_menu(renderer, game, true);
-                    if (game->score->music_on) {
+                    if (game->score->music_on && Mix_PausedMusic()) {
                         pause_music();
                     }
                 } break;
@@ -1288,12 +1287,6 @@ run(void) {
 
     // display menu
     display_breaker_menu(renderer, &game, false);
-
-    //start music
-    start_music(game.current_level->music);
-    if (!game.score->music_on) {
-        pause_music();
-    }
 
     int8_t running = true;
     SDL_Event event;
