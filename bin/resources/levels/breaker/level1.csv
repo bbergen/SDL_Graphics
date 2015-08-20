@@ -1,4 +1,13 @@
-;Breaker Level File: Level 1
+; Breaker Level File: Level 1
+;
+; Legend:
+;
+; Space         _
+; Single        ^
+; Double        %
+; Triple        $
+; Unbreakable   #
+;
 %,%,%,%,%,%,%,%,%,%,%,%
 %,%,%,%,%,%,%,%,%,%,%,%
 _,_,_,_,_,_,_,_,_,_,_,_

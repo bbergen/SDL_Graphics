@@ -51,7 +51,7 @@ render_brick(void *b) {
                 color = lighten_brick(*brick->base_color, .25);
                 break;
             case UNBREAKABLE:
-                color = BLACK;
+                color = DARK_GREY;
                 break;
             case NORMAL:
             default:
@@ -442,7 +442,7 @@ reset_game(breaker_game *game, SDL_Renderer *renderer) {
         free_level(game->current_level);
     }
     game->current_level = malloc(sizeof(level));
-    build_level(renderer, game->current_level, LEVEL_ONE_MAP); //TODO for now just always level 1
+    build_level(renderer, game->current_level, LEVEL_FOUR_MAP); //TODO for now just always level 1
 
     //start music
     start_music(game->current_level->music);
@@ -1264,8 +1264,7 @@ run(void) {
 
     point mouse_loc = {0,0};
 
-    level *current_level = malloc(sizeof(level));
-    build_level(renderer, current_level, LEVEL_ONE_MAP);
+    level *current_level = NULL;
 
     breaker_game game = {
             &ball,

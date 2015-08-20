@@ -34,6 +34,9 @@
 #define LEVEL_WIDTH 12
 #define MAX_ROWS 10
 #define LEVEL_ONE_MAP "resources/levels/breaker/level1.csv"
+#define LEVEL_TWO_MAP "resources/levels/breaker/level2.csv"
+#define LEVEL_THREE_MAP "resources/levels/breaker/level3.csv"
+#define LEVEL_FOUR_MAP "resources/levels/breaker/level4.csv"
 
 #define WALL_BOUNCE "resources/sounds/breaker/effects/wall_bounce.wav"
 #define BRICK_BOUNCE "resources/sounds/breaker/effects/brick_bounce.wav"
