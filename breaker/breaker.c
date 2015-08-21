@@ -263,7 +263,7 @@ free_level(level *l) {
 internal void
 build_level(SDL_Renderer *renderer, level *l, const char *csv_file) {
 
-    char symbol_matrix[MAX_ROWS][LEVEL_WIDTH] = {};
+    BRICK_TYPE brick_matrix[MAX_ROWS][LEVEL_WIDTH] = {};
     FILE *stream = fopen(csv_file, "r");
     char line[1024];
     int row = 0;
@@ -278,21 +278,8 @@ build_level(SDL_Renderer *renderer, level *l, const char *csv_file) {
         int column = 0;
         const char *tok;
         for (tok = strtok(line, ","); tok && *tok; tok = strtok(NULL, ",")) {
-            symbol_matrix[row][column++] = tok[0];
-        }
-        row++;
-        free(tmp);
-    }
-    fclose(stream);
-
-    BRICK_TYPE brick_matrix[MAX_ROWS][LEVEL_WIDTH];
-    int rows = 0;
-    int i;
-    for (i = 0; i < MAX_ROWS && symbol_matrix[i][0]; ++i) {
-        int j;
-        for (j = 0; j < LEVEL_WIDTH; ++j) {
             BRICK_TYPE type;
-            switch (symbol_matrix[i][j]) {
+            switch (tok[0]) {
                 case '#':
                     type = UNBREAKABLE;
                     break;
@@ -310,10 +297,12 @@ build_level(SDL_Renderer *renderer, level *l, const char *csv_file) {
                     type = SPACE;
                     break;
             }
-            brick_matrix[i][j] = type;
+            brick_matrix[row][column++] = type;
         }
-        rows++;
+        row++;
+        free(tmp);
     }
+    fclose(stream);
 
     Mix_Music *level_music = Mix_LoadMUS(LEVEL_1_TRACK);
 
@@ -321,7 +310,7 @@ build_level(SDL_Renderer *renderer, level *l, const char *csv_file) {
         error(Mix_GetError);
     }
 
-    build_brick_list(renderer, l, brick_matrix, rows);
+    build_brick_list(renderer, l, brick_matrix, row);
     l->bg = SCREEN;
     l->music = level_music;
     l->difficulty_modifier = 1.0; //TODO for now...
@@ -442,7 +431,7 @@ reset_game(breaker_game *game, SDL_Renderer *renderer) {
         free_level(game->current_level);
     }
     game->current_level = malloc(sizeof(level));
-    build_level(renderer, game->current_level, LEVEL_FOUR_MAP); //TODO for now just always level 1
+    build_level(renderer, game->current_level, LEVEL_TWO_MAP); //TODO for now just always level 1
 
     //start music
     start_music(game->current_level->music);
