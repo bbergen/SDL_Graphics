@@ -424,7 +424,10 @@ pause_music(void) {
 }
 
 internal void
-reset_game(breaker_game *game, SDL_Renderer *renderer) {
+reset_game(breaker_game *game, SDL_Renderer *renderer, int level_index, int8_t new_level) {
+
+    int current_score = game->current_score;
+    int current_lives = game->lives;
 
     // reset ball
     reset_ball(game->ball);
@@ -437,7 +440,7 @@ reset_game(breaker_game *game, SDL_Renderer *renderer) {
         free_level(game->current_level);
     }
     game->current_level = malloc(sizeof(level));
-    build_level(renderer, game->current_level, LEVEL_TEST_MAP); //TODO for now just always level 1
+    build_level(renderer, game->current_level, game->level_files[level_index]);
 
     //start music
     start_music(game->current_level->music);
@@ -452,10 +455,10 @@ reset_game(breaker_game *game, SDL_Renderer *renderer) {
     save_game_state(game);
 
     // reset score
-    game->current_score = STARTING_SCORE;
+    game->current_score = new_level ? current_score : STARTING_SCORE;
 
     // reset lives
-    game->lives = STARTING_LIVES;
+    game->lives = new_level ? current_lives : STARTING_LIVES;
 }
 
 internal void
@@ -938,11 +941,27 @@ close(void) {
 }
 
 internal int8_t
+new_level_callback(SDL_Renderer *renderer, int menu_index, void *param) {
+    breaker_game *game = param;
+    switch (menu_index) {
+        case 0:
+            reset_game(game, renderer, game->level_index, true);
+            return false;
+        case 1:
+            save_game_state(game);
+            close();
+            exit(EXIT_SUCCESS);
+        default:
+            return true;
+    }
+}
+
+internal int8_t
 starting_menu_callback(SDL_Renderer *renderer, int menu_index, void *param) {
     breaker_game *game = param;
     switch (menu_index) {
         case 0:
-            reset_game(game, renderer);
+            reset_game(game, renderer, game->level_index, false);
             return false;
         case 1:
             save_game_state(game);
@@ -960,7 +979,7 @@ paused_menu_callback(SDL_Renderer *renderer, int menu_index, void *param) {
         case 0:
             return false;
         case 1:
-            reset_game(game, renderer);
+            reset_game(game, renderer, game->level_index, false);
             return false;
         case 2:
             save_game_state(game);
@@ -972,21 +991,24 @@ paused_menu_callback(SDL_Renderer *renderer, int menu_index, void *param) {
 }
 
 internal void
-display_breaker_menu(SDL_Renderer *renderer, breaker_game *game, int8_t paused) {
+display_breaker_menu(SDL_Renderer *renderer,
+                     breaker_game *game,
+                     int8_t paused,
+                     int8_t new_level,
+                     char *title, callback_function callback) {
 
     char *menu_items[3];
     int i = 0;
-    callback_function callback = starting_menu_callback;
-    if (paused) {
-        callback = paused_menu_callback;
+    if (paused || new_level) {
         menu_items[i++] = "Continue...";
     }
-    menu_items[i++] = "New Game";
+    if (!new_level) {
+        menu_items[i++] = "New Game";
+    }
     menu_items[i++] = "Quit";
 
     SDL_Rect bounds = {0, 0, SCREEN_WIDTH, SCREEN_HEIGHT};
     menu starting_menu = init_menu(i, callback, menu_items, &SCREEN, &BLACK, &bounds);
-    char *title = paused ? "Game Paused" : "Breaker!";
     int8_t result = display_menu(renderer, starting_menu, SCORE_FONT, title, game);
     destroy_menu(starting_menu);
     if (result == QUIT_FROM_MENU) {
@@ -1019,7 +1041,7 @@ process_event(SDL_Event *event, breaker_game *game, int8_t *running) {
                     if (game->score->music_on) {
                         pause_music();
                     }
-                    display_breaker_menu(renderer, game, true);
+                    display_breaker_menu(renderer, game, true, false, "Game Paused", paused_menu_callback);
                     if (game->score->music_on && Mix_PausedMusic()) {
                         pause_music();
                     }
@@ -1077,7 +1099,8 @@ check_game_over(SDL_Renderer *renderer, breaker_game *game) {
         if (game->score->music_on) {
             pause_music();
         }
-        display_breaker_menu(renderer, game, false);
+        game->level_index = STARTING_LEVEL;
+        display_breaker_menu(renderer, game, false, false, "Game Over!", starting_menu_callback);
     } else if (game->current_level->bricks_left <= 0) {
         //TODO change this to increment level
         game->key_right_down = false;
@@ -1085,7 +1108,9 @@ check_game_over(SDL_Renderer *renderer, breaker_game *game) {
         if (game->score->music_on) {
             pause_music();
         }
-        display_breaker_menu(renderer, game, false);
+        game->level_index++;
+        game->level_index %= MAX_LEVELS;
+        display_breaker_menu(renderer, game, false, true, "New Level!", new_level_callback);
     }
 }
 
@@ -1269,6 +1294,12 @@ run(void) {
 
     level *current_level = NULL;
 
+    char *level_files[MAX_LEVELS];
+    level_files[0] = LEVEL_TEST_MAP;
+    level_files[1] = LEVEL_TWO_MAP;
+    level_files[2] = LEVEL_THREE_MAP;
+    level_files[3] = LEVEL_FOUR_MAP;
+
     breaker_game game = {
             &ball,
             &paddle,
@@ -1281,14 +1312,16 @@ run(void) {
             STARTING_SCORE,
             false,
             &mouse_loc,
-            current_level
+            current_level,
+            level_files,
+            STARTING_LEVEL
     };
 
     // load previous preferences
     load_game_state(&game);
 
     // display menu
-    display_breaker_menu(renderer, &game, false);
+    display_breaker_menu(renderer, &game, false, false, "Breaker!", starting_menu_callback);
 
     int8_t running = true;
     SDL_Event event;

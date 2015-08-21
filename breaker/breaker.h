@@ -30,6 +30,8 @@
 #define STARTING_LIVES 3
 #define STARTING_SCORE 0
 #define SCORE_PADDING 15
+#define MAX_LEVELS 4
+#define STARTING_LEVEL 0
 
 #define LEVEL_WIDTH 12
 #define MAX_ROWS 10
@@ -164,6 +166,8 @@ typedef struct breaker_game {
     int8_t mouse_down;
     point *mouse_loc;
     level *current_level;
+    char **level_files;
+    int level_index;
 } breaker_game;
 
 #endif //SDL_GRAPHICS_BREAKER_H
