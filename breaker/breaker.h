@@ -37,6 +37,7 @@
 #define LEVEL_TWO_MAP "resources/levels/breaker/level2.csv"
 #define LEVEL_THREE_MAP "resources/levels/breaker/level3.csv"
 #define LEVEL_FOUR_MAP "resources/levels/breaker/level4.csv"
+#define LEVEL_TEST_MAP "resources/levels/breaker/test_level.csv"
 
 #define WALL_BOUNCE "resources/sounds/breaker/effects/wall_bounce.wav"
 #define BRICK_BOUNCE "resources/sounds/breaker/effects/brick_bounce.wav"
@@ -65,6 +66,7 @@ typedef struct level {
     Mix_Music *music;
     SDL_Color bg;
     double difficulty_modifier;
+    int bricks_left;
 } level;
 
 typedef enum BRICK_TYPE {

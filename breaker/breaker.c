@@ -177,6 +177,7 @@ has_brick_ball_collided(void *brick_arg, void *game_arg) {
 
     if (has_collided && brick->type <= 0) {
         ((breaker_game*) game_arg)->current_score += brick->value;
+        ((breaker_game*) game_arg)->current_level->bricks_left--;
         brick->visible = false;
     }
 
@@ -267,6 +268,7 @@ build_level(SDL_Renderer *renderer, level *l, const char *csv_file) {
     FILE *stream = fopen(csv_file, "r");
     char line[1024];
     int row = 0;
+    int breakable_bricks = 0;
     while (fgets(line, 1024, stream)) {
         char *tmp = strdup(line);
         if (tmp[0] == ';') {
@@ -285,12 +287,15 @@ build_level(SDL_Renderer *renderer, level *l, const char *csv_file) {
                     break;
                 case '$':
                     type = TRIPLE;
+                    breakable_bricks++;
                     break;
                 case '%':
                     type = DOUBLE;
+                    breakable_bricks++;
                     break;
                 case '^':
                     type = NORMAL;
+                    breakable_bricks++;
                     break;
                 case '_':
                 default:
@@ -313,6 +318,7 @@ build_level(SDL_Renderer *renderer, level *l, const char *csv_file) {
     build_brick_list(renderer, l, brick_matrix, row);
     l->bg = SCREEN;
     l->music = level_music;
+    l->bricks_left = breakable_bricks;
     l->difficulty_modifier = 1.0; //TODO for now...
 }
 
@@ -431,7 +437,7 @@ reset_game(breaker_game *game, SDL_Renderer *renderer) {
         free_level(game->current_level);
     }
     game->current_level = malloc(sizeof(level));
-    build_level(renderer, game->current_level, LEVEL_TWO_MAP); //TODO for now just always level 1
+    build_level(renderer, game->current_level, LEVEL_TEST_MAP); //TODO for now just always level 1
 
     //start music
     start_music(game->current_level->music);
@@ -1066,6 +1072,14 @@ performance_profiling(uint64_t per_count_freq, uint64_t *last_count, uint64_t *l
 internal void
 check_game_over(SDL_Renderer *renderer, breaker_game *game) {
     if (game->lives <= 0) {
+        game->key_right_down = false;
+        game->key_left_down = false;
+        if (game->score->music_on) {
+            pause_music();
+        }
+        display_breaker_menu(renderer, game, false);
+    } else if (game->current_level->bricks_left <= 0) {
+        //TODO change this to increment level
         game->key_right_down = false;
         game->key_left_down = false;
         if (game->score->music_on) {
