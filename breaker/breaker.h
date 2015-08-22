@@ -167,6 +167,7 @@ typedef struct breaker_game {
     point *mouse_loc;
     level *current_level;
     char **level_files;
+    Mix_Music **music_files;
     int level_index;
 } breaker_game;
 

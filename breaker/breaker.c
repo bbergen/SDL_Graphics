@@ -262,7 +262,7 @@ free_level(level *l) {
 }
 
 internal void
-build_level(SDL_Renderer *renderer, level *l, const char *csv_file) {
+build_level(SDL_Renderer *renderer, level *l, const char *csv_file, Mix_Music *music_file) {
 
     BRICK_TYPE brick_matrix[MAX_ROWS][LEVEL_WIDTH] = {};
     FILE *stream = fopen(csv_file, "r");
@@ -309,15 +309,9 @@ build_level(SDL_Renderer *renderer, level *l, const char *csv_file) {
     }
     fclose(stream);
 
-    Mix_Music *level_music = Mix_LoadMUS(LEVEL_1_TRACK);
-
-    if (!level_music) {
-        error(Mix_GetError);
-    }
-
     build_brick_list(renderer, l, brick_matrix, row);
     l->bg = SCREEN;
-    l->music = level_music;
+    l->music = music_file;
     l->bricks_left = breakable_bricks;
     l->difficulty_modifier = 1.0; //TODO for now...
 }
@@ -440,7 +434,10 @@ reset_game(breaker_game *game, SDL_Renderer *renderer, int level_index, int8_t n
         free_level(game->current_level);
     }
     game->current_level = malloc(sizeof(level));
-    build_level(renderer, game->current_level, game->level_files[level_index]);
+    build_level(renderer,
+                game->current_level,
+                game->level_files[level_index],
+                game->music_files[level_index]);
 
     //start music
     start_music(game->current_level->music);
@@ -1115,6 +1112,22 @@ check_game_over(SDL_Renderer *renderer, breaker_game *game) {
 }
 
 internal void
+init_level_music(Mix_Music **track_list) {
+    track_list[0] = Mix_LoadMUS(LEVEL_1_TRACK);
+    track_list[1] = Mix_LoadMUS(LEVEL_2_TRACK);
+    track_list[2] = Mix_LoadMUS(LEVEL_3_TRACK);
+    track_list[3] = Mix_LoadMUS(LEVEL_4_TRACK);
+}
+
+internal void
+free_level_music(Mix_Music **track_list) {
+    Mix_FreeMusic(track_list[0]);
+    Mix_FreeMusic(track_list[1]);
+    Mix_FreeMusic(track_list[2]);
+    Mix_FreeMusic(track_list[3]);
+}
+
+internal void
 run(void) {
     SDL_Window *window = SDL_CreateWindow("Brick Breaker!",
                                           SDL_WINDOWPOS_UNDEFINED,
@@ -1296,9 +1309,15 @@ run(void) {
 
     char *level_files[MAX_LEVELS];
     level_files[0] = LEVEL_TEST_MAP;
-    level_files[1] = LEVEL_TWO_MAP;
-    level_files[2] = LEVEL_THREE_MAP;
-    level_files[3] = LEVEL_FOUR_MAP;
+    level_files[1] = LEVEL_TEST_MAP;
+    level_files[2] = LEVEL_TEST_MAP;
+    level_files[3] = LEVEL_TEST_MAP;
+//    level_files[1] = LEVEL_TWO_MAP;
+//    level_files[2] = LEVEL_THREE_MAP;
+//    level_files[3] = LEVEL_FOUR_MAP;
+
+    Mix_Music *music_tracks[MAX_LEVELS];
+    init_level_music(music_tracks);
 
     breaker_game game = {
             &ball,
@@ -1314,6 +1333,7 @@ run(void) {
             &mouse_loc,
             current_level,
             level_files,
+            music_tracks,
             STARTING_LEVEL
     };
 
@@ -1364,6 +1384,7 @@ run(void) {
     //free resources
     //TODO free more stuff (font textures, etc.)
     free_level(game.current_level);
+    free_level_music(game.music_files);
     free(music_c.bounds);
     free(sound_c.bounds);
     free(high_score_c.bounds);
