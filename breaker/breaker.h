@@ -16,7 +16,7 @@
 #define AUDIO_CHANNELS 2
 #define AUDIO_CHUNK_SIZE 2048
 #define BALL_SIZE 5
-#define BASE_PADDLE_SPEED 5
+#define BASE_PADDLE_SPEED 7
 #define BASE_BALL_SPEED 5
 #define BASE_BRICK_VALUE 100
 #define PADDLE_HEIGHT 10
@@ -171,6 +171,7 @@ typedef struct breaker_game {
     char **level_files;
     Mix_Music **music_files;
     int level_index;
+    int8_t aiming;
 } breaker_game;
 
 #endif //SDL_GRAPHICS_BREAKER_H

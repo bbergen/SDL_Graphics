@@ -391,9 +391,9 @@ load_game_state(breaker_game *game) {
 internal void
 reset_ball(breaker_ball *ball) {
     ball->x = SCREEN_WIDTH >> 1;
-    ball->y = SCREEN_HEIGHT >> 1;
+    ball->y = (SCREEN_HEIGHT * .9f) - ball->radius;
     ball->x_dir = random_bool() ? 1 : -1;
-    ball->y_dir = 1;
+    ball->y_dir = -1;
 }
 
 internal void
@@ -428,6 +428,9 @@ reset_game(breaker_game *game, SDL_Renderer *renderer, int level_index, int8_t n
 
     // reset paddle
     reset_paddle(game->player);
+
+    // pause ball for aiming
+    game->aiming = true;
 
     // reset level
     if (game->current_level) {
@@ -782,6 +785,7 @@ update_ball(breaker_game *game) {
         ball->y_dir *= -1;
         if (game->ball->sound_effects_on) {
             game->lives -= 1;
+            game->aiming = true;
             Mix_Chunk *chunk;
             if (game->lives == 0) {
                 chunk = game->sounds->game_over;
@@ -936,8 +940,10 @@ update_score_box(score_box *box, point *mouse_loc, int8_t mouse_down) {
 internal void
 update(breaker_game *game) {
     update_score_box(game->score, game->mouse_loc, game->mouse_down);
-    update_ball(game);
-    update_paddle(game->player, game->key_right_down, game->key_left_down);
+    if (!game->aiming) {
+        update_ball(game);
+        update_paddle(game->player, game->key_right_down, game->key_left_down);
+    }
 }
 
 internal void
@@ -1095,6 +1101,9 @@ process_event(SDL_Event *event, breaker_game *game, int8_t *running) {
                         pause_music();
                     }
                 } break;
+                case SDLK_UP:
+                    game->aiming = false;
+                    break;
                 default:
                     break;
             }
@@ -1151,7 +1160,7 @@ check_game_over(SDL_Renderer *renderer, breaker_game *game) {
         game->level_index = STARTING_LEVEL;
         display_breaker_menu(renderer, game, false, false, "Game Over!", starting_menu_callback);
     } else if (game->current_level->bricks_left <= 0) {
-        //TODO change this to increment level
+        game->lives++; // beating a level rewards with an extra life
         game->key_right_down = false;
         game->key_left_down = false;
         if (game->score->music_on) {
@@ -1383,7 +1392,8 @@ run(void) {
             current_level,
             level_files,
             music_tracks,
-            STARTING_LEVEL
+            STARTING_LEVEL,
+            true
     };
 
     // load previous preferences
