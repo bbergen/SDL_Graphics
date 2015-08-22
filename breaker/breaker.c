@@ -176,8 +176,10 @@ has_brick_ball_collided(void *brick_arg, void *game_arg) {
     }
 
     if (has_collided && brick->type <= 0) {
-        ((breaker_game*) game_arg)->current_score += brick->value;
-        ((breaker_game*) game_arg)->current_level->bricks_left--;
+        breaker_game *game = game_arg;
+        double modifier = game->current_level->difficulty_modifier;
+        game->current_score += brick->value * modifier;
+        game->current_level->bricks_left--;
         brick->visible = false;
     }
 
@@ -255,7 +257,6 @@ free_level(level *l) {
     //to free
     Mix_FreeChunk(((breaker_brick*)(l->brick_list->head->data))->brick_break);
     Mix_FreeChunk(((breaker_brick*)(l->brick_list->head->data))->brick_bounce);
-    Mix_FreeMusic(l->music);
     free_list(l->brick_list);
     free(l->brick_list);
     free(l);
@@ -313,7 +314,6 @@ build_level(SDL_Renderer *renderer, level *l, const char *csv_file, Mix_Music *m
     l->bg = SCREEN;
     l->music = music_file;
     l->bricks_left = breakable_bricks;
-    l->difficulty_modifier = 1.0; //TODO for now...
 }
 
 internal void
@@ -456,6 +456,15 @@ reset_game(breaker_game *game, SDL_Renderer *renderer, int level_index, int8_t n
 
     // reset lives
     game->lives = new_level ? current_lives : STARTING_LIVES;
+
+    double modifier;
+
+    if (new_level) {
+        modifier = game->current_level->difficulty_modifier + DIFFICULTY_INCREMENT;
+    } else {
+        modifier = DEFAULT_DIFFICULTY;
+    }
+    game->current_level->difficulty_modifier = modifier;
 }
 
 internal void
@@ -735,8 +744,8 @@ check_paddle_collisions(breaker_paddle *paddle, breaker_ball *ball) {
 
 internal void
 update_ball(breaker_game *game) {
-    float speed_x = BASE_BALL_SPEED;
-    float speed_y = BASE_BALL_SPEED;
+    double speed_x = BASE_BALL_SPEED * game->current_level->difficulty_modifier;
+    double speed_y = BASE_BALL_SPEED * game->current_level->difficulty_modifier;
     breaker_ball *ball = game->ball;
     ball->sound_effects_on = game->score->sound_on;
 
@@ -1308,13 +1317,10 @@ run(void) {
     level *current_level = NULL;
 
     char *level_files[MAX_LEVELS];
-    level_files[0] = LEVEL_TEST_MAP;
-    level_files[1] = LEVEL_TEST_MAP;
-    level_files[2] = LEVEL_TEST_MAP;
-    level_files[3] = LEVEL_TEST_MAP;
-//    level_files[1] = LEVEL_TWO_MAP;
-//    level_files[2] = LEVEL_THREE_MAP;
-//    level_files[3] = LEVEL_FOUR_MAP;
+    level_files[0] = LEVEL_ONE_MAP;
+    level_files[1] = LEVEL_TWO_MAP;
+    level_files[2] = LEVEL_THREE_MAP;
+    level_files[3] = LEVEL_FOUR_MAP;
 
     Mix_Music *music_tracks[MAX_LEVELS];
     init_level_music(music_tracks);
