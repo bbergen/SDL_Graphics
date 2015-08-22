@@ -53,8 +53,7 @@ init_menu(int item_count,
 
     int i;
     for (i = 0; i < item_count; ++i) {
-        size_t key_size = strlen(menu_items[i] + 1);
-        m->menu_items[i] = malloc(key_size);
+        m->menu_items[i] = malloc(MENU_ITEM_SIZE);
         strcpy(m->menu_items[i], menu_items[i]);
     }
 
@@ -135,7 +134,8 @@ process_menu_event(_menu *m, SDL_Event *event) {
                     SDL_Window *window = SDL_GetWindowFromID(event->window.windowID);
                     SDL_Renderer *renderer = SDL_GetRenderer(window);
                     play_menu_effect(m->menu_select);
-                    m->menu_running = callback(renderer, m->selected_index, m->arg);
+                    m->menu_running = callback(renderer, m->selected_index, &m->menu_items[m->selected_index], m->arg);
+                    render = true;
                 } break;
                 case SDLK_UP:
                     play_menu_effect(m->menu_change);

@@ -946,14 +946,32 @@ close(void) {
     SDL_Quit();
 }
 
+internal void
+toggle_menu_item(char **menu_item, char *option_one, char *option_two) {
+    if (!strcmp(*menu_item, option_one)) {
+        strcpy(*menu_item, option_two);
+    } else {
+        strcpy(*menu_item, option_one);
+    }
+}
+
 internal int8_t
-new_level_callback(SDL_Renderer *renderer, int menu_index, void *param) {
+new_level_callback(SDL_Renderer *renderer, int menu_index, char **menu_item, void *param) {
     breaker_game *game = param;
     switch (menu_index) {
         case 0:
             reset_game(game, renderer, game->level_index, true);
             return false;
         case 1:
+            toggle_menu_item(menu_item, "Disable Music", "Enable Music");
+            game->score->music_on = !game->score->music_on;
+            return true;
+        case 2:
+            toggle_menu_item(menu_item, "Disable Sound", "Enable Sound");
+            game->score->sound_on = !game->score->sound_on;
+            game->ball->sound_effects_on = game->score->sound_on;
+            return true;
+        case 3:
             save_game_state(game);
             close();
             exit(EXIT_SUCCESS);
@@ -963,13 +981,22 @@ new_level_callback(SDL_Renderer *renderer, int menu_index, void *param) {
 }
 
 internal int8_t
-starting_menu_callback(SDL_Renderer *renderer, int menu_index, void *param) {
+starting_menu_callback(SDL_Renderer *renderer, int menu_index, char **menu_item, void *param) {
     breaker_game *game = param;
     switch (menu_index) {
         case 0:
             reset_game(game, renderer, game->level_index, false);
             return false;
         case 1:
+            toggle_menu_item(menu_item, "Disable Music", "Enable Music");
+            game->score->music_on = !game->score->music_on;
+            return true;
+        case 2:
+            toggle_menu_item(menu_item, "Disable Sound", "Enable Sound");
+            game->score->sound_on = !game->score->sound_on;
+            game->ball->sound_effects_on = game->score->sound_on;
+            return true;
+        case 3:
             save_game_state(game);
             close();
             exit(EXIT_SUCCESS);
@@ -979,15 +1006,24 @@ starting_menu_callback(SDL_Renderer *renderer, int menu_index, void *param) {
 }
 
 internal int8_t
-paused_menu_callback(SDL_Renderer *renderer, int menu_index, void *param) {
+paused_menu_callback(SDL_Renderer *renderer, int menu_index, char **menu_item, void *param) {
     breaker_game *game = param;
     switch (menu_index) {
         case 0:
             return false;
         case 1:
-            reset_game(game, renderer, game->level_index, false);
+            reset_game(game, renderer, STARTING_LEVEL, false);
             return false;
         case 2:
+            toggle_menu_item(menu_item, "Disable Music", "Enable Music");
+            game->score->music_on = !game->score->music_on;
+            return true;
+        case 3:
+            toggle_menu_item(menu_item, "Disable Sound", "Enable Sound");
+            game->score->sound_on = !game->score->sound_on;
+            game->ball->sound_effects_on = game->score->sound_on;
+            return true;
+        case 4:
             save_game_state(game);
             close();
             exit(EXIT_SUCCESS);
@@ -1003,7 +1039,7 @@ display_breaker_menu(SDL_Renderer *renderer,
                      int8_t new_level,
                      char *title, callback_function callback) {
 
-    char *menu_items[3];
+    char *menu_items[5];
     int i = 0;
     if (paused || new_level) {
         menu_items[i++] = "Continue...";
@@ -1011,7 +1047,14 @@ display_breaker_menu(SDL_Renderer *renderer,
     if (!new_level) {
         menu_items[i++] = "New Game";
     }
-    menu_items[i++] = "Quit";
+    char music_menu_item[MENU_ITEM_SIZE] = {};
+    char sound_menu_item[MENU_ITEM_SIZE] = {};
+    strcpy(music_menu_item, game->score->music_on ? "Disable Music" : "Enable Music");
+    strcpy(sound_menu_item, game->score->sound_on ? "Disable Sound" : "Enable Sound");
+    menu_items[i++] = music_menu_item;
+    menu_items[i++] = sound_menu_item;
+    char quit[MENU_ITEM_SIZE] = "Quit";
+    menu_items[i++] = quit;
 
     SDL_Rect bounds = {0, 0, SCREEN_WIDTH, SCREEN_HEIGHT};
     menu starting_menu = init_menu(i, callback, menu_items, &SCREEN, &BLACK, &bounds);
