@@ -34,6 +34,7 @@
 #define STARTING_LEVEL 0
 #define DEFAULT_DIFFICULTY 1.0
 #define DIFFICULTY_INCREMENT 0.1
+#define AIM_LINE_LENGTH 60
 
 #define LEVEL_WIDTH 12
 #define MAX_ROWS 10
@@ -85,6 +86,11 @@ typedef struct point {
     int x;
     int y;
 } point;
+
+typedef struct line {
+    point a;
+    point b;
+} line;
 
 typedef struct insets {
     int left;
@@ -172,6 +178,7 @@ typedef struct breaker_game {
     Mix_Music **music_files;
     int level_index;
     int8_t aiming;
+    line *aim_line;
 } breaker_game;
 
 #endif //SDL_GRAPHICS_BREAKER_H

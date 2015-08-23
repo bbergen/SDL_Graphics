@@ -4,6 +4,7 @@
 #include <SDL2/SDL_image.h>
 #include <x86intrin.h>
 #include <sys/stat.h>
+#include <spandsp/arctan2.h>
 #include "list.h"
 #include "util.h"
 #include "menu.h"
@@ -74,11 +75,11 @@ render_brick(void *b) {
 
 internal point
 circle_intersect(int angle, int x, int y, int radius) {
-    double theta = angle * (180 / PI);
+    double theta = angle * PI / 180;
 
     point p = {};
-    p.x = (int) (x + radius * cos(theta));
-    p.y = (int) (y + radius * sin(theta));
+    p.x = (int) (x + (radius * cos(theta)));
+    p.y = (int) (y + (radius * sin(theta)));
 
     return p;
 }
@@ -418,6 +419,16 @@ pause_music(void) {
 }
 
 internal void
+reset_aim_line(line *aim_line) {
+
+    aim_line->a.x = SCREEN_WIDTH >> 1;
+    aim_line->a.y = (int) (SCREEN_HEIGHT * .9f);
+    aim_line->b.x = SCREEN_WIDTH >> 1;
+    aim_line->b.y = aim_line->a.y - AIM_LINE_LENGTH;
+
+}
+
+internal void
 reset_game(breaker_game *game, SDL_Renderer *renderer, int level_index, int8_t new_level) {
 
     int current_score = game->current_score;
@@ -428,6 +439,9 @@ reset_game(breaker_game *game, SDL_Renderer *renderer, int level_index, int8_t n
 
     // reset paddle
     reset_paddle(game->player);
+
+    // reset aim line
+    reset_aim_line(game->aim_line);
 
     // pause ball for aiming
     game->aiming = true;
@@ -637,6 +651,12 @@ render_score_box(SDL_Renderer *renderer,
 }
 
 internal void
+render_aim_line(SDL_Renderer *renderer, line *aim_line) {
+    SDL_SetRenderDrawColor(renderer, BLACK.r, BLACK.g, BLACK.b, BLACK.a);
+    SDL_RenderDrawLine(renderer, aim_line->a.x, aim_line->a.y, aim_line->b.x, aim_line->b.y);
+}
+
+internal void
 render(SDL_Renderer *renderer, breaker_game *game) {
     // clear screen
     SDL_SetRenderDrawColor(renderer,
@@ -645,6 +665,11 @@ render(SDL_Renderer *renderer, breaker_game *game) {
                            game->current_level->bg.b,
                            game->current_level->bg.a);
     SDL_RenderClear(renderer);
+
+    // aim line
+    if (game->aiming) {
+        render_aim_line(renderer, game->aim_line);
+    }
 
     // render game objects
     render_ball(renderer, game->ball);
@@ -938,11 +963,40 @@ update_score_box(score_box *box, point *mouse_loc, int8_t mouse_down) {
 }
 
 internal void
+update_aim_line(line *aim_line, int8_t left_down,  int8_t right_down) {
+
+    persistent int direction = -90;
+
+    direction %= 360;
+
+    if (right_down && direction < -10) {
+        direction++;
+    }
+
+    if (left_down && direction > -170) {
+        direction--;
+    }
+
+    point p = circle_intersect(direction, aim_line->a.x, aim_line->a.y, AIM_LINE_LENGTH);
+
+    aim_line->b = p;
+
+//    float deltaY = aim_line->b.y - aim_line->a.y;
+//    float deltaX = aim_line->b.x - aim_line->a.x;
+//
+//    double angle = atan2(deltaY, deltaX) * (180 / PI);
+//
+//    printf("Angle: %0.2f, Direction: %d\n", angle, direction);
+}
+
+internal void
 update(breaker_game *game) {
     update_score_box(game->score, game->mouse_loc, game->mouse_down);
     if (!game->aiming) {
         update_ball(game);
         update_paddle(game->player, game->key_right_down, game->key_left_down);
+    } else {
+        update_aim_line(game->aim_line, game->key_left_down, game->key_right_down);
     }
 }
 
@@ -1377,6 +1431,8 @@ run(void) {
     Mix_Music *music_tracks[MAX_LEVELS];
     init_level_music(music_tracks);
 
+    line aim_line = {};
+
     breaker_game game = {
             &ball,
             &paddle,
@@ -1393,7 +1449,8 @@ run(void) {
             level_files,
             music_tracks,
             STARTING_LEVEL,
-            true
+            true,
+            &aim_line
     };
 
     // load previous preferences
