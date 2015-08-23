@@ -4,7 +4,6 @@
 #include <SDL2/SDL_image.h>
 #include <x86intrin.h>
 #include <sys/stat.h>
-#include <spandsp/arctan2.h>
 #include "list.h"
 #include "util.h"
 #include "menu.h"
