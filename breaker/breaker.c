@@ -406,8 +406,6 @@ internal void
 reset_ball(breaker_ball *ball) {
     ball->x = SCREEN_WIDTH >> 1;
     ball->y = (SCREEN_HEIGHT * .9f) - ball->radius;
-//    ball->x_dir = random_bool() ? 1 : -1;
-//    ball->y_dir = -1;
 }
 
 internal void
@@ -820,6 +818,7 @@ update_ball(breaker_game *game) {
             reset_ball(game->ball);
             reset_paddle(game->player);
         }
+        return;
     }
 
     // check brick collisions
@@ -1272,8 +1271,7 @@ run(void) {
             SCREEN_WIDTH >> 1,
             SCREEN_HEIGHT >> 1,
             BALL_SIZE,
-            random_bool() ? 1 : -1,
-            1,
+            STARTING_VECTOR,
             true
     };
 
@@ -1448,7 +1446,6 @@ run(void) {
             STARTING_LEVEL,
             true,
             &aim_line,
-            STARTING_VECTOR
     };
 
     // load previous preferences
