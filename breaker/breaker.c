@@ -10,6 +10,24 @@
 #include "breaker.h"
 #include "colors.h"
 
+internal int
+angle_of_reflection(SURFACE primary, SURFACE secondary,  int incoming_angle) {
+    //TODO add secondary surface logic for more complex bounces
+    switch (primary) {
+        case LEFT:
+        case RIGHT:
+            incoming_angle = -90 + (-90 - incoming_angle);
+            incoming_angle %= 360;
+            return incoming_angle;
+        case CEILING:
+        case FLOOR:
+        default:
+            incoming_angle = -180 + (-180 - incoming_angle);
+            incoming_angle %= 360;
+            return incoming_angle;
+    }
+}
+
 internal void
 play_sound_effect(Mix_Chunk *effect) {
     Mix_PlayChannel(-1, effect, 0);
@@ -86,6 +104,7 @@ circle_intersect(int angle, int x, int y, int radius) {
 internal int8_t
 has_brick_ball_collided(void *brick_arg, void *game_arg) {
     breaker_brick *brick = brick_arg;
+    breaker_game *game = game_arg;
     breaker_ball *ball = ((breaker_game*) game_arg)->ball;
 
     if (!brick->visible) {
@@ -111,60 +130,56 @@ has_brick_ball_collided(void *brick_arg, void *game_arg) {
     int end_y;
     point p;
 
-    p = circle_intersect(255, ball_x, ball_y, ball->radius);
+    p = circle_intersect(-225, ball_x, ball_y, ball->radius);
     if (SDL_IntersectRectAndLine(&top_right, &ball_x, &ball_y, &p.x, &p.y)) {
         has_collided = true;
-        ball->x_dir *= -1;
-        ball->y_dir *= -1;
+        ball->vector = angle_of_reflection(FLOOR, RIGHT, ball->vector);
     }
 
     end_x = ball_x;
     end_y = ball_y + ball->radius;
     if (!has_collided && SDL_IntersectRectAndLine(&top, &ball_x, &ball_y, &end_x, &end_y)) {
         has_collided = true;
-        ball->y_dir *= -1;
+        ball->vector = angle_of_reflection(FLOOR, FLOOR, ball->vector);
     }
 
-    p = circle_intersect(315, ball_x, ball_y, ball->radius);
+    p = circle_intersect(-315, ball_x, ball_y, ball->radius);
     if (!has_collided && SDL_IntersectRectAndLine(&top_left, &ball_x, &ball_y, &p.x, &p.y)) {
         has_collided = true;
-        ball->x_dir *= -1;
-        ball->y_dir *= -1;
+        ball->vector = angle_of_reflection(FLOOR, LEFT, ball->vector);
     }
 
     end_x = ball_x + ball->radius;
     end_y = ball_y;
     if (!has_collided && SDL_IntersectRectAndLine(&left, &ball_x, &ball_y, &end_x, &end_y)) {
         has_collided = true;
-        ball->x_dir *= -1;
+        ball->vector = angle_of_reflection(LEFT, LEFT,  ball->vector);
     }
 
     end_x = ball_x - ball->radius;
     end_y = ball_y;
     if (!has_collided && SDL_IntersectRectAndLine(&right, &ball_x, &ball_y, &end_x, &end_y)) {
         has_collided = true;
-        ball->x_dir *= -1;
+        ball->vector = angle_of_reflection(RIGHT, RIGHT,  ball->vector);
     }
 
-    p = circle_intersect(45, ball_x, ball_y, ball->radius);
+    p = circle_intersect(-45, ball_x, ball_y, ball->radius);
     if (!has_collided && SDL_IntersectRectAndLine(&bottom_left, &ball_x, &ball_y, &p.x, &p.y)) {
         has_collided = true;
-        ball->x_dir *= -1;
-        ball->y_dir *= -1;
+        ball->vector = angle_of_reflection(CEILING, LEFT,  ball->vector);
     }
 
-    p = circle_intersect(135, ball_x, ball_y, ball->radius);
+    p = circle_intersect(-135, ball_x, ball_y, ball->radius);
     if (!has_collided && SDL_IntersectRectAndLine(&bottom_right, &ball_x, &ball_y, &p.x, &p.y)) {
         has_collided = true;
-        ball->x_dir *= -1;
-        ball->y_dir *= -1;
+        ball->vector = angle_of_reflection(CEILING, RIGHT,  ball->vector);
     }
 
     end_x = ball_x;
     end_y = ball_y - ball->radius;
     if (!has_collided && SDL_IntersectRectAndLine(&bottom, &ball_x, &ball_y, &end_x, &end_y)) {
         has_collided = true;
-        ball->y_dir *= -1;
+        ball->vector = angle_of_reflection(CEILING, CEILING, ball->vector);
     }
 
     if (has_collided && ball->sound_effects_on) {
@@ -176,7 +191,6 @@ has_brick_ball_collided(void *brick_arg, void *game_arg) {
     }
 
     if (has_collided && brick->type <= 0) {
-        breaker_game *game = game_arg;
         double modifier = game->current_level->difficulty_modifier;
         game->current_score += brick->value * modifier;
         game->current_level->bricks_left--;
@@ -392,8 +406,8 @@ internal void
 reset_ball(breaker_ball *ball) {
     ball->x = SCREEN_WIDTH >> 1;
     ball->y = (SCREEN_HEIGHT * .9f) - ball->radius;
-    ball->x_dir = random_bool() ? 1 : -1;
-    ball->y_dir = -1;
+//    ball->x_dir = random_bool() ? 1 : -1;
+//    ball->y_dir = -1;
 }
 
 internal void
@@ -418,16 +432,6 @@ pause_music(void) {
 }
 
 internal void
-reset_aim_line(line *aim_line) {
-
-    aim_line->a.x = SCREEN_WIDTH >> 1;
-    aim_line->a.y = (int) (SCREEN_HEIGHT * .9f);
-    aim_line->b.x = SCREEN_WIDTH >> 1;
-    aim_line->b.y = aim_line->a.y - AIM_LINE_LENGTH;
-
-}
-
-internal void
 reset_game(breaker_game *game, SDL_Renderer *renderer, int level_index, int8_t new_level) {
 
     int current_score = game->current_score;
@@ -439,8 +443,8 @@ reset_game(breaker_game *game, SDL_Renderer *renderer, int level_index, int8_t n
     // reset paddle
     reset_paddle(game->player);
 
-    // reset aim line
-    reset_aim_line(game->aim_line);
+    // reset vector
+    game->ball->vector = STARTING_VECTOR;
 
     // pause ball for aiming
     game->aiming = true;
@@ -623,7 +627,7 @@ render_score_box(SDL_Renderer *renderer,
 
     //draw outline
     SDL_Rect outline = {
-            SCORE_OFFSET, SCORE_OFFSET, score_box_width, CEILING - 4
+            SCORE_OFFSET, SCORE_OFFSET, score_box_width, GAME_CEILING - 4
     };
     SDL_SetRenderDrawColor(renderer, WHITE.r, WHITE.g, WHITE.b, WHITE.a);
     SDL_RenderFillRect(renderer, &outline);
@@ -631,7 +635,7 @@ render_score_box(SDL_Renderer *renderer,
     SDL_RenderDrawRect(renderer, &outline);
 
     //draw ceiling line
-    SDL_RenderDrawLine(renderer, 0, CEILING, SCREEN_WIDTH, CEILING);
+    SDL_RenderDrawLine(renderer, 0, GAME_CEILING, SCREEN_WIDTH, GAME_CEILING);
 
     //draw music button
     render_component(renderer, box->music_button, !box->music_on);
@@ -709,61 +713,57 @@ check_paddle_collisions(breaker_paddle *paddle, breaker_ball *ball) {
     int8_t has_collided = false;
     point p;
 
-    p = circle_intersect(315, b_x, b_y, radius);
+    p = circle_intersect(-315, b_x, b_y, radius);
     if (SDL_IntersectRectAndLine(&top_left, &b_x, &b_y, &p.x, &p.y)) {
         has_collided = true;
-        ball->y_dir *= -1;
-        ball->x_dir = - 1; //always bounce left
+        ball->vector = angle_of_reflection(FLOOR, LEFT,  ball->vector);
         ball->y = top_left.y - ball->radius;
     }
 
-    p = circle_intersect(270, b_x, b_y, radius);
+    p = circle_intersect(-270, b_x, b_y, radius);
     if (!has_collided && SDL_IntersectRectAndLine(&top, &b_x, &b_y, &p.x, &p.y)) {
         has_collided = true;
-        ball->y_dir *= -1;
+        ball->vector = angle_of_reflection(FLOOR, FLOOR,  ball->vector);
         ball->y = top.y - ball->radius;
     }
 
-    p = circle_intersect(225, b_x, b_y, radius);
+    p = circle_intersect(-225, b_x, b_y, radius);
     if (!has_collided && SDL_IntersectRectAndLine(&top_right, &b_x, &b_y, &p.x, &p.y)) {
         has_collided = true;
-        ball->y_dir *= -1;
-        ball->x_dir = 1; // always bounce right
+        ball->vector = angle_of_reflection(FLOOR, RIGHT,  ball->vector);
         ball->y = top_right.y - ball->radius;
     }
 
-    p = circle_intersect(360, b_x, b_y, radius);
+    p = circle_intersect(-360, b_x, b_y, radius);
     if (!has_collided && SDL_IntersectRectAndLine(&left, &b_x, &b_y, &p.x, &p.y)) {
         has_collided = true;
-        ball->x_dir *= -1;
+        ball->vector = angle_of_reflection(LEFT, LEFT,  ball->vector);
         ball->x = p_x - ball->radius;
     }
 
-    p = circle_intersect(180, b_x, b_y, radius);
+    p = circle_intersect(-180, b_x, b_y, radius);
     if (!has_collided && SDL_IntersectRectAndLine(&right, &b_x, &b_y, &p.x, &p.y)) {
         has_collided = true;
-        ball->x_dir *= -1;
+        ball->vector = angle_of_reflection(RIGHT, RIGHT,  ball->vector);
         ball->x = p_x + p_width + ball->radius;
     }
 
-    p = circle_intersect(45, b_x, b_y, radius);
+    p = circle_intersect(-45, b_x, b_y, radius);
     if (!has_collided && SDL_IntersectRectAndLine(&bottom_left, &b_x, &b_y, &p.x, &p.y)) {
         has_collided = true;
-        ball->y_dir *= -1;
-        ball->x_dir = -1;
+        ball->vector = angle_of_reflection(CEILING, LEFT,  ball->vector);
     }
 
-    p = circle_intersect(90, b_x, b_y, radius);
+    p = circle_intersect(-90, b_x, b_y, radius);
     if (!has_collided && SDL_IntersectRectAndLine(&bottom, &b_x, &b_y, &p.x, &p.y)) {
         has_collided = true;
-        ball->y_dir *= -1;
+        ball->vector = angle_of_reflection(CEILING, CEILING,  ball->vector);
     }
 
-    p = circle_intersect(135, b_x, b_y, radius);
+    p = circle_intersect(-135, b_x, b_y, radius);
     if (!has_collided && SDL_IntersectRectAndLine(&bottom_right, &b_x, &b_y, &p.x, &p.y)) {
         has_collided = true;
-        ball->y_dir *= -1;
-        ball->x_dir = 1;
+        ball->vector = angle_of_reflection(CEILING, RIGHT,  ball->vector);
     }
 
     return has_collided;
@@ -771,15 +771,14 @@ check_paddle_collisions(breaker_paddle *paddle, breaker_ball *ball) {
 
 internal void
 update_ball(breaker_game *game) {
-    double speed_x = BASE_BALL_SPEED * game->current_level->difficulty_modifier;
-    double speed_y = BASE_BALL_SPEED * game->current_level->difficulty_modifier;
+    double delta = BASE_BALL_SPEED * game->current_level->difficulty_modifier;
     breaker_ball *ball = game->ball;
     ball->sound_effects_on = game->score->sound_on;
 
     // check left
     if (ball->x <= ball->radius) {
         ball->x = ball->radius;
-        ball->x_dir *= -1;
+        ball->vector = angle_of_reflection(LEFT, LEFT,  ball->vector);
         if (game->ball->sound_effects_on) {
             play_sound_effect(game->sounds->wall_bounce);
         }
@@ -788,16 +787,16 @@ update_ball(breaker_game *game) {
     // check right
     if (ball->x >= SCREEN_WIDTH - ball->radius) {
         ball->x = SCREEN_WIDTH - ball->radius;
-        ball->x_dir *= -1;
+        ball->vector = angle_of_reflection(RIGHT, RIGHT,  ball->vector);
         if (game->ball->sound_effects_on) {
             play_sound_effect(game->sounds->wall_bounce);
         }
     }
 
     // check top
-    if (ball->y <= ball->radius + CEILING) {
-        ball->y = ball->radius + CEILING;
-        ball->y_dir *= -1;
+    if (ball->y <= ball->radius + GAME_CEILING) {
+        ball->y = ball->radius + GAME_CEILING;
+        ball->vector = angle_of_reflection(CEILING, CEILING, ball->vector);
         if (game->ball->sound_effects_on) {
             play_sound_effect(game->sounds->wall_bounce);
         }
@@ -806,19 +805,20 @@ update_ball(breaker_game *game) {
     // check bottom
     if (ball->y >= SCREEN_HEIGHT - ball->radius) {
         ball->y = SCREEN_HEIGHT - ball->radius;
-        ball->y_dir *= -1;
+        game->lives -= 1;
+        game->aiming = true;
         if (game->ball->sound_effects_on) {
-            game->lives -= 1;
-            game->aiming = true;
             Mix_Chunk *chunk;
             if (game->lives == 0) {
                 chunk = game->sounds->game_over;
             } else {
                 chunk = game->sounds->life_lost;
-                reset_ball(game->ball);
-                reset_paddle(game->player);
             }
             play_sound_effect(chunk);
+        }
+        if (game->lives > 0) {
+            reset_ball(game->ball);
+            reset_paddle(game->player);
         }
     }
 
@@ -834,10 +834,9 @@ update_ball(breaker_game *game) {
         }
     }
 
-
     // update position
-    ball->x += speed_x * ball->x_dir;
-    ball->y += speed_y * ball->y_dir;
+    ball->x += (float) (delta * cos(ball->vector * PI / 180));
+    ball->y += (float) (delta * sin(ball->vector * PI / 180));
 }
 
 internal void
@@ -869,7 +868,7 @@ init_score_box(score_box *box, SDL_Surface **surfaces) {
 
     SDL_Rect button = {
             SCORE_OFFSET << 1,
-            CEILING - (SCORE_OFFSET + BUTTON_SIZE),
+            GAME_CEILING - (SCORE_OFFSET + BUTTON_SIZE),
             BUTTON_SIZE,
             BUTTON_SIZE
     };
@@ -962,30 +961,25 @@ update_score_box(score_box *box, point *mouse_loc, int8_t mouse_down) {
 }
 
 internal void
-update_aim_line(line *aim_line, int8_t left_down,  int8_t right_down) {
+update_aim_line(line *aim_line, int *vector, int8_t left_down,  int8_t right_down) {
 
-    persistent int direction = -90;
+    *vector %= 360;
 
-    direction %= 360;
-
-    if (right_down && direction < -10) {
-        direction++;
+    if (*vector < -155 || *vector > -25) {
+        *vector = STARTING_VECTOR;
     }
 
-    if (left_down && direction > -170) {
-        direction--;
+    if (right_down && *vector < -25) {
+        (*vector)++;
     }
 
-    point p = circle_intersect(direction, aim_line->a.x, aim_line->a.y, AIM_LINE_LENGTH);
+    if (left_down && *vector > -155) {
+        (*vector)--;
+    }
+
+    point p = circle_intersect(*vector, aim_line->a.x, aim_line->a.y, AIM_LINE_LENGTH);
 
     aim_line->b = p;
-
-//    float deltaY = aim_line->b.y - aim_line->a.y;
-//    float deltaX = aim_line->b.x - aim_line->a.x;
-//
-//    double angle = atan2(deltaY, deltaX) * (180 / PI);
-//
-//    printf("Angle: %0.2f, Direction: %d\n", angle, direction);
 }
 
 internal void
@@ -995,7 +989,7 @@ update(breaker_game *game) {
         update_ball(game);
         update_paddle(game->player, game->key_right_down, game->key_left_down);
     } else {
-        update_aim_line(game->aim_line, game->key_left_down, game->key_right_down);
+        update_aim_line(game->aim_line, &game->ball->vector, game->key_left_down, game->key_right_down);
     }
 }
 
@@ -1431,6 +1425,10 @@ run(void) {
     init_level_music(music_tracks);
 
     line aim_line = {};
+    aim_line.a.x = SCREEN_WIDTH >> 1;
+    aim_line.a.y = (int) (SCREEN_HEIGHT * .9f);
+    aim_line.b.x = SCREEN_WIDTH >> 1;
+    aim_line.b.y = (int) (SCREEN_HEIGHT * .9f);
 
     breaker_game game = {
             &ball,
@@ -1449,7 +1447,8 @@ run(void) {
             music_tracks,
             STARTING_LEVEL,
             true,
-            &aim_line
+            &aim_line,
+            STARTING_VECTOR
     };
 
     // load previous preferences

@@ -17,13 +17,13 @@
 #define AUDIO_CHUNK_SIZE 2048
 #define BALL_SIZE 5
 #define BASE_PADDLE_SPEED 7
-#define BASE_BALL_SPEED 5
+#define BASE_BALL_SPEED 7
 #define BASE_BRICK_VALUE 100
 #define PADDLE_HEIGHT 10
 #define PADDLE_WIDTH 75
 #define BRICK_WIDTH SCREEN_WIDTH / 12
 #define BRICK_HEIGHT 15
-#define CEILING 75
+#define GAME_CEILING 75
 #define BUTTON_SIZE 40
 #define SCORE_OFFSET 5
 #define BUTTON_DELAY 100
@@ -35,6 +35,7 @@
 #define DEFAULT_DIFFICULTY 1.0
 #define DIFFICULTY_INCREMENT 0.1
 #define AIM_LINE_LENGTH 60
+#define STARTING_VECTOR -90
 
 #define LEVEL_WIDTH 12
 #define MAX_ROWS 10
@@ -81,6 +82,13 @@ typedef enum BRICK_TYPE {
     UNBREAKABLE,
     SPACE
 } BRICK_TYPE;
+
+typedef enum SURFACE {
+    CEILING,
+    LEFT,
+    RIGHT,
+    FLOOR
+} SURFACE;
 
 typedef struct point {
     int x;
@@ -156,8 +164,7 @@ typedef struct breaker_ball {
     float x;
     float y;
     int radius;
-    int8_t x_dir;
-    int8_t y_dir;
+    int vector;
     int8_t sound_effects_on;
 } breaker_ball;
 
