@@ -101,6 +101,112 @@ circle_intersect(int angle, int x, int y, int radius) {
     return p;
 }
 
+internal double
+distance_squared(int x1, int y1, int x2, int y2) {
+    int delta_x = x2 - x1;
+    int delta_y = y1 - y2;
+    return delta_x * delta_x + delta_y * delta_y;
+}
+
+internal void
+update_ball_direction(breaker_ball *ball, point intersection_point) {
+
+    int ball_x = (int) ball->x;
+    int ball_y = (int) ball->y;
+
+    int mid_x = intersection_point.x;
+    int mid_y = intersection_point.y;
+
+    //TODO this needs a bit of work
+    if (ball_x == mid_x) {
+        if (ball_y == mid_y) {
+            //uh oh
+        }
+        ball->vector = -180 + (-180 - ball->vector);
+        ball->vector %= 360;
+    } else {
+        ball->vector = -90 + (-90 - ball->vector);
+        ball->vector %= 360;
+    }
+}
+
+internal point
+mid_point(SDL_Rect rect) {
+    point p;
+    p.x = rect.x + (rect.w >> 1);
+    p.y = rect.y + (rect.h >> 1);
+    return p;
+}
+
+internal SDL_Rect
+intersect_rectangle(SDL_Rect first, SDL_Rect second) {
+
+    int x1 = first.x;
+    int x2 = first.x + first.w;
+    int x3 = second.x;
+    int x4 = second.x +second.w;
+
+    int y1 = first.y;
+    int y2 = first.y + first.h;
+    int y3 = second.y;
+    int y4 = second.y + second.h;
+
+    int x_left = MAX(x1, x3);
+    int x_right = MIN(x2, x4);
+
+    int y_bottom = MAX(y1, y3);
+    int y_top = MIN(y2, y4);
+
+    if (y_top <= y_bottom || x_right <= x_left) {
+        //error, no intersection
+        SDL_Rect null_rect = {};
+        return null_rect;
+    }
+
+    SDL_Rect rect;
+    rect.x = x_left;
+    rect.y = y_top;
+    rect.w = x_right - x_left;
+    rect.h = y_top - y_bottom;
+
+    return rect;
+}
+
+internal SDL_Rect
+ball_bounds(breaker_ball ball) {
+    SDL_Rect rect;
+    rect.x = (int) (ball.x - ball.radius);
+    rect.y = (int) (ball.y - ball.radius);
+    rect.w = ball.radius << 1;
+    rect.h = ball.radius << 1;
+    return rect;
+}
+
+internal int8_t
+has_ball_rect_collided(breaker_ball *ball, SDL_Rect rect) {
+
+    int closest_x;
+    int closest_y;
+
+    if (ball->x < rect.x) {
+        closest_x = rect.x;
+    } else if (ball->x > rect.x + rect.w) {
+        closest_x = rect.x + rect.w;
+    } else {
+        closest_x = (int) ball->x;
+    }
+
+    if (ball->y < rect.y) {
+        closest_y = rect.y;
+    } else if (ball->y > rect.y + rect.h) {
+        closest_y = rect.y + rect.h;
+    } else {
+        closest_y = (int) ball->y;
+    }
+
+    return distance_squared((int) ball->x, (int) ball->y, closest_x, closest_y) < ball->radius * ball->radius;
+}
+
 internal int8_t
 has_brick_ball_collided(void *brick_arg, void *game_arg) {
     breaker_brick *brick = brick_arg;
@@ -111,75 +217,20 @@ has_brick_ball_collided(void *brick_arg, void *game_arg) {
         return true;
     }
 
-    int8_t has_collided = false;
-    persistent int SIZE = 2;
+    SDL_Rect brick_rect = {
+            brick->x,
+            brick->y,
+            brick->width,
+            brick->height
+    };
 
-    // collision boxes
-    SDL_Rect top_right = { brick->x, brick->y, SIZE, SIZE};
-    SDL_Rect top = {brick->x + SIZE, brick->y, brick->width - SIZE * 2, SIZE};
-    SDL_Rect top_left = {brick->x + brick->width - SIZE, brick->y, SIZE, SIZE};
-    SDL_Rect left = { brick->x, brick->y + SIZE, SIZE, brick->height - SIZE * 2};
-    SDL_Rect right = { brick->x + brick->width - SIZE, brick->y + SIZE, SIZE, brick->height - SIZE * 2};
-    SDL_Rect bottom_left = {brick->x, brick->y + brick->height - SIZE, SIZE, SIZE};
-    SDL_Rect bottom_right = {brick->x + brick->width - SIZE, brick->y + brick->height - SIZE, SIZE, SIZE};
-    SDL_Rect bottom = {brick->x + SIZE, brick->y + brick->height - SIZE, brick->width - SIZE * 2, SIZE};
+    int8_t has_collided = has_ball_rect_collided(ball, brick_rect);
 
-    int ball_x = (int)ball->x;
-    int ball_y = (int)ball->y;
-    int end_x;
-    int end_y;
-    point p;
-
-    p = circle_intersect(-225, ball_x, ball_y, ball->radius);
-    if (SDL_IntersectRectAndLine(&top_right, &ball_x, &ball_y, &p.x, &p.y)) {
-        has_collided = true;
-        ball->vector = angle_of_reflection(FLOOR, RIGHT, ball->vector);
-    }
-
-    end_x = ball_x;
-    end_y = ball_y + ball->radius;
-    if (!has_collided && SDL_IntersectRectAndLine(&top, &ball_x, &ball_y, &end_x, &end_y)) {
-        has_collided = true;
-        ball->vector = angle_of_reflection(FLOOR, FLOOR, ball->vector);
-    }
-
-    p = circle_intersect(-315, ball_x, ball_y, ball->radius);
-    if (!has_collided && SDL_IntersectRectAndLine(&top_left, &ball_x, &ball_y, &p.x, &p.y)) {
-        has_collided = true;
-        ball->vector = angle_of_reflection(FLOOR, LEFT, ball->vector);
-    }
-
-    end_x = ball_x + ball->radius;
-    end_y = ball_y;
-    if (!has_collided && SDL_IntersectRectAndLine(&left, &ball_x, &ball_y, &end_x, &end_y)) {
-        has_collided = true;
-        ball->vector = angle_of_reflection(LEFT, LEFT,  ball->vector);
-    }
-
-    end_x = ball_x - ball->radius;
-    end_y = ball_y;
-    if (!has_collided && SDL_IntersectRectAndLine(&right, &ball_x, &ball_y, &end_x, &end_y)) {
-        has_collided = true;
-        ball->vector = angle_of_reflection(RIGHT, RIGHT,  ball->vector);
-    }
-
-    p = circle_intersect(-45, ball_x, ball_y, ball->radius);
-    if (!has_collided && SDL_IntersectRectAndLine(&bottom_left, &ball_x, &ball_y, &p.x, &p.y)) {
-        has_collided = true;
-        ball->vector = angle_of_reflection(CEILING, LEFT,  ball->vector);
-    }
-
-    p = circle_intersect(-135, ball_x, ball_y, ball->radius);
-    if (!has_collided && SDL_IntersectRectAndLine(&bottom_right, &ball_x, &ball_y, &p.x, &p.y)) {
-        has_collided = true;
-        ball->vector = angle_of_reflection(CEILING, RIGHT,  ball->vector);
-    }
-
-    end_x = ball_x;
-    end_y = ball_y - ball->radius;
-    if (!has_collided && SDL_IntersectRectAndLine(&bottom, &ball_x, &ball_y, &end_x, &end_y)) {
-        has_collided = true;
-        ball->vector = angle_of_reflection(CEILING, CEILING, ball->vector);
+    if (has_collided) {
+        SDL_Rect bounds = ball_bounds(*ball);
+        SDL_Rect intersect_rect = intersect_rectangle(brick_rect, bounds);
+        point mid = mid_point(intersect_rect);
+        update_ball_direction(ball, mid);
     }
 
     if (has_collided && ball->sound_effects_on) {
@@ -1466,7 +1517,7 @@ run(void) {
     uint64_t last_cycle_count = _rdtsc();
 #endif
 
-    const uint64_t update_freq = 1000 / 60;
+    const uint64_t update_freq = 1000 / 240;
     double ticks_passed = 0.0;
 
     //game loop

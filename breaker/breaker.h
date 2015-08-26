@@ -16,8 +16,8 @@
 #define AUDIO_CHANNELS 2
 #define AUDIO_CHUNK_SIZE 2048
 #define BALL_SIZE 5
-#define BASE_PADDLE_SPEED 7
-#define BASE_BALL_SPEED 7
+#define BASE_PADDLE_SPEED 2
+#define BASE_BALL_SPEED 2
 #define BASE_BRICK_VALUE 100
 #define PADDLE_HEIGHT 10
 #define PADDLE_WIDTH 75
@@ -58,7 +58,6 @@
 #define MUSIC_OFF "resources/icons/music_off.png"
 #define SOUND_ON "resources/icons/sound_on.png"
 #define SOUND_OFF "resources/icons/sound_off.png"
-#define SCORE_TEXTURE "resources/textures/score_box.png"
 #define SCORE_FONT "resources/fonts/built_tiling.ttf"
 #define CONFIG_FILE_DIR "/.sdl"
 #define CONFIG_FILE "/breaker.conf"
