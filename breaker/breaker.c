@@ -738,83 +738,20 @@ render(SDL_Renderer *renderer, breaker_game *game) {
 internal int8_t
 check_paddle_collisions(breaker_paddle *paddle, breaker_ball *ball) {
 
-    persistent int CORNER_HEIGHT = 3;
-    persistent int CORNER_WIDTH = 15;
+    SDL_Rect paddle_rect;
+    paddle_rect.x = (int) paddle->x;
+    paddle_rect.y = (int) paddle->y;
+    paddle_rect.w = paddle->width;
+    paddle_rect.h = paddle->height;
 
-    int p_x = (int) paddle->x;
-    int p_y = (int) paddle->y;
-    int p_width = paddle->width;
-    int p_height = paddle->height;
+    int8_t has_collided = has_ball_rect_collided(ball, paddle_rect);
 
-    int b_x = (int) ball->x;
-    int b_y = (int) ball->y;
-    int radius = ball->radius;
-
-    SDL_Rect top_left = {p_x, p_y, CORNER_WIDTH, CORNER_HEIGHT};
-    SDL_Rect top = {p_x + CORNER_WIDTH, p_y, p_width - CORNER_WIDTH * 2, CORNER_HEIGHT};
-    SDL_Rect top_right = {p_x + p_width - CORNER_WIDTH, p_y, CORNER_WIDTH, CORNER_HEIGHT};
-    SDL_Rect left = {p_x, p_y + CORNER_HEIGHT, CORNER_HEIGHT, p_height - CORNER_HEIGHT * 2};
-    SDL_Rect right = {p_x + p_width - CORNER_WIDTH, p_y + CORNER_HEIGHT, CORNER_HEIGHT, p_height - CORNER_HEIGHT * 2};
-    SDL_Rect bottom_left = {p_x, p_y + p_height - CORNER_HEIGHT, CORNER_WIDTH, CORNER_HEIGHT};
-    SDL_Rect bottom = {p_x + CORNER_WIDTH, p_y + p_height - CORNER_HEIGHT, p_width - CORNER_WIDTH * 2, CORNER_HEIGHT};
-    SDL_Rect bottom_right = {p_x + p_width - CORNER_WIDTH, p_y + p_height - CORNER_HEIGHT, CORNER_WIDTH, CORNER_HEIGHT};
-
-    int8_t has_collided = false;
-    point p;
-
-    p = circle_intersect(-315, b_x, b_y, radius);
-    if (SDL_IntersectRectAndLine(&top_left, &b_x, &b_y, &p.x, &p.y)) {
-        has_collided = true;
-        ball->vector = angle_of_reflection(FLOOR, LEFT,  ball->vector);
-        ball->y = top_left.y - ball->radius;
+    if (has_collided) {
+        SDL_Rect bounds = ball_bounds(*ball);
+        SDL_Rect intersect_rect = intersect_rectangle(paddle_rect, bounds);
+        point mid = mid_point(intersect_rect);
+        update_ball_direction(ball, mid);
     }
-
-    p = circle_intersect(-270, b_x, b_y, radius);
-    if (!has_collided && SDL_IntersectRectAndLine(&top, &b_x, &b_y, &p.x, &p.y)) {
-        has_collided = true;
-        ball->vector = angle_of_reflection(FLOOR, FLOOR,  ball->vector);
-        ball->y = top.y - ball->radius;
-    }
-
-    p = circle_intersect(-225, b_x, b_y, radius);
-    if (!has_collided && SDL_IntersectRectAndLine(&top_right, &b_x, &b_y, &p.x, &p.y)) {
-        has_collided = true;
-        ball->vector = angle_of_reflection(FLOOR, RIGHT,  ball->vector);
-        ball->y = top_right.y - ball->radius;
-    }
-
-    p = circle_intersect(-360, b_x, b_y, radius);
-    if (!has_collided && SDL_IntersectRectAndLine(&left, &b_x, &b_y, &p.x, &p.y)) {
-        has_collided = true;
-        ball->vector = angle_of_reflection(LEFT, LEFT,  ball->vector);
-        ball->x = p_x - ball->radius;
-    }
-
-    p = circle_intersect(-180, b_x, b_y, radius);
-    if (!has_collided && SDL_IntersectRectAndLine(&right, &b_x, &b_y, &p.x, &p.y)) {
-        has_collided = true;
-        ball->vector = angle_of_reflection(RIGHT, RIGHT,  ball->vector);
-        ball->x = p_x + p_width + ball->radius;
-    }
-
-    p = circle_intersect(-45, b_x, b_y, radius);
-    if (!has_collided && SDL_IntersectRectAndLine(&bottom_left, &b_x, &b_y, &p.x, &p.y)) {
-        has_collided = true;
-        ball->vector = angle_of_reflection(CEILING, LEFT,  ball->vector);
-    }
-
-    p = circle_intersect(-90, b_x, b_y, radius);
-    if (!has_collided && SDL_IntersectRectAndLine(&bottom, &b_x, &b_y, &p.x, &p.y)) {
-        has_collided = true;
-        ball->vector = angle_of_reflection(CEILING, CEILING,  ball->vector);
-    }
-
-    p = circle_intersect(-135, b_x, b_y, radius);
-    if (!has_collided && SDL_IntersectRectAndLine(&bottom_right, &b_x, &b_y, &p.x, &p.y)) {
-        has_collided = true;
-        ball->vector = angle_of_reflection(CEILING, RIGHT,  ball->vector);
-    }
-
     return has_collided;
 }
 
@@ -1059,18 +996,27 @@ toggle_menu_item(char **menu_item, char *option_one, char *option_two) {
 }
 
 internal int8_t
-new_level_callback(SDL_Renderer *renderer, int menu_index, char **menu_item, void *param) {
-    breaker_game *game = param;
-    switch (menu_index) {
+menu_callback_impl(SDL_Renderer *renderer,
+                   int index,
+                   char **item,
+                   breaker_game *game,
+                   int8_t new_level,
+                   int8_t paused) {
+    if (paused) {
+        if (index-- == 0) {
+            return false;
+        }
+    }
+    switch (index) {
         case 0:
-            reset_game(game, renderer, game->level_index, true);
+            reset_game(game, renderer, game->level_index, new_level);
             return false;
         case 1:
-            toggle_menu_item(menu_item, "Disable Music", "Enable Music");
+            toggle_menu_item(item, "Disable Music", "Enable Music");
             game->score->music_on = !game->score->music_on;
             return true;
         case 2:
-            toggle_menu_item(menu_item, "Disable Sound", "Enable Sound");
+            toggle_menu_item(item, "Disable Sound", "Enable Sound");
             game->score->sound_on = !game->score->sound_on;
             game->ball->sound_effects_on = game->score->sound_on;
             return true;
@@ -1081,58 +1027,21 @@ new_level_callback(SDL_Renderer *renderer, int menu_index, char **menu_item, voi
         default:
             return true;
     }
+}
+
+internal int8_t
+new_level_callback(SDL_Renderer *renderer, int menu_index, char **menu_item, void *param) {
+    return menu_callback_impl(renderer, menu_index, menu_item, param, true, false);
 }
 
 internal int8_t
 starting_menu_callback(SDL_Renderer *renderer, int menu_index, char **menu_item, void *param) {
-    breaker_game *game = param;
-    switch (menu_index) {
-        case 0:
-            reset_game(game, renderer, game->level_index, false);
-            return false;
-        case 1:
-            toggle_menu_item(menu_item, "Disable Music", "Enable Music");
-            game->score->music_on = !game->score->music_on;
-            return true;
-        case 2:
-            toggle_menu_item(menu_item, "Disable Sound", "Enable Sound");
-            game->score->sound_on = !game->score->sound_on;
-            game->ball->sound_effects_on = game->score->sound_on;
-            return true;
-        case 3:
-            save_game_state(game);
-            close();
-            exit(EXIT_SUCCESS);
-        default:
-            return true;
-    }
+    return menu_callback_impl(renderer, menu_index, menu_item, param, false, false);
 }
 
 internal int8_t
 paused_menu_callback(SDL_Renderer *renderer, int menu_index, char **menu_item, void *param) {
-    breaker_game *game = param;
-    switch (menu_index) {
-        case 0:
-            return false;
-        case 1:
-            reset_game(game, renderer, STARTING_LEVEL, false);
-            return false;
-        case 2:
-            toggle_menu_item(menu_item, "Disable Music", "Enable Music");
-            game->score->music_on = !game->score->music_on;
-            return true;
-        case 3:
-            toggle_menu_item(menu_item, "Disable Sound", "Enable Sound");
-            game->score->sound_on = !game->score->sound_on;
-            game->ball->sound_effects_on = game->score->sound_on;
-            return true;
-        case 4:
-            save_game_state(game);
-            close();
-            exit(EXIT_SUCCESS);
-        default:
-            return true;
-    }
+    return menu_callback_impl(renderer, menu_index, menu_item, param, false, true);
 }
 
 internal void
