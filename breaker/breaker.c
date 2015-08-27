@@ -10,24 +10,6 @@
 #include "breaker.h"
 #include "colors.h"
 
-internal int
-angle_of_reflection(SURFACE primary, SURFACE secondary,  int incoming_angle) {
-    //TODO add secondary surface logic for more complex bounces
-    switch (primary) {
-        case LEFT:
-        case RIGHT:
-            incoming_angle = -90 + (-90 - incoming_angle);
-            incoming_angle %= 360;
-            return incoming_angle;
-        case CEILING:
-        case FLOOR:
-        default:
-            incoming_angle = -180 + (-180 - incoming_angle);
-            incoming_angle %= 360;
-            return incoming_angle;
-    }
-}
-
 internal void
 play_sound_effect(Mix_Chunk *effect) {
     Mix_PlayChannel(-1, effect, 0);
@@ -764,7 +746,8 @@ update_ball(breaker_game *game) {
     // check left
     if (ball->x <= ball->radius) {
         ball->x = ball->radius;
-        ball->vector = angle_of_reflection(LEFT, LEFT,  ball->vector);
+        point p = { (int) ball->x - 25, (int) ball->y};
+        update_ball_direction(ball, p);
         if (game->ball->sound_effects_on) {
             play_sound_effect(game->sounds->wall_bounce);
         }
@@ -773,7 +756,8 @@ update_ball(breaker_game *game) {
     // check right
     if (ball->x >= SCREEN_WIDTH - ball->radius) {
         ball->x = SCREEN_WIDTH - ball->radius;
-        ball->vector = angle_of_reflection(RIGHT, RIGHT,  ball->vector);
+        point p = { (int) ball->x + 25, (int) ball->y};
+        update_ball_direction(ball, p);
         if (game->ball->sound_effects_on) {
             play_sound_effect(game->sounds->wall_bounce);
         }
@@ -782,7 +766,8 @@ update_ball(breaker_game *game) {
     // check top
     if (ball->y <= ball->radius + GAME_CEILING) {
         ball->y = ball->radius + GAME_CEILING;
-        ball->vector = angle_of_reflection(CEILING, CEILING, ball->vector);
+        point p = { (int) ball->x, (int) ball->y - 25};
+        update_ball_direction(ball, p);
         if (game->ball->sound_effects_on) {
             play_sound_effect(game->sounds->wall_bounce);
         }
