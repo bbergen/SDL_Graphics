@@ -24,12 +24,12 @@ void update_asteroid(asteroid a);
 /*
  * Draws an asteroid to the screen
  */
-void render_asteroic(SDL_Renderer *renderer, asteroid a);
+void render_asteroid(SDL_Renderer *renderer, asteroid a);
 
 /*
  * Creates an asteroid of the specific type at the specific location
  */
-asteroid generate_asteroid(int x, int y, ASTEROID_TYPE type);
+asteroid allocate_asteroid(int x, int y, ASTEROID_TYPE type);
 
 /*
  * Frees asteroid memory
