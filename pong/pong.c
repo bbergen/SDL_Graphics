@@ -5,6 +5,7 @@
 #include <SDL2/SDL_ttf.h>
 #include <SDL2/SDL_mixer.h>
 #include <stdint-gcc.h>
+#include <util.h>
 #include "pong.h"
 
 internal int8_t
@@ -275,12 +276,6 @@ process_event(SDL_Event *event, game_state *game, uint8_t *running) {
         default:
             break;
     }
-}
-
-internal void
-error(const char*(*error_function)(void)) {
-    fprintf(stderr, "Error: %s\n", error_function());
-    exit(EXIT_FAILURE);
 }
 
 internal void

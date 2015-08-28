@@ -18,8 +18,10 @@ typedef struct keyboard {
 } keyboard;
 
 typedef struct asteroids_game {
-    ship current_ship;
+    int8_t running;
+    SDL_Event *event;
     keyboard *keys;
+    ship current_ship;
 } asteroids_game;
 
 #endif //SDL_GRAPHICS_ASTEROIDS_H
