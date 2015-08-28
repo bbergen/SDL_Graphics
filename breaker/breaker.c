@@ -88,12 +88,37 @@ update_ball_direction(breaker_ball *ball, point intersection_point) {
     int mid_x = intersection_point.x;
     int mid_y = intersection_point.y;
 
-    //TODO eventually this should be better.
-    if (mid_y == ball_y) {
-        ball->vector = -90 + (-90 - ball->vector);
+    if (ball_x < mid_x && ball_y < mid_y) {
+        //up and left
+        ball->vector += 180;
         ball->vector %= 360;
-    } else {
-        ball->vector = -180 + (-180 - ball->vector);
+    }
+
+    if (ball_x > mid_x && ball_y < mid_y) {
+        //up and right
+        ball->vector += 180;
+        ball->vector %= 360;
+    }
+
+    if (ball_x < mid_x && ball_y > mid_y) {
+        //down and left
+        ball->vector += 180;
+        ball->vector %= 360;
+    }
+
+    if (ball_x > mid_x && ball_y > mid_y) {
+        //down and right
+        ball->vector += 180;
+        ball->vector %= 360;
+    }
+
+    if (mid_y == ball_y) {
+        ball->vector = 90 + (90 - ball->vector);
+        ball->vector %= 360;
+    }
+
+    if (mid_x == ball_x) {
+        ball->vector = 180 + (180 - ball->vector);
         ball->vector %= 360;
     }
 }
