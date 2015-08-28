@@ -72,17 +72,6 @@ render_brick(void *b) {
     return true;
 }
 
-internal point
-circle_intersect(int angle, int x, int y, int radius) {
-    double theta = angle * PI / 180;
-
-    point p = {};
-    p.x = (int) (x + (radius * cos(theta)));
-    p.y = (int) (y + (radius * sin(theta)));
-
-    return p;
-}
-
 internal double
 distance_squared(int x1, int y1, int x2, int y2) {
     int delta_x = x2 - x1;
@@ -99,17 +88,15 @@ update_ball_direction(breaker_ball *ball, point intersection_point) {
     int mid_x = intersection_point.x;
     int mid_y = intersection_point.y;
 
-    //TODO this needs a bit of work
-    if (ball_x == mid_x) {
-        if (ball_y == mid_y) {
-            //uh oh
-        }
-        ball->vector = -180 + (-180 - ball->vector);
-        ball->vector %= 360;
-    } else {
+    printf("Incoming Angle: %d\n", ball->vector);
+    if (mid_y == ball_y) {
         ball->vector = -90 + (-90 - ball->vector);
         ball->vector %= 360;
+    } else {
+        ball->vector = -180 + (-180 - ball->vector);
+        ball->vector %= 360;
     }
+    printf("Outgoing Angle: %d\n", ball->vector);
 }
 
 internal point
@@ -949,7 +936,9 @@ update_aim_line(line *aim_line, int *vector, int8_t left_down,  int8_t right_dow
         (*vector)--;
     }
 
-    point p = circle_intersect(*vector, aim_line->a.x, aim_line->a.y, AIM_LINE_LENGTH);
+    point p = {};
+    p.x = aim_line->a.x + (int) (AIM_LINE_LENGTH * cos(*vector * PI / 180));
+    p.y = aim_line->a.y + (int) (AIM_LINE_LENGTH * sin(*vector * PI / 180));
 
     aim_line->b = p;
 }
