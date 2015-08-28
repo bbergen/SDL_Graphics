@@ -17,10 +17,16 @@ typedef struct keyboard {
     int8_t down_down;
 } keyboard;
 
+typedef struct screen {
+    int width;
+    int height;
+} screen;
+
 typedef struct asteroids_game {
     int8_t running;
     SDL_Event *event;
     keyboard *keys;
+    screen *scrn;
     ship current_ship;
 } asteroids_game;
 

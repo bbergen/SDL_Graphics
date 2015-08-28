@@ -26,7 +26,8 @@ set(ASTEROIDS_SOURCE
     asteroids/ship.c
     asteroids/ship.h
     asteroids/explosion.c
-    asteroids/explosion.h)
+    asteroids/explosion.h
+    common/menu.c)
 add_executable(SDL_Ball ${BALL_SOURCE})
 add_executable(SDL_Pong ${PONG_SOURCE})
 add_executable(SDL_Breaker ${BREAKER_SOURCE})

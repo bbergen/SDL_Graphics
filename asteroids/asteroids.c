@@ -11,8 +11,14 @@
 #include <SDL2/SDL_image.h>
 #include <SDL2/SDL_mixer.h>
 #include <colors.h>
+#include <menu.h>
 #include "asteroids.h"
 
+
+internal int8_t
+asteroids_menu_callback(SDL_Renderer *renderer, int index, char **menu_item, void *param) {
+    return true;
+}
 
 internal void
 update(asteroids_game *game) {
@@ -41,11 +47,6 @@ init_keys(void) {
     return k;
 }
 
-internal void
-free_keys(keyboard *keys) {
-    free(keys);
-}
-
 internal asteroids_game*
 init_game(void) {
     asteroids_game *game = malloc(sizeof(asteroids_game));
@@ -53,13 +54,15 @@ init_game(void) {
     game->keys = init_keys();
     game->running = true;
     game->event = malloc(sizeof(SDL_Event));
+    game->scrn = malloc(sizeof(screen));
     return game;
 }
 
 internal void
 free_game(asteroids_game *game) {
     free_ship(game->current_ship);
-    free_keys(game->keys);
+    free(game->keys);
+    free(game->scrn);
     free(game->event);
     free(game);
 }
@@ -101,12 +104,32 @@ run(asteroids_game *game) {
 
     //TODO change to a user preference later on
     SDL_SetWindowFullscreen(window, SDL_WINDOW_FULLSCREEN_DESKTOP);
+    SDL_GetWindowSize(window, &game->scrn->width, &game->scrn->height);
 
     SDL_Renderer *renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
 
     if (!renderer) {
         error(SDL_GetError);
     }
+
+    char *menu_items[MENU_ITEM_SIZE];
+    menu_items[0] = "New Game";
+    menu_items[1] = "Options";
+    menu_items[2] = "About Asteroids";
+    menu_items[3] = "Quit";
+
+    SDL_Rect menu_rect = {};
+    menu_rect.x = 0;
+    menu_rect.y = 0;
+    menu_rect.w = game->scrn->width;
+    menu_rect.h = game->scrn->height;
+
+    menu m = init_menu(4, asteroids_menu_callback, menu_items, &BLACK, &BLUE, &menu_rect);
+
+    if (display_menu(renderer, m, "resources/fonts/built_tiling.ttf", "Asteroids!", NULL) == QUIT_FROM_MENU) {
+        exit(EXIT_SUCCESS);
+    }
+    destroy_menu(m);
 
     //game loop
     while (game->running) {
