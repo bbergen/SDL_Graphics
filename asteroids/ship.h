@@ -40,7 +40,7 @@ void render_bullet(SDL_Renderer *renderer, bullet b);
 /*
  * Allocates memory for a ship
  */
-ship* allocate_ship(int x, int y);
+ship allocate_ship(int x, int y);
 
 /*
  * Frees memory associated with a ship
@@ -50,7 +50,7 @@ void free_ship(ship s);
 /*
  * Allocates a bullet a the specific location
  */
-bullet* allocate_bullet(int x, int y, int vector);
+bullet allocate_bullet(int x, int y, int vector);
 
 /*
  * Frees memory associated with a bullet
