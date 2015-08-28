@@ -88,7 +88,7 @@ update_ball_direction(breaker_ball *ball, point intersection_point) {
     int mid_x = intersection_point.x;
     int mid_y = intersection_point.y;
 
-    printf("Incoming Angle: %d\n", ball->vector);
+    //TODO eventually this should be better.
     if (mid_y == ball_y) {
         ball->vector = -90 + (-90 - ball->vector);
         ball->vector %= 360;
@@ -96,7 +96,6 @@ update_ball_direction(breaker_ball *ball, point intersection_point) {
         ball->vector = -180 + (-180 - ball->vector);
         ball->vector %= 360;
     }
-    printf("Outgoing Angle: %d\n", ball->vector);
 }
 
 internal point
@@ -922,17 +921,17 @@ update_score_box(score_box *box, point *mouse_loc, int8_t mouse_down) {
 internal void
 update_aim_line(line *aim_line, int *vector, int8_t left_down,  int8_t right_down) {
 
-    *vector %= 360;
+    *vector = (*vector + 360) % 360;
 
-    if (*vector < -155 || *vector > -25) {
+    if (*vector > 350 || *vector < 190) {
         *vector = STARTING_VECTOR;
     }
 
-    if (right_down && *vector < -25) {
+    if (right_down && *vector < 330) {
         (*vector)++;
     }
 
-    if (left_down && *vector > -155) {
+    if (left_down && *vector > 210) {
         (*vector)--;
     }
 
