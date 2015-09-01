@@ -6,21 +6,10 @@
 #define SDL_GRAPHICS_ASTEROIDS_H
 
 #include "ship.h"
+#include "asteroid_types.h"
 
 #define SCREEN_WIDTH 1360
 #define SCREEN_HEIGHT 768
-
-typedef struct keyboard {
-    int8_t left_down;
-    int8_t right_down;
-    int8_t up_down;
-    int8_t down_down;
-} keyboard;
-
-typedef struct screen {
-    int width;
-    int height;
-} screen;
 
 typedef struct asteroids_game {
     int8_t running;

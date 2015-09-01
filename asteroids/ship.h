@@ -6,6 +6,7 @@
 #define SDL_GRAPHICS_SHIP_H
 
 #include <SDL2/SDL_render.h>
+#include "asteroid_types.h"
 
 /*
  * Hidden implementation
@@ -20,7 +21,7 @@ typedef void* ship;
 /*
  * Updates the state and location of the player's ship on the screen
  */
-void update_ship(ship s);
+void update_ship(ship s, keyboard keys, screen scrn);
 
 /*
  * Updates the state and location of a single bullet on the screen

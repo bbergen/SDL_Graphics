@@ -17,12 +17,13 @@
 
 internal int8_t
 asteroids_menu_callback(SDL_Renderer *renderer, int index, char **menu_item, void *param) {
-    return true;
+    //TODO actually implement this function
+    return false;
 }
 
 internal void
 update(asteroids_game *game) {
-    //TODO update game objects
+    update_ship(game->current_ship, *game->keys, *game->scrn);
 }
 
 internal void
@@ -32,6 +33,7 @@ render(SDL_Renderer *renderer, asteroids_game *game) {
     SDL_RenderClear(renderer);
 
     //TODO do drawing here
+    render_ship(renderer, game->current_ship);
 
     // present renderer
     SDL_RenderPresent(renderer);
@@ -50,7 +52,6 @@ init_keys(void) {
 internal asteroids_game*
 init_game(void) {
     asteroids_game *game = malloc(sizeof(asteroids_game));
-    game->current_ship = allocate_ship(SCREEN_WIDTH >> 1, SCREEN_HEIGHT >> 1);
     game->keys = init_keys();
     game->running = true;
     game->event = malloc(sizeof(SDL_Event));
@@ -77,6 +78,36 @@ process_event(asteroids_game *game) {
             switch (game->event->key.keysym.sym) {
                 case SDLK_ESCAPE:
                     game->running = false;
+                    break;
+                case SDLK_UP:
+                    game->keys->up_down = true;
+                    break;
+                case SDLK_DOWN:
+                    game->keys->down_down = true;
+                    break;
+                case SDLK_LEFT:
+                    game->keys->left_down = true;
+                    break;
+                case SDLK_RIGHT:
+                    game->keys->right_down = true;
+                    break;
+                default:
+                    break;
+            }
+            break;
+        case SDL_KEYUP:
+            switch (game->event->key.keysym.sym) {
+                case SDLK_UP:
+                    game->keys->up_down = false;
+                    break;
+                case SDLK_DOWN:
+                    game->keys->down_down = false;
+                    break;
+                case SDLK_LEFT:
+                    game->keys->left_down = false;
+                    break;
+                case SDLK_RIGHT:
+                    game->keys->right_down = false;
                     break;
                 default:
                     break;
@@ -130,6 +161,9 @@ run(asteroids_game *game) {
         exit(EXIT_SUCCESS);
     }
     destroy_menu(m);
+
+    // initialize game objects
+    game->current_ship = allocate_ship(game->scrn->width >> 1, game->scrn->height >> 1);
 
     //game loop
     while (game->running) {

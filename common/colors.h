@@ -5,6 +5,7 @@
 #ifndef SDL_GRAPHICS_COLORS_H
 #define SDL_GRAPHICS_COLORS_H
 
+#include <SDL2/SDL.h>
 #include "common.h"
 
 global const SDL_Color WHITE = {0xFF, 0xFF, 0xFF, 0x00};

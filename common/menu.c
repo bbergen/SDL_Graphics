@@ -192,6 +192,7 @@ display_menu(SDL_Renderer *renderer, menu m, char *font_file, char *title, void 
     mnu->title_font = TTF_OpenFont(font_file, 100);
     mnu->arg = callback_arg;
     mnu->selected_index = 0;
+    mnu->return_status = 1;
     mnu->menu_change = Mix_LoadWAV(MENU_CHANGE);
     mnu->menu_select = Mix_LoadWAV(MENU_SELECT);
 
