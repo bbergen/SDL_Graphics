@@ -67,6 +67,7 @@ init_menu(int item_count,
     *m->bg = *bg;
     *m->fg = *fg;
     *m->bounds = *bounds;
+    m->title_font = NULL;
 
     return m;
 }
@@ -172,7 +173,7 @@ process_menu_event(_menu *m, SDL_Event *event) {
 }
 
 int8_t
-display_menu(SDL_Renderer *renderer, menu m, char *font_file, char *title, void *callback_arg) {
+display_menu(SDL_Renderer *renderer, menu m, const char *font_file, const char *title, void *callback_arg) {
 
     if (!SDL_WasInit(SDL_INIT_AUDIO)) {
         SDL_Init(SDL_INIT_AUDIO);
@@ -189,7 +190,9 @@ display_menu(SDL_Renderer *renderer, menu m, char *font_file, char *title, void 
     mnu->title = title;
     mnu->font = TTF_OpenFont(font_file, 50);
     mnu->selected_font = TTF_OpenFont(font_file, 75);
-    mnu->title_font = TTF_OpenFont(font_file, 100);
+    if (!mnu->title_font) {
+        mnu->title_font = TTF_OpenFont(font_file, 100);
+    }
     mnu->arg = callback_arg;
     mnu->selected_index = 0;
     mnu->return_status = 1;
@@ -225,4 +228,14 @@ destroy_menu(menu m) {
     free(menu_to_free->fg);
     free(menu_to_free->bounds);
     free(menu_to_free);
+}
+
+void
+init_title_font(menu m, const char* font_file) {
+    if (!m || !font_file) {
+        return;
+    }
+
+    _menu *mnu = m;
+    mnu->title_font = TTF_OpenFont(font_file, 100);
 }

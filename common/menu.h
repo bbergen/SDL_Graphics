@@ -51,11 +51,18 @@ menu init_menu(int, callback_function, char**, SDL_Color*, SDL_Color*, SDL_Rect*
  *
  * return: QUIT_FROM_MENU if the application should close, NULL otherwise
  */
-int8_t display_menu(SDL_Renderer*, menu, char*, char*, void*);
+int8_t display_menu(SDL_Renderer*, menu, const char*, const char*, void*);
 
 /*
  * Free the memory associate with the passed menu
  */
 void destroy_menu(menu);
+
+/*
+ * Sets a separate font for use if the title has been set
+ * arg 1: menu created from init_menu
+ * arg 2: font file path for the menu title
+ */
+void init_title_font(menu, const char*);
 
 #endif //SDL_GRAPHICS_MENU_H

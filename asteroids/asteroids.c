@@ -16,9 +16,76 @@
 
 
 internal int8_t
+options_menu_callback(SDL_Renderer *renderer, int index, char **menu_item, void *param) {
+    //TODO implement options, such as sound, music and resolution
+    return index != 3;
+}
+
+internal void
+display_options_menu(SDL_Renderer *renderer, asteroids_game *game) {
+    //TODO implement options, such as sound, music and resolution
+    char *menu_items[MENU_ITEM_SIZE];
+    menu_items[0] = "Menu Options 1";
+    menu_items[1] = "Menu Options 2";
+    menu_items[2] = "Menu Options 3";
+    menu_items[3] = "Return";
+
+    SDL_Rect menu_rect = {};
+    menu_rect.x = 0;
+    menu_rect.y = 0;
+    menu_rect.w = game->scrn->width;
+    menu_rect.h = game->scrn->height;
+
+    menu m = init_menu(4, options_menu_callback, menu_items, &BLACK, &BLUE, &menu_rect);
+    init_title_font(m, ASTEROIDS_TITLE_FONT);
+
+    if (display_menu(renderer, m, ASTEROIDS_MENU_FONT, "Options", game) == QUIT_FROM_MENU) {
+        exit(EXIT_SUCCESS);
+    }
+    destroy_menu(m);
+}
+
+internal int8_t
 asteroids_menu_callback(SDL_Renderer *renderer, int index, char **menu_item, void *param) {
-    //TODO actually implement this function
-    return false;
+    asteroids_game *game = param;
+    switch (index) {
+        case 0:
+            return false;
+        case 1:
+            display_options_menu(renderer, game);
+            return true;
+        case 2:
+            return true;
+        case 3:
+            shutdown();
+            free_game(game);
+            exit(EXIT_SUCCESS);
+        default:
+            return true;
+    }
+}
+
+internal void
+display_starting_menu(SDL_Renderer *renderer, asteroids_game *game) {
+    char *menu_items[MENU_ITEM_SIZE];
+    menu_items[0] = "New Game";
+    menu_items[1] = "Options";
+    menu_items[2] = "About Asteroids";
+    menu_items[3] = "Quit";
+
+    SDL_Rect menu_rect = {};
+    menu_rect.x = 0;
+    menu_rect.y = 0;
+    menu_rect.w = game->scrn->width;
+    menu_rect.h = game->scrn->height;
+
+    menu m = init_menu(4, asteroids_menu_callback, menu_items, &BLACK, &BLUE, &menu_rect);
+    init_title_font(m, ASTEROIDS_TITLE_FONT);
+
+    if (display_menu(renderer, m, ASTEROIDS_MENU_FONT, "Asteroids", game) == QUIT_FROM_MENU) {
+        exit(EXIT_SUCCESS);
+    }
+    destroy_menu(m);
 }
 
 internal void
@@ -143,24 +210,7 @@ run(asteroids_game *game) {
         error(SDL_GetError);
     }
 
-    char *menu_items[MENU_ITEM_SIZE];
-    menu_items[0] = "New Game";
-    menu_items[1] = "Options";
-    menu_items[2] = "About Asteroids";
-    menu_items[3] = "Quit";
-
-    SDL_Rect menu_rect = {};
-    menu_rect.x = 0;
-    menu_rect.y = 0;
-    menu_rect.w = game->scrn->width;
-    menu_rect.h = game->scrn->height;
-
-    menu m = init_menu(4, asteroids_menu_callback, menu_items, &BLACK, &BLUE, &menu_rect);
-
-    if (display_menu(renderer, m, "resources/fonts/built_tiling.ttf", "Asteroids!", NULL) == QUIT_FROM_MENU) {
-        exit(EXIT_SUCCESS);
-    }
-    destroy_menu(m);
+    display_starting_menu(renderer, game);
 
     // initialize game objects
     game->current_ship = allocate_ship(game->scrn->width >> 1, game->scrn->height >> 1);

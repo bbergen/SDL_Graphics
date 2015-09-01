@@ -8,9 +8,17 @@
 #include "ship.h"
 #include "asteroid_types.h"
 
-#define SCREEN_WIDTH 1360
-#define SCREEN_HEIGHT 768
+/*
+ *  Global Constants
+ */
+global const int SCREEN_WIDTH = 1360;
+global const int SCREEN_HEIGHT = 768;
+global const char* ASTEROIDS_TITLE_FONT = "resources/fonts/over_there.ttf";
+global const char* ASTEROIDS_MENU_FONT = "resources/fonts/built_tiling.ttf";
 
+/*
+ *  Maintains the current state of the game
+ */
 typedef struct asteroids_game {
     int8_t running;
     SDL_Event *event;
@@ -18,5 +26,12 @@ typedef struct asteroids_game {
     screen *scrn;
     ship current_ship;
 } asteroids_game;
+
+
+/*
+ *  Function ProtoTypes
+ */
+internal void shutdown(void);
+internal void free_game(asteroids_game*);
 
 #endif //SDL_GRAPHICS_ASTEROIDS_H

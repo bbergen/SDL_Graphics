@@ -22,13 +22,15 @@ ship
 allocate_ship(int x, int y) {
     _ship *s = malloc(sizeof(_ship));
     s->x = x;
-    s->x = y;
+    s->y = y;
     return s;
 }
 
 void
 free_ship(ship s) {
-    free(s);
+    if (s) {
+        free(s);
+    }
 }
 
 void
@@ -70,5 +72,4 @@ render_ship(SDL_Renderer *renderer, ship s) {
     _ship *this = s;
     SDL_SetRenderDrawColor(renderer, WHITE.r, WHITE.g, WHITE.b, WHITE.a);
     SDL_RenderDrawPoint(renderer, this->x, this->y);
-
 }
