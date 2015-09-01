@@ -6,7 +6,8 @@
 #include <colors.h>
 #include "ship.h"
 
-internal const int SHIP_SPEED = 1;
+global const int SHIP_SPEED = 1;
+global const int SHIP_POINTS = 5;
 
 typedef struct _ship {
     int x;
@@ -71,5 +72,24 @@ void
 render_ship(SDL_Renderer *renderer, ship s) {
     _ship *this = s;
     SDL_SetRenderDrawColor(renderer, WHITE.r, WHITE.g, WHITE.b, WHITE.a);
-    SDL_RenderDrawPoint(renderer, this->x, this->y);
+
+    int x_vertices[SHIP_POINTS];
+    int y_vertices[SHIP_POINTS];
+
+    x_vertices[0] = this->x - 7;
+    x_vertices[1] = this->x;
+    x_vertices[2] = this->x + 7;
+    x_vertices[3] = this->x + 5;
+    x_vertices[4] = this->x - 5;
+
+    y_vertices[0] = this->y + 12;
+    y_vertices[1] = this->y - 10;
+    y_vertices[2] = this->y + 12;
+    y_vertices[3] = this->y + 8;
+    y_vertices[4] = this->y + 8;
+
+    int i;
+    for (i = 0; i < SHIP_POINTS; i++) {
+        SDL_RenderDrawLine(renderer, x_vertices[i], y_vertices[i], x_vertices[(i + 1) % SHIP_POINTS], y_vertices[(i + 1) % SHIP_POINTS]);
+    }
 }
