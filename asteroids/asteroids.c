@@ -18,17 +18,18 @@
 internal int8_t
 options_menu_callback(SDL_Renderer *renderer, int index, char **menu_item, void *param) {
     //TODO implement options, such as sound, music and resolution
-    return index != 3;
+    return index != 3 && index != 4;
 }
 
 internal void
 display_options_menu(SDL_Renderer *renderer, asteroids_game *game) {
     //TODO implement options, such as sound, music and resolution
     char *menu_items[MENU_ITEM_SIZE];
-    menu_items[0] = "Menu Options 1";
-    menu_items[1] = "Menu Options 2";
-    menu_items[2] = "Menu Options 3";
-    menu_items[3] = "Return";
+    menu_items[0] = "Resolution - ???? x ????";
+    menu_items[1] = "Sound On";
+    menu_items[2] = "Music On";
+    menu_items[3] = "Save";
+    menu_items[4] = "Return";
 
     SDL_Rect menu_rect = {};
     menu_rect.x = 0;
@@ -36,7 +37,7 @@ display_options_menu(SDL_Renderer *renderer, asteroids_game *game) {
     menu_rect.w = game->scrn->width;
     menu_rect.h = game->scrn->height;
 
-    menu m = init_menu(4, options_menu_callback, menu_items, &BLACK, &BLUE, &menu_rect);
+    menu m = init_menu(5, options_menu_callback, menu_items, &BLACK, &BLUE, &menu_rect);
     init_title_font(m, ASTEROIDS_TITLE_FONT);
 
     if (display_menu(renderer, m, ASTEROIDS_MENU_FONT, "Options", game) == QUIT_FROM_MENU) {
@@ -215,12 +216,26 @@ run(asteroids_game *game) {
     // initialize game objects
     game->current_ship = allocate_ship(game->scrn->width >> 1, game->scrn->height >> 1);
 
+    uint32_t then;
+    uint32_t now = SDL_GetTicks();
+    const uint64_t update_freq = 1000 / 60;
+    double ticks_passed = 0.0;
+
     //game loop
     while (game->running) {
+        then = now;
+        now = SDL_GetTicks();
+        ticks_passed += now - then;
+
         while(SDL_PollEvent(game->event) != 0) {
             process_event(game);
         }
-        update(game);
+
+        if (ticks_passed >= update_freq) {
+            update(game);
+            ticks_passed = 0.0;
+        }
+
         render(renderer, game);
     }
 }

@@ -27,7 +27,8 @@ set(ASTEROIDS_SOURCE
     asteroids/ship.h
     asteroids/explosion.c
     asteroids/explosion.h
-    common/menu.c asteroids/asteroid_types.h)
+    common/menu.c
+    asteroids/asteroid_types.h)
 add_executable(SDL_Ball ${BALL_SOURCE})
 add_executable(SDL_Pong ${PONG_SOURCE})
 add_executable(SDL_Breaker ${BREAKER_SOURCE})
@@ -42,4 +43,4 @@ include_directories(SDL_Graphics ${SDL2_INCLUDE_DIR})
 target_link_libraries(SDL_Ball ${SDL2_LIBRARIES})
 target_link_libraries(SDL_Pong ${SDL2_LIBRARIES} SDL2_ttf SDL2_mixer)
 target_link_libraries(SDL_Breaker ${SDL2_LIBRARIES} m SDL2_ttf SDL2_mixer SDL2_image)
-target_link_libraries(SDL_Asteroids ${SDL2_LIBRARIES} SDL2_ttf SDL2_mixer SDL2_image)
+target_link_libraries(SDL_Asteroids ${SDL2_LIBRARIES} m SDL2_ttf SDL2_mixer SDL2_image)

@@ -19,4 +19,9 @@ typedef struct screen {
     int height;
 } screen;
 
+typedef struct point {
+    int x;
+    int y;
+} point;
+
 #endif //SDL_GRAPHICS_ASTEROID_TYPES_H
