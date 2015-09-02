@@ -148,8 +148,8 @@ update_ship(ship s, keyboard keys, screen scrn) {
     this->x += this->x_vector * .5;
     this->y -= this->y_vector * .5;
 
-    this->x_delta *= .98;
-    this->y_delta *= .98;
+    this->x_delta *= .995;
+    this->y_delta *= .995;
 
     this->thrusting = keys.up_down;
     this->flicker++;
@@ -170,6 +170,7 @@ render_ship(SDL_Renderer *renderer, ship s) {
     }
 
     if (this->thrusting && this->flicker % 5 == 0) {
+        SDL_SetRenderDrawColor(renderer, DARK_ORANGE.r, DARK_ORANGE.g, DARK_ORANGE.b, DARK_ORANGE.a);
         for (i = 0; i < ENGINE_POINTS; i++) {
             point p = this->engine_vertices[i];
             point next = this->engine_vertices[(i + 1) % ENGINE_POINTS];
