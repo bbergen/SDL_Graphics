@@ -66,14 +66,14 @@ update_ship(ship s, keyboard keys, screen scrn) {
 
     _ship *this = s;
 
-    if (keys.right_down) {
+    if (keys.left_down) {
         this->dir -= 0.1;
         if (this->dir < 0.0) {
             this->dir = RADIANS;
         }
     }
 
-    if (keys.left_down) {
+    if (keys.right_down) {
         this->dir += 0.1;
         if (this->dir > RADIANS) {
             this->dir = 0.0;
@@ -90,7 +90,7 @@ update_ship(ship s, keyboard keys, screen scrn) {
     }
 
     this->x += this->x_vector * .5;
-    this->y += this->y_vector * .5;
+    this->y -= this->y_vector * .5;
 
     this->x_delta *= .98;
     this->y_delta *= .98;
