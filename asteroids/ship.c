@@ -6,7 +6,8 @@
 #include <colors.h>
 #include "ship.h"
 
-global const int SHIP_POINTS = 5;
+#define SHIP_POINTS 5
+
 global const double RADIANS = PI * 2;
 global const double ACCELERATION_FACTOR = 0.25;
 
@@ -18,6 +19,7 @@ typedef struct _ship {
     double x_delta;
     double y_delta;
     double dir;
+    point *vertices;
 } _ship;
 
 typedef struct _bullet {
@@ -28,6 +30,7 @@ typedef struct _bullet {
 ship
 allocate_ship(int x, int y) {
     _ship *s = malloc(sizeof(_ship));
+    s->vertices = malloc(sizeof(point) * SHIP_POINTS);
     s->x = x;
     s->y = y;
     s->x_vector = 0.0;
@@ -41,7 +44,9 @@ allocate_ship(int x, int y) {
 void
 free_ship(ship s) {
     if (s) {
-        free(s);
+        _ship *this = s;
+        free(this->vertices);
+        free(this);
     }
 }
 
@@ -58,6 +63,34 @@ keep_in_bounds(_ship *this, int width, int height) {
     }
     if (this->y < 0) {
         this->y = height;
+    }
+}
+
+internal void
+update_ship_impl(_ship *this, screen scrn) {
+
+    point p0 = {this->x - (scrn.height / 109), this->y + (scrn.height / 64)};
+    this->vertices[0] = p0;
+    point p1 = {this->x, this->y - (scrn.height / 77)};
+    this->vertices[1] = p1;
+    point p2 = {this->x + (scrn.height / 109), this->y + (scrn.height / 64)};
+    this->vertices[2] = p2;
+    point p3 = {this->x + (scrn.height / 154), this->y + (scrn.height / 96)};
+    this->vertices[3] = p3;
+    point p4 = {this->x - (scrn.height / 154), this->y + (scrn.height / 96)};
+    this->vertices[4] = p4;
+
+    int centroid_x = (p0.x + p1.x + p2.x) / 3;
+    int centroid_y = (p0.y + p1.y + p2.y) / 3;
+    double cosine = cos(this->dir);
+    double sine = sin(this->dir);
+
+    int i;
+    for (i = 0; i < SHIP_POINTS; i++) {
+        int distance_x = this->vertices[i].x - centroid_x;
+        int distance_y = this->vertices[i].y - centroid_y;
+        this->vertices[i].x = (int) (cosine * distance_x - sine * distance_y + centroid_x);
+        this->vertices[i].y = (int) (sine * distance_x + cosine * distance_y + centroid_y);
     }
 }
 
@@ -96,6 +129,7 @@ update_ship(ship s, keyboard keys, screen scrn) {
     this->y_delta *= .98;
 
     keep_in_bounds(this, scrn.width, scrn.height);
+    update_ship_impl(this, scrn);
 }
 
 void
@@ -103,34 +137,10 @@ render_ship(SDL_Renderer *renderer, ship s) {
     _ship *this = s;
     SDL_SetRenderDrawColor(renderer, WHITE.r, WHITE.g, WHITE.b, WHITE.a);
 
-    //TODO eventually lets move this math stuff to update to avoid needless calls to cos/sin
-    point points[SHIP_POINTS];
-
-    point p0 = {this->x - 7, this->y + 12};
-    points[0] = p0;
-    point p1 = {this->x, this->y - 10};
-    points[1] = p1;
-    point p2 = {this->x + 7, this->y + 12};
-    points[2] = p2;
-    point p3 = {this->x + 5, this->y + 8};
-    points[3] = p3;
-    point p4 = {this->x - 5, this->y + 8};
-    points[4] = p4;
-
-    int centroid_x = (p0.x + p1.x + p2.x) / 3;
-    int centroid_y = (p0.y + p1.y + p2.y) / 3;
-    double cosine = cos(this->dir);
-    double sine = sin(this->dir);
-
     int i;
-    for (i = 0; i < SHIP_POINTS; i++) {
-        int distance_x = points[i].x - centroid_x;
-        int distance_y = points[i].y - centroid_y;
-        points[i].x = (int) (cosine * distance_x - sine * distance_y + centroid_x);
-        points[i].y = (int) (sine * distance_x + cosine * distance_y + centroid_y);
-    }
-
-    for (i = 0; i < SHIP_POINTS; i++) {
-        SDL_RenderDrawLine(renderer, points[i].x, points[i].y, points[(i + 1) % SHIP_POINTS].x, points[(i + 1) % SHIP_POINTS].y);
+    for (i = 0; i <SHIP_POINTS; i++) {
+        point p = this->vertices[i];
+        point next = this->vertices[(i + 1) % SHIP_POINTS];
+        SDL_RenderDrawLine(renderer, p.x, p.y, next.x, next.y);
     }
 }
