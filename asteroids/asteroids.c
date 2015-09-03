@@ -15,6 +15,23 @@
 #include "asteroids.h"
 
 
+internal int
+play_sound_effect(int channel, Mix_Chunk *chunk, int loops) {
+    return Mix_PlayChannel(channel, chunk, loops);
+}
+
+internal void
+update_sounds(asteroids_game *game) {
+    persistent int thrust_channel = -1;
+    if (ship_thrusting(game->current_ship) && !Mix_Playing(thrust_channel)) {
+        Mix_Chunk *chunk = *((Mix_Chunk**) get(game->sounds, SOUND_SHIP_THRUSTER));
+        thrust_channel = play_sound_effect(thrust_channel, chunk, -1);
+    } else if (!ship_thrusting(game->current_ship) && thrust_channel != -1 && Mix_Playing(thrust_channel)) {
+        Mix_HaltChannel(thrust_channel);
+        thrust_channel = -1;
+    }
+}
+
 internal int8_t
 options_menu_callback(SDL_Renderer *renderer, int index, char **menu_item, void *param) {
     //TODO implement options, such as sound, music and resolution
@@ -38,9 +55,9 @@ display_options_menu(SDL_Renderer *renderer, asteroids_game *game) {
     menu_rect.h = game->scrn->height;
 
     menu m = init_menu(5, options_menu_callback, menu_items, &BLACK, &BLUE, &menu_rect);
-    init_title_font(m, ASTEROIDS_TITLE_FONT);
+    init_title_font(m, FONT_ASTEROIDS_TITLE);
 
-    if (display_menu(renderer, m, ASTEROIDS_MENU_FONT, "Options", game) == QUIT_FROM_MENU) {
+    if (display_menu(renderer, m, FONT_ASTEROIDS_MENU, "Options", game) == QUIT_FROM_MENU) {
         exit(EXIT_SUCCESS);
     }
     destroy_menu(m);
@@ -81,9 +98,9 @@ display_starting_menu(SDL_Renderer *renderer, asteroids_game *game) {
     menu_rect.h = game->scrn->height;
 
     menu m = init_menu(4, asteroids_menu_callback, menu_items, &BLACK, &BLUE, &menu_rect);
-    init_title_font(m, ASTEROIDS_TITLE_FONT);
+    init_title_font(m, FONT_ASTEROIDS_TITLE);
 
-    if (display_menu(renderer, m, ASTEROIDS_MENU_FONT, "Asteroids", game) == QUIT_FROM_MENU) {
+    if (display_menu(renderer, m, FONT_ASTEROIDS_MENU, "Asteroids", game) == QUIT_FROM_MENU) {
         exit(EXIT_SUCCESS);
     }
     destroy_menu(m);
@@ -92,6 +109,7 @@ display_starting_menu(SDL_Renderer *renderer, asteroids_game *game) {
 internal void
 update(asteroids_game *game) {
     update_ship(game->current_ship, *game->keys, *game->scrn);
+    update_sounds(game);
 }
 
 internal void
@@ -105,6 +123,15 @@ render(SDL_Renderer *renderer, asteroids_game *game) {
 
     // present renderer
     SDL_RenderPresent(renderer);
+}
+
+internal void
+init_sounds(asteroids_game *game) {
+    if (game->sounds) {
+        // we need to map only the pointer to the chunk pointer so that we can properly free later
+        Mix_Chunk *thrust = Mix_LoadWAV(SOUND_SHIP_THRUSTER);
+        put(game->sounds, SOUND_SHIP_THRUSTER, &thrust, sizeof(Mix_Chunk*));
+    }
 }
 
 internal keyboard*
@@ -124,12 +151,18 @@ init_game(void) {
     game->running = true;
     game->event = malloc(sizeof(SDL_Event));
     game->scrn = malloc(sizeof(screen));
+    game->sounds = init_map();
     return game;
 }
 
 internal void
 free_game(asteroids_game *game) {
     free_ship(game->current_ship);
+    if (game->sounds) {
+        // sound map contains only pointers to chunk pointers for proper freeing
+        Mix_FreeChunk(*((Mix_Chunk**)get(game->sounds, SOUND_SHIP_THRUSTER)));
+    }
+    free_map(game->sounds);
     free(game->keys);
     free(game->scrn);
     free(game->event);
@@ -214,6 +247,7 @@ run(asteroids_game *game) {
     display_starting_menu(renderer, game);
 
     // initialize game objects
+    init_sounds(game);
     game->current_ship = allocate_ship(game->scrn->width >> 1, game->scrn->height >> 1);
 
     uint32_t then;

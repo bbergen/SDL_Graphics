@@ -28,6 +28,7 @@ set(ASTEROIDS_SOURCE
     asteroids/explosion.c
     asteroids/explosion.h
     common/menu.c
+    common/map.c
     asteroids/asteroid_types.h)
 add_executable(SDL_Ball ${BALL_SOURCE})
 add_executable(SDL_Pong ${PONG_SOURCE})

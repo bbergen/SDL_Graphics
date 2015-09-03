@@ -178,3 +178,9 @@ render_ship(SDL_Renderer *renderer, ship s) {
         }
     }
 }
+
+int8_t
+ship_thrusting(ship s) {
+    assert(s);
+    return ((_ship*)s)->thrusting;
+}

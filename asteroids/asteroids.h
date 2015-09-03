@@ -5,6 +5,7 @@
 #ifndef SDL_GRAPHICS_ASTEROIDS_H
 #define SDL_GRAPHICS_ASTEROIDS_H
 
+#include <map.h>
 #include "ship.h"
 #include "asteroid_types.h"
 
@@ -13,8 +14,9 @@
  */
 global const int SCREEN_WIDTH = 1360;
 global const int SCREEN_HEIGHT = 768;
-global const char* ASTEROIDS_TITLE_FONT = "resources/fonts/over_there.ttf";
-global const char* ASTEROIDS_MENU_FONT = "resources/fonts/built_tiling.ttf";
+global const char* FONT_ASTEROIDS_TITLE = "resources/fonts/over_there.ttf";
+global const char* FONT_ASTEROIDS_MENU = "resources/fonts/built_tiling.ttf";
+global const char* SOUND_SHIP_THRUSTER = "resources/sounds/asteroids/effects/thruster.wav";
 
 /*
  *  Maintains the current state of the game
@@ -25,6 +27,7 @@ typedef struct asteroids_game {
     keyboard *keys;
     screen *scrn;
     ship current_ship;
+    hash_map sounds;
 } asteroids_game;
 
 

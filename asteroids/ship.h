@@ -58,4 +58,9 @@ bullet allocate_bullet(int x, int y, int vector);
  */
 void free_bullet(bullet b);
 
+/*
+ * Queries the thrusting state of the ship
+ */
+int8_t ship_thrusting(ship s);
+
 #endif //SDL_GRAPHICS_SHIP_H
