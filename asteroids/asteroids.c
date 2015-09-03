@@ -22,13 +22,13 @@ play_sound_effect(int channel, Mix_Chunk *chunk, int loops) {
 
 internal void
 update_sounds(asteroids_game *game) {
-    persistent int thrust_channel = -1;
+    persistent int thrust_channel = FREE_CHANNEL;
     if (ship_thrusting(game->current_ship) && !Mix_Playing(thrust_channel)) {
         Mix_Chunk *chunk = *((Mix_Chunk**) get(game->sounds, SOUND_SHIP_THRUSTER));
         thrust_channel = play_sound_effect(thrust_channel, chunk, -1);
     } else if (!ship_thrusting(game->current_ship) && thrust_channel != -1 && Mix_Playing(thrust_channel)) {
         Mix_HaltChannel(thrust_channel);
-        thrust_channel = -1;
+        thrust_channel = FREE_CHANNEL;
     }
 }
 

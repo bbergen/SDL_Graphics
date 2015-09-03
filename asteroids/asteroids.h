@@ -9,6 +9,8 @@
 #include "ship.h"
 #include "asteroid_types.h"
 
+#define FREE_CHANNEL -1
+
 /*
  *  Global Constants
  */
