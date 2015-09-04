@@ -11,13 +11,22 @@
 typedef void* vector;
 
 /*
+ *  Tool for iterating through vector
+ */
+typedef void* iterator;
+
+/*
  * Initializes a new vector
  *
  * arg 1:   Initial capacity of the vector, above and beyond the default capacity
- * arg 2:   Size of an individual element contained in the vector
  * return:  An initialized vector
  */
-vector init_vector(int, size_t);
+vector vector_init(int);
+
+/*
+ * Frees the memory associated with the vector
+ */
+void vector_free(vector);
 
 /*
  * Increases the size of the vector
@@ -25,17 +34,7 @@ vector init_vector(int, size_t);
  * arg 1:   The vector to resize
  * arg 2:   The quantity to increase the size by
  */
-void resize_vector(vector, int);
-
-/*
- * Increases the capacity of the vector
- * In most cases it is not necessary to call this manually.
- * It will be called automatically when the size exceeds the capacity
- *
- * arg 1:   The vector to expand
- * arg 2:   The quantity to increase the capacity by
- */
-void reserve_vector(vector, int);
+void vector_resize(vector, int);
 
 /*
  * Adds a new element at the end of the vector
@@ -43,16 +42,27 @@ void reserve_vector(vector, int);
  * arg 1:   The vector to add to
  * arg 2:   The element to add
  */
-void add(vector, void*);
+void vector_add(vector, void*);
 
 /*
- * Adds all of an array to the end of the vector
+ * Swaps an element at the specified index
+ * Note, that this function will not free the
+ * memory of the original index
  *
  * arg 1:   The vector to add to
- * arg 2:   The array of elements to add
- * arg 3:   Length of the array added
+ * arg 2:   The index at which to swap
+ * arg 3:   The element to add
  */
-void add_all(vector, void*, int);
+void vector_set(vector, int, void*);
+
+/*
+ * Removes the element at the index from the vector
+ * Will not free the memory pointed to by the index
+ *
+ * arg 1:   The vector to delete from
+ * arg 2:   The index of the element to remove
+ */
+void vector_remove(vector, int);
 
 /*
  * Fetches an element from the vector
@@ -61,7 +71,7 @@ void add_all(vector, void*, int);
  * arg 2:   The index of the element to fetch
  * return:  The element
  */
-void* get(vector, int);
+void* vector_get(vector, int);
 
 /*
  * Returns the size of the vector
@@ -69,6 +79,11 @@ void* get(vector, int);
  * arg 1:   The vector to measure
  * return:  The number of elements in the vector
  */
-int size(vector);
+int vector_size(vector);
+
+/*
+ * Returns true if the vector has no elements, false otherwise
+ */
+int8_t vector_empty(vector);
 
 #endif //SDL_GRAPHICS_VECTOR_H

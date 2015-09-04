@@ -7,6 +7,7 @@
 #include "list.h"
 #include "util.h"
 #include "map.h"
+#include "vector.h"
 
 typedef struct test_data {
     char *display_text;
@@ -196,10 +197,79 @@ run_map_test(void) {
     printf("Map Tests Completed\n\n");
 }
 
+internal void
+run_vector_test(void) {
+    printf("Starting Vector Tests...\n");
+
+    printf("Starting Vector Initialization Tests\n");
+    vector v = vector_init(10);
+    vector_add(v, "Test");
+    vector_add(v, "Vector");
+    vector_add(v, "Please");
+    vector_add(v, "Ignore");
+    printf("Vector Initialization Successful\n");
+
+    printf("Starting Standard Iteration Tests\n");
+    int i;
+    for (i = 0; i < vector_size(v); i++) {
+        printf("%s ", (char*) vector_get(v, i));
+    }
+    printf("\n");
+
+    test_data data1;
+    test_data data2;
+    test_data data3;
+    test_data data4;
+    vector v2 = vector_init(0);
+    allocate_test_data(&data1, "Test", 1, 2);
+    vector_add(v2, &data1);
+    allocate_test_data(&data2, "Vector", 3, 4);
+    vector_add(v2, &data2);
+    allocate_test_data(&data3, "Please", 5, 6);
+    vector_add(v2, &data3);
+    allocate_test_data(&data4, "Ignore", 7, 8);
+    vector_add(v2, &data4);
+
+    for (i = 0; i < vector_size(v2); i++) {
+        print_test_data(vector_get(v2, i));
+    }
+
+    printf("\nStandard Iteration Success!\n");
+
+    printf("Starting Vector Set & Remove Tests\n");
+
+    vector_remove(v, 3);
+    vector_remove(v, 2);
+    vector_remove(v, 1);
+    vector_set(v, 0, "Hello");
+    vector_add(v, "World!");
+
+    for (i = 0; i < vector_size(v); i++) {
+        printf("%s ", (char*) vector_get(v, i));
+    }
+    printf("\nVector Set & Remove Tests Success!\n");
+
+    printf("Starting Vector Resize Tests\n");
+    vector v3 = vector_init(0);
+    for (i = 0; i < 10000; i++) {
+        vector_add(v3, "TEST_STRING");
+    }
+    printf("Vector Size Expected: %d, Actual: %d\n", 10000, vector_size(v3));
+    printf("Vector Resize Test Success!\n");
+
+    printf("Starting Vector Free Test\n");
+    vector_free(v);
+    vector_free(v2);
+    vector_free(v3);
+    printf("Vector Free Test Success!\n");
+    printf("Vector Tests Completed\n\n");
+}
+
 int
 main(int argc, char **argv) {
     run_list_test();
     run_itoa_test();
     run_map_test();
+    run_vector_test();
     return EXIT_SUCCESS;
 }
