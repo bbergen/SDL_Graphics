@@ -7,7 +7,7 @@
 #include "list.h"
 
 void
-init_list(list *l, size_t element_size, free_function free_node) {
+list_init(list *l, size_t element_size, free_function free_node) {
     assert(element_size > 0);
     l->length = 0;
     l->element_size = element_size;
@@ -22,7 +22,7 @@ list_size(list *l) {
 }
 
 void
-free_list(list *l) {
+list_free(list *l) {
     node *current;
     while (l->head != NULL) {
         current = l->head;
@@ -38,7 +38,7 @@ free_list(list *l) {
 }
 
 void
-add(list *l, void *data) {
+list_add(list *l, void *data) {
     node *new = malloc(sizeof(node));
     new->data = malloc(l->element_size);
     new->next = NULL;
@@ -57,12 +57,12 @@ add(list *l, void *data) {
 }
 
 void
-add_at(list *l, int index, void *data) {
+list_add_at(list *l, int index, void *data) {
     //TODO implement
 }
 
 void
-remove_at(list *l, int index) {
+list_remove(list *l, int index) {
     //TODO implement
 }
 

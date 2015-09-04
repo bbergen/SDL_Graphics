@@ -32,13 +32,13 @@ typedef struct {
  * Initializes a list struct,
  * Passed function should free an individual node's memory
  */
-void init_list(list*, size_t, free_function);
+void list_init(list*, size_t, free_function);
 
 /*
  * Iterates over the list and calls its free_function
  * on each element.
  */
-void free_list(list*);
+void list_free(list*);
 
 /*
  * Iterates over the list and calls the passed function
@@ -55,17 +55,17 @@ void list_for_each_with_param(list*, list_iterator_with_param, void *);
 /*
  * Appends an element to the list
  */
-void add(list*, void*);
+void list_add(list*, void*);
 
 /*
  * Inserts an element at a specific index
  */
-void add_at(list*, int, void*);
+void list_add_at(list*, int, void*);
 
 /*
  * Removes the element at the specific index
  */
-void remove_at(list*, int);
+void list_remove(list*, int);
 
 /*
  * Returns the number of elements in the list

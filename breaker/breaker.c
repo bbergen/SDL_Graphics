@@ -269,7 +269,7 @@ free_brick(void *b) {
 internal void
 build_brick_list(SDL_Renderer *renderer, level *l, BRICK_TYPE brick_matrix[MAX_ROWS][LEVEL_WIDTH], int rows) {
     l->brick_list = malloc(sizeof(list));
-    init_list(l->brick_list, sizeof(breaker_brick), free_brick);
+    list_init(l->brick_list, sizeof(breaker_brick), free_brick);
 
     SDL_Color color = {};
     random_color(&color);
@@ -303,7 +303,7 @@ build_brick_list(SDL_Renderer *renderer, level *l, BRICK_TYPE brick_matrix[MAX_R
             brick.type = type;
             brick.value = BASE_BRICK_VALUE * (type + 1);
 
-            add(l->brick_list, &brick);
+            list_add(l->brick_list, &brick);
             x += BRICK_WIDTH;
         }
         y += BRICK_HEIGHT;
@@ -315,7 +315,7 @@ free_level(level *l) {
     //to free
     Mix_FreeChunk(((breaker_brick*)(l->brick_list->head->data))->brick_break);
     Mix_FreeChunk(((breaker_brick*)(l->brick_list->head->data))->brick_bounce);
-    free_list(l->brick_list);
+    list_free(l->brick_list);
     free(l->brick_list);
     free(l);
 }

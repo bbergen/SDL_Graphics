@@ -60,7 +60,7 @@ run_list_test(void) {
 
     list test_list;
 
-    init_list(&test_list, sizeof(test_data), test_free);
+    list_init(&test_list, sizeof(test_data), test_free);
 
 
     test_data first;
@@ -71,16 +71,16 @@ run_list_test(void) {
     allocate_test_data(&second, "Second Data Struct", 2, 3);
     allocate_test_data(&third, "Third Data Struct", 4, 5);
 
-    add(&test_list, &first);
-    add(&test_list, &second);
-    add(&test_list, &third);
+    list_add(&test_list, &first);
+    list_add(&test_list, &second);
+    list_add(&test_list, &third);
 
     printf("Size of test_list: %d\n", list_size(&test_list));
     list_for_each(&test_list, print_test_data);
     list_for_each_with_param(&test_list, print_test_node_params, "Dynamic Parameter");
 
     printf("Address of allocated test_list head: %p\n", test_list.head);
-    free_list(&test_list);
+    list_free(&test_list);
     printf("Address of freed test_list head: %p\n", test_list.head);
 
     printf("List Test Completed\n\n");
