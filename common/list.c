@@ -35,6 +35,7 @@ list_free(list *l) {
         free(current->data);
         free(current);
     }
+    l->length = 0;
 }
 
 void
@@ -58,12 +59,62 @@ list_add(list *l, void *data) {
 
 void
 list_add_at(list *l, int index, void *data) {
-    //TODO implement
+
+    if (index < 0 || index > l->length) {
+        return;
+    }
+
+    node *new = malloc(sizeof(node));
+    new->data = malloc(sizeof(l->element_size));
+    new->next = NULL;
+    memcpy(new->data, data, l->element_size);
+
+    if (index == 0) {
+        new->next = l->head;
+        l->head = new;
+    } else if (index == l->length) {
+        l->tail->next = new;
+        l->tail = new;
+    } else {
+        int i;
+        node *current;
+        for (i = 0, current = l->head; i < index - 1; i++, current = current->next);
+        new->next = current->next;
+        current->next = new;
+    }
+    l->length++;
 }
 
 void
 list_remove(list *l, int index) {
-    //TODO implement
+
+    if (index < 0 || index >= l->length) {
+        return;
+    }
+
+    node *to_free;
+    if (index == 0) {
+        to_free = l->head;
+        l->head = to_free->next;
+    } else if (index < l->length - 1){
+        int i;
+        node *current;
+        for (i = 0, current = l->head; i < index - 1; i++, current = current->next);
+        to_free = current->next;
+        current->next = current->next->next;
+    } else {
+        int i;
+        node *current;
+        for (i = 0, current = l->head; i < index - 1; i++, current = current->next);
+        to_free = current->next;
+        current->next = NULL;
+    }
+    if (l->free_node) {
+        l->free_node(to_free->data);
+    }
+    free(to_free->data);
+    free(to_free);
+    l->length--;
 }
 
 void

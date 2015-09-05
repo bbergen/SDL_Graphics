@@ -9,6 +9,11 @@
 #include <stddef.h>
 #include "common.h"
 
+/*
+ * Function for freeing a complex data type's memory.
+ * list_free, or list_remove will take care of freeing the enclosing data type
+ * This function is only required for a deep free.
+ */
 typedef void (*free_function)(void *);
 
 typedef int8_t (*list_iterator)(void *);

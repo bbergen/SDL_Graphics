@@ -4,32 +4,35 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <colors.h>
+#include <list.h>
 #include "list.h"
 #include "util.h"
 #include "map.h"
 #include "vector.h"
 
+#define LOG_RED(s) printf("%s %s %s", ANSI_COLOR_RED, (s), ANSI_COLOR_RED)
+#define LOG_GREEN(s) printf("%s%s%s", ANSI_COLOR_GREEN, (s), ANSI_COLOR_RESET)
+#define LOG_YELLOW(s) printf("%s%s%s", ANSI_COLOR_YELLOW, (s), ANSI_COLOR_RESET)
+
 typedef struct test_data {
     char *display_text;
-    int *x;
-    int *y;
+    int x;
+    int y;
 } test_data;
 
 internal void
 test_free(void *data) {
     test_data *test = (test_data*) data;
     printf("Freeing: %s\n", test->display_text);
-
     free(test->display_text);
-    free(test->x);
-    free(test->y);
 }
 
 internal int8_t
 print_test_data(void *data) {
     test_data *test = (test_data*) data;
     printf("Printing: %s\n", test->display_text);
-    printf("X: %d, Y: %d\n\n", *test->x, *test->y);
+    printf("X: %d, Y: %d\n\n", test->x, test->y);
     return true;
 }
 
@@ -44,19 +47,15 @@ print_test_node_params(void *data, void *param) {
 
 internal void
 allocate_test_data(test_data *test, char *display_text, int x, int y) {
-
     test->display_text = malloc(strlen(display_text) + 1);
-    test->x = malloc(sizeof(int));
-    test->y = malloc(sizeof(int));
-
     strcpy(test->display_text, display_text);
-    *test->x = x;
-    *test->y = y;
+    test->x = x;
+    test->y = y;
 }
 
 internal void
 run_list_test(void) {
-    printf("Starting List Tests...\n");
+    LOG_YELLOW("Starting List Tests...\n");
 
     list test_list;
 
@@ -79,16 +78,48 @@ run_list_test(void) {
     list_for_each(&test_list, print_test_data);
     list_for_each_with_param(&test_list, print_test_node_params, "Dynamic Parameter");
 
+    printf("Testing Add At\n");
+    test_data head;
+    test_data tail;
+    test_data mid;
+
+    allocate_test_data(&head, "Inserted at HEAD", 42, 42);
+    allocate_test_data(&tail, "Inserted at TAIL", 99, 99);
+    allocate_test_data(&mid, "Inserted at MID", 33, 33);
+
+    printf("List Size: %d\n", test_list.length);
+    list_add_at(&test_list, 0, &head);
+    printf("List Size: %d\n", test_list.length);
+    list_add_at(&test_list, list_size(&test_list), &tail);
+    printf("List Size: %d\n", test_list.length);
+    list_add_at(&test_list, 2, &mid);
+    printf("List Size: %d\n", test_list.length);
+    list_for_each(&test_list, print_test_data);
+    printf("Add At Test Success!\n");
+
+    printf("Testing Remove At\n");
+
+    printf("List Size: %d\n", test_list.length);
+    list_remove(&test_list, 0); // test head removal
+    printf("List Size: %d\n", test_list.length);
+    list_remove(&test_list, test_list.length - 1); // test tail removal
+    printf("List Size: %d\n", test_list.length);
+    list_remove(&test_list, 1); // test mid removal
+    printf("List Size: %d\n", test_list.length);
+    list_for_each(&test_list, print_test_data);
+
+    printf("Remove At Test Success\n");
+
     printf("Address of allocated test_list head: %p\n", test_list.head);
     list_free(&test_list);
     printf("Address of freed test_list head: %p\n", test_list.head);
 
-    printf("List Test Completed\n\n");
+    LOG_GREEN("List Test Completed\n\n");
 }
 
 internal void
 run_itoa_test(void) {
-    printf("Starting Util Tests...\n");
+    LOG_YELLOW("Starting Util Tests...\n");
 
     int n = 123;
     char *expected = "0000123";
@@ -101,12 +132,12 @@ run_itoa_test(void) {
     itoa(n, test2, 0);
     printf("Expected: %d, Result: %s\n\n", n, test2);
 
-    printf("Util Tests Completed\n\n");
+    LOG_GREEN("Util Tests Completed\n\n");
 }
 
 internal void
 run_map_test(void) {
-    printf("Starting Map Tests...\n");
+    LOG_YELLOW("Starting Map Tests...\n");
 
     hash_map map;
     map = init_map();
@@ -194,12 +225,12 @@ run_map_test(void) {
     printf("End struct value test\n\n");
     free_map(map);
 
-    printf("Map Tests Completed\n\n");
+    LOG_GREEN("Map Tests Completed\n\n");
 }
 
 internal void
 run_vector_test(void) {
-    printf("Starting Vector Tests...\n");
+    LOG_YELLOW("Starting Vector Tests...\n");
 
     printf("Starting Vector Initialization Tests\n");
     vector v = vector_init(10);
@@ -262,7 +293,7 @@ run_vector_test(void) {
     vector_free(v2);
     vector_free(v3);
     printf("Vector Free Test Success!\n");
-    printf("Vector Tests Completed\n\n");
+    LOG_GREEN("Vector Tests Completed\n\n");
 }
 
 int

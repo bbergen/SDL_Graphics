@@ -8,6 +8,20 @@
 #include <SDL2/SDL.h>
 #include "common.h"
 
+/*
+ * ANSI Console Colors
+ */
+#define ANSI_COLOR_RED "\x1b[31m"
+#define ANSI_COLOR_GREEN "\x1b[32m"
+#define ANSI_COLOR_YELLOW "\x1b[33m"
+#define ANSI_COLOR_BLUE "\x1b[34m"
+#define ANSI_COLOR_MAGNETA "\x1b[35m"
+#define ANSI_COLOR_CYAN "\x1b[36m"
+#define ANSI_COLOR_RESET "\x1b[0m"
+
+/*
+ * SDL Color Constants
+ */
 global const SDL_Color WHITE = {0xFF, 0xFF, 0xFF, 0x00};
 
 global const SDL_Color PURPLE = {0x4B, 0x00, 0x82, 0x00};

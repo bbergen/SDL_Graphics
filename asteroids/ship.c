@@ -179,6 +179,38 @@ render_ship(SDL_Renderer *renderer, ship s) {
     }
 }
 
+internal point
+ship_nose(_ship *this, screen scrn) {
+    point p0 = {this->x - (scrn.height / 109), this->y + (scrn.height / 64)};
+    this->ship_vertices[0] = p0;
+    point nose = {this->x, this->y - (scrn.height / 77)};
+    this->ship_vertices[1] = nose;
+    point p2 = {this->x + (scrn.height / 109), this->y + (scrn.height / 64)};
+    this->ship_vertices[2] = p2;
+    point p3 = {this->x + (scrn.height / 154), this->y + (scrn.height / 96)};
+    this->ship_vertices[3] = p3;
+    point p4 = {this->x - (scrn.height / 154), this->y + (scrn.height / 96)};
+    this->ship_vertices[4] = p4;
+
+    int centroid_x = (p0.x + nose.x + p2.x) / 3;
+    int centroid_y = (p0.y + nose.y + p2.y) / 3;
+    double cosine = cos(this->dir);
+    double sine = sin(this->dir);
+
+    int distance_x = nose.x - centroid_x;
+    int distance_y = nose.y - centroid_y;
+    nose.x = (int) (cosine * distance_x - sine * distance_y + centroid_x);
+    nose.y = (int) (sine * distance_x + cosine * distance_y + centroid_y);
+
+    return nose;
+}
+
+void
+ship_shoot(ship s) {
+    _ship *this = s;
+    //TODO implement
+}
+
 int8_t
 ship_thrusting(ship s) {
     assert(s);
