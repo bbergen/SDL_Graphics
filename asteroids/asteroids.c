@@ -101,6 +101,7 @@ display_starting_menu(SDL_Renderer *renderer, asteroids_game *game) {
     init_title_font(m, FONT_ASTEROIDS_TITLE);
 
     if (display_menu(renderer, m, FONT_ASTEROIDS_MENU, "Asteroids", game) == QUIT_FROM_MENU) {
+        shutdown();
         exit(EXIT_SUCCESS);
     }
     destroy_menu(m);
@@ -134,20 +135,10 @@ init_sounds(asteroids_game *game) {
     }
 }
 
-internal keyboard*
-init_keys(void) {
-    keyboard *k = malloc(sizeof(keyboard));
-    k->left_down = false;
-    k->right_down = false;
-    k->up_down = false;
-    k->down_down = false;
-    return k;
-}
-
 internal asteroids_game*
 init_game(void) {
     asteroids_game *game = malloc(sizeof(asteroids_game));
-    game->keys = init_keys();
+    game->keys = calloc(1, sizeof(keyboard)); //keys must be zeroed
     game->running = true;
     game->event = malloc(sizeof(SDL_Event));
     game->scrn = malloc(sizeof(screen));
@@ -248,10 +239,10 @@ run(asteroids_game *game) {
         error(SDL_GetError);
     }
 
+    init_sounds(game);
     display_starting_menu(renderer, game);
 
     // initialize game objects
-    init_sounds(game);
     game->current_ship = allocate_ship(game->scrn->width >> 1, game->scrn->height >> 1);
 
     uint32_t then;

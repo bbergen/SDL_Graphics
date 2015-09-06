@@ -12,7 +12,7 @@ global const int ENGINE_POINTS = 3;
 global const double RADIANS = PI * 2;
 global const double ACCELERATION_FACTOR = 0.25;
 global const double BASE_BULLET_DELTA = 5;
-global const int BASE_BULLET_TTL = 300;
+global const int BASE_BULLET_TTL = 100;
 
 typedef struct _ship {
     int x;
@@ -32,12 +32,24 @@ typedef struct _ship {
 typedef struct _bullet {
     int x;
     int y;
-    double x_vector;
-    double y_vector;
     double x_delta;
     double y_delta;
     int ttl;
 } _bullet;
+
+
+internal void
+prune_bullets(list *bullets) {
+    if (bullets && bullets->head) {
+        _bullet *bullet = bullets->head->data;
+        if (bullet && bullet->ttl <= 0) {
+            list_remove(bullets, 0);
+#if DEBUG
+            printf("Pruning Bullet. List Size: %d\n", list_size(bullets));
+#endif
+        }
+    }
+}
 
 internal int8_t
 update_bullets(void *b, void *scrn) {
@@ -45,6 +57,23 @@ update_bullets(void *b, void *scrn) {
     screen *s = scrn;
     bullet->x += bullet->x_delta;
     bullet->y += bullet->y_delta;
+
+    if (bullet->x < 0) {
+        bullet->x = s->width;
+    }
+
+    if (bullet->x > s->width) {
+        bullet->x = 0;
+    }
+
+    if (bullet->y < 0) {
+        bullet->y = s->height;
+    }
+
+    if (bullet->y > s->height) {
+        bullet->y = 0;
+    }
+
     bullet->ttl--;
     return true;
 }
@@ -52,6 +81,11 @@ update_bullets(void *b, void *scrn) {
 internal int8_t
 render_bullets(void *b, void *r) {
     _bullet *bullet = b;
+
+    if (bullet->ttl <= 0) {
+        return true;
+    }
+
     SDL_Renderer *renderer = r;
     SDL_SetRenderDrawColor(renderer, RED.r, RED.g, RED.b, RED.a);
     SDL_RenderDrawPoint(renderer, bullet->x, bullet->y);
@@ -94,8 +128,6 @@ new_bullet(_ship *s, point nose) {
     _bullet bullet = {
             nose.x,
             nose.y,
-            s->x_vector,
-            s->y_vector,
             s->x_delta + BASE_BULLET_DELTA,
             s->y_delta + BASE_BULLET_DELTA,
             BASE_BULLET_TTL
@@ -168,6 +200,7 @@ update_ship_impl(_ship *this, keyboard keys, screen scrn) {
     }
     list_for_each_with_param(this->bullets, update_bullets, &scrn);
 
+    prune_bullets(this->bullets);
 }
 
 void
