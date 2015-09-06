@@ -63,9 +63,4 @@ void free_bullet(bullet b);
  */
 int8_t ship_thrusting(ship s);
 
-/*
- * Shoot a single bullet with the ship
- */
-void ship_shoot(ship s);
-
 #endif //SDL_GRAPHICS_SHIP_H

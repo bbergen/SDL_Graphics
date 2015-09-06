@@ -4,12 +4,15 @@
 
 #include <common.h>
 #include <colors.h>
+#include <list.h>
 #include "ship.h"
 
 global const int SHIP_POINTS = 5;
 global const int ENGINE_POINTS = 3;
 global const double RADIANS = PI * 2;
 global const double ACCELERATION_FACTOR = 0.25;
+global const double BASE_BULLET_DELTA = 5;
+global const int BASE_BULLET_TTL = 300;
 
 typedef struct _ship {
     int x;
@@ -22,17 +25,44 @@ typedef struct _ship {
     double dir;
     point *ship_vertices;
     point *engine_vertices;
+    list *bullets;
     int8_t thrusting;
 } _ship;
 
 typedef struct _bullet {
     int x;
     int y;
+    double x_vector;
+    double y_vector;
+    double x_delta;
+    double y_delta;
+    int ttl;
 } _bullet;
+
+internal int8_t
+update_bullets(void *b, void *scrn) {
+    _bullet *bullet = b;
+    screen *s = scrn;
+    bullet->x += bullet->x_delta;
+    bullet->y += bullet->y_delta;
+    bullet->ttl--;
+    return true;
+}
+
+internal int8_t
+render_bullets(void *b, void *r) {
+    _bullet *bullet = b;
+    SDL_Renderer *renderer = r;
+    SDL_SetRenderDrawColor(renderer, RED.r, RED.g, RED.b, RED.a);
+    SDL_RenderDrawPoint(renderer, bullet->x, bullet->y);
+    return true;
+}
 
 ship
 allocate_ship(int x, int y) {
     _ship *s = malloc(sizeof(_ship));
+    s->bullets = malloc(sizeof(list));
+    list_init(s->bullets, sizeof(_bullet), NULL);
     s->ship_vertices = malloc(sizeof(point) * SHIP_POINTS);
     s->engine_vertices = malloc(sizeof(point) * ENGINE_POINTS);
     s->x = x;
@@ -53,8 +83,24 @@ free_ship(ship s) {
         _ship *this = s;
         free(this->ship_vertices);
         free(this->engine_vertices);
+        list_free(this->bullets);
+        free(this->bullets);
         free(this);
     }
+}
+
+internal _bullet
+new_bullet(_ship *s, point nose) {
+    _bullet bullet = {
+            nose.x,
+            nose.y,
+            s->x_vector,
+            s->y_vector,
+            s->x_delta + BASE_BULLET_DELTA,
+            s->y_delta + BASE_BULLET_DELTA,
+            BASE_BULLET_TTL
+    };
+    return bullet;
 }
 
 void
@@ -74,7 +120,7 @@ keep_in_bounds(_ship *this, int width, int height) {
 }
 
 internal void
-update_ship_impl(_ship *this, screen scrn) {
+update_ship_impl(_ship *this, keyboard keys, screen scrn) {
 
     // ship points
     point p0 = {this->x - (scrn.height / 109), this->y + (scrn.height / 64)};
@@ -115,6 +161,13 @@ update_ship_impl(_ship *this, screen scrn) {
         this->engine_vertices[i].x = (int) (cosine * distance_x - sine * distance_y + centroid_x);
         this->engine_vertices[i].y = (int) (sine * distance_x + cosine * distance_y + centroid_y);
     }
+
+    if (keys.space_down) {
+        _bullet bullet = new_bullet(this, this->ship_vertices[1]);
+        list_add(this->bullets, &bullet);
+    }
+    list_for_each_with_param(this->bullets, update_bullets, &scrn);
+
 }
 
 void
@@ -154,7 +207,7 @@ update_ship(ship s, keyboard keys, screen scrn) {
     this->thrusting = keys.up_down;
     this->flicker++;
     keep_in_bounds(this, scrn.width, scrn.height);
-    update_ship_impl(this, scrn);
+    update_ship_impl(this, keys, scrn);
 }
 
 void
@@ -177,38 +230,7 @@ render_ship(SDL_Renderer *renderer, ship s) {
             SDL_RenderDrawLine(renderer, p.x, p.y, next.x, next.y);
         }
     }
-}
-
-internal point
-ship_nose(_ship *this, screen scrn) {
-    point p0 = {this->x - (scrn.height / 109), this->y + (scrn.height / 64)};
-    this->ship_vertices[0] = p0;
-    point nose = {this->x, this->y - (scrn.height / 77)};
-    this->ship_vertices[1] = nose;
-    point p2 = {this->x + (scrn.height / 109), this->y + (scrn.height / 64)};
-    this->ship_vertices[2] = p2;
-    point p3 = {this->x + (scrn.height / 154), this->y + (scrn.height / 96)};
-    this->ship_vertices[3] = p3;
-    point p4 = {this->x - (scrn.height / 154), this->y + (scrn.height / 96)};
-    this->ship_vertices[4] = p4;
-
-    int centroid_x = (p0.x + nose.x + p2.x) / 3;
-    int centroid_y = (p0.y + nose.y + p2.y) / 3;
-    double cosine = cos(this->dir);
-    double sine = sin(this->dir);
-
-    int distance_x = nose.x - centroid_x;
-    int distance_y = nose.y - centroid_y;
-    nose.x = (int) (cosine * distance_x - sine * distance_y + centroid_x);
-    nose.y = (int) (sine * distance_x + cosine * distance_y + centroid_y);
-
-    return nose;
-}
-
-void
-ship_shoot(ship s) {
-    _ship *this = s;
-    //TODO implement
+    list_for_each_with_param(this->bullets, render_bullets, renderer);
 }
 
 int8_t

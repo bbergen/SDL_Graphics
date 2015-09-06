@@ -12,6 +12,7 @@ typedef struct keyboard {
     int8_t right_down;
     int8_t up_down;
     int8_t down_down;
+    int8_t space_down;
 } keyboard;
 
 typedef struct screen {

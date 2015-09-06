@@ -192,6 +192,8 @@ process_event(asteroids_game *game) {
                 case SDLK_RIGHT:
                     game->keys->right_down = true;
                     break;
+                case SDLK_SPACE:
+                    game->keys->space_down = true;
                 default:
                     break;
             }
@@ -210,6 +212,8 @@ process_event(asteroids_game *game) {
                 case SDLK_RIGHT:
                     game->keys->right_down = false;
                     break;
+                case SDLK_SPACE:
+                    game->keys->space_down = false;
                 default:
                     break;
             }
@@ -235,7 +239,7 @@ run(asteroids_game *game) {
     }
 
     //TODO change to a user preference later on
-    SDL_SetWindowFullscreen(window, SDL_WINDOW_FULLSCREEN_DESKTOP);
+//    SDL_SetWindowFullscreen(window, SDL_WINDOW_FULLSCREEN_DESKTOP);
     SDL_GetWindowSize(window, &game->scrn->width, &game->scrn->height);
 
     SDL_Renderer *renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
@@ -272,6 +276,7 @@ run(asteroids_game *game) {
 
         render(renderer, game);
     }
+    SDL_DestroyRenderer(renderer);
 }
 
 internal void
