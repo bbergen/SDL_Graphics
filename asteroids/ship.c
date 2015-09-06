@@ -11,8 +11,9 @@ global const int SHIP_POINTS = 5;
 global const int ENGINE_POINTS = 3;
 global const double RADIANS = PI * 2;
 global const double ACCELERATION_FACTOR = 0.25;
-global const double BASE_BULLET_DELTA = 5;
+global const double BASE_BULLET_DELTA = 15;
 global const int BASE_BULLET_TTL = 100;
+global const int BULLET_SHOT_FREQUENCY = 1000 / 4;
 
 typedef struct _ship {
     int x;
@@ -32,8 +33,9 @@ typedef struct _ship {
 typedef struct _bullet {
     int x;
     int y;
-    double x_delta;
-    double y_delta;
+    double x_base_delta;
+    double y_base_delta;
+    double dir;
     int ttl;
 } _bullet;
 
@@ -55,8 +57,15 @@ internal int8_t
 update_bullets(void *b, void *scrn) {
     _bullet *bullet = b;
     screen *s = scrn;
-    bullet->x += bullet->x_delta;
-    bullet->y += bullet->y_delta;
+
+    double x_vector = sin(bullet->dir);
+    double y_vector = cos(bullet->dir);
+
+    bullet->x += x_vector * BASE_BULLET_DELTA;
+    bullet->y -= y_vector * BASE_BULLET_DELTA;
+
+    bullet->x += bullet->x_base_delta;
+    bullet->y -= bullet->y_base_delta;
 
     if (bullet->x < 0) {
         bullet->x = s->width;
@@ -88,7 +97,14 @@ render_bullets(void *b, void *r) {
 
     SDL_Renderer *renderer = r;
     SDL_SetRenderDrawColor(renderer, RED.r, RED.g, RED.b, RED.a);
-    SDL_RenderDrawPoint(renderer, bullet->x, bullet->y);
+
+    SDL_Rect rect = {};
+    rect.x = bullet->x - 1;
+    rect.y = bullet->y - 1;
+    rect.w = 3;
+    rect.h = 3;
+    SDL_RenderFillRect(renderer, &rect);
+//    SDL_RenderDrawPoint(renderer, bullet->x, bullet->y);
     return true;
 }
 
@@ -124,12 +140,13 @@ free_ship(ship s) {
 }
 
 internal _bullet
-new_bullet(_ship *s, point nose) {
+new_bullet(double dir, double x_delta, double y_delta, point nose) {
     _bullet bullet = {
             nose.x,
             nose.y,
-            s->x_delta + BASE_BULLET_DELTA,
-            s->y_delta + BASE_BULLET_DELTA,
+            x_delta,
+            y_delta,
+            dir,
             BASE_BULLET_TTL
     };
     return bullet;
@@ -194,8 +211,17 @@ update_ship_impl(_ship *this, keyboard keys, screen scrn) {
         this->engine_vertices[i].y = (int) (sine * distance_x + cosine * distance_y + centroid_y);
     }
 
-    if (keys.space_down) {
-        _bullet bullet = new_bullet(this, this->ship_vertices[1]);
+    persistent uint32_t then = 0;
+    persistent uint32_t now = 0;
+    persistent double ticks_passed = 0.0;
+
+    then = now;
+    now = SDL_GetTicks();
+    ticks_passed += now - then;
+
+    if (keys.space_down && ticks_passed >= BULLET_SHOT_FREQUENCY) {
+        ticks_passed = 0.0;
+        _bullet bullet = new_bullet(this->dir, this->x_delta, this->y_delta, this->ship_vertices[1]);
         list_add(this->bullets, &bullet);
     }
     list_for_each_with_param(this->bullets, update_bullets, &scrn);
