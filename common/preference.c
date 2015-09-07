@@ -117,7 +117,7 @@ void write_pref(preference p) {
         for (i = 0; i < vector_size(keys); i++) {
             char *key = vector_get(keys, i);
             char *value = get(this->pref_map, key);
-            fprintf(pref_file, "%s=%s\n", key, value);
+            fprintf(pref_file, "%s%s%s\n", key, PREF_DELIM, value);
         }
         vector_free(keys);
         fclose(pref_file);
