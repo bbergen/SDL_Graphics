@@ -54,7 +54,6 @@ preference read_pref(char* file_name) {
     }
     strcat(this->file, file_name);
     FILE *pref_file = fopen(this->file, "r");
-    printf("File to open: %s\n", this->file);
     if (pref_file) {
         char line[FILE_NAME_LENGTH];
         while(fscanf(pref_file, "%s", line) != EOF) {
