@@ -26,7 +26,9 @@ update_sounds(asteroids_game *game) {
     if (ship_thrusting(game->current_ship) && !Mix_Playing(thrust_channel)) {
         Mix_Chunk *chunk = *((Mix_Chunk**) get(game->sounds, SOUND_SHIP_THRUSTER));
         thrust_channel = play_sound_effect(thrust_channel, chunk, -1);
-    } else if (!ship_thrusting(game->current_ship) && thrust_channel != -1 && Mix_Playing(thrust_channel)) {
+    } else if (!ship_thrusting(game->current_ship) &&
+            thrust_channel != FREE_CHANNEL &&
+            Mix_Playing(thrust_channel)) {
         Mix_HaltChannel(thrust_channel);
         thrust_channel = FREE_CHANNEL;
     }
@@ -58,6 +60,8 @@ display_options_menu(SDL_Renderer *renderer, asteroids_game *game) {
     init_title_font(m, FONT_ASTEROIDS_TITLE);
 
     if (display_menu(renderer, m, FONT_ASTEROIDS_MENU, "Options", game) == QUIT_FROM_MENU) {
+        free_game(game);
+        shutdown();
         exit(EXIT_SUCCESS);
     }
     destroy_menu(m);
@@ -75,8 +79,8 @@ asteroids_menu_callback(SDL_Renderer *renderer, int index, char **menu_item, voi
         case 2:
             return true;
         case 3:
-            shutdown();
             free_game(game);
+            shutdown();
             exit(EXIT_SUCCESS);
         default:
             return true;
@@ -101,6 +105,7 @@ display_starting_menu(SDL_Renderer *renderer, asteroids_game *game) {
     init_title_font(m, FONT_ASTEROIDS_TITLE);
 
     if (display_menu(renderer, m, FONT_ASTEROIDS_MENU, "Asteroids", game) == QUIT_FROM_MENU) {
+        free_game(game);
         shutdown();
         exit(EXIT_SUCCESS);
     }
