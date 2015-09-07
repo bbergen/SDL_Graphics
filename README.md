@@ -24,3 +24,22 @@ Sub-Projects
 4. [Asteroids](https://github.com/bbergen/SDL_Graphics/tree/master/asteroids) (In Progress!!)
 5. Flappy Bird Clone (//TODO) 
 6. Something Original (//TODO)
+
+### Screen Shots
+----------------
+
+1. Bouncing Ball
+
+![bouncing_ball_for_readme](https://cloud.githubusercontent.com/assets/5553971/9722412/7f27fb56-5561-11e5-86d0-65c25c6ca477.png)
+
+2. Pong
+
+![pong_for_readme](https://cloud.githubusercontent.com/assets/5553971/9722414/8665b7be-5561-11e5-9b4a-f7e01c7422a8.png)
+
+3. Breaker (with Menu)
+
+![breaker_for_readme](https://cloud.githubusercontent.com/assets/5553971/9722415/8a4cbd32-5561-11e5-92c7-6ed50e9e9991.png)
+
+4. Asteroids (Work in Progress)
+
+![asteroids_for_readme](https://cloud.githubusercontent.com/assets/5553971/9722416/8f70f4fe-5561-11e5-8ed7-dc0edb91f46f.png)
