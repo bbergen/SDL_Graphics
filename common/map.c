@@ -18,6 +18,7 @@ struct hash_map {
     int size;
     int n;
     entry **hash_table;
+    vector key_set;
 };
 
 #define INITIAL_SIZE 1024
@@ -34,6 +35,7 @@ _init_map(int size) {
     if (map) {
         map->size = size;
         map->n = 0;
+        map->key_set = vector_init(size);
         map->hash_table = malloc(sizeof(entry*) * map->size);
 
         if (map->hash_table) {
@@ -67,6 +69,7 @@ free_map(hash_map map) {
     }
 
     free(map->hash_table);
+    vector_free(map->key_set);
     free(map);
 }
 
@@ -111,6 +114,7 @@ put(hash_map map, const char *key, void *value, size_t value_size) {
     entry *e;
     uint64_t hash;
     if (key && value) {
+        vector_add(map->key_set, key);
         e = malloc(sizeof(entry));
         if (e) {
             e->key = strdup(key);
@@ -163,6 +167,23 @@ remove_entry(hash_map map, const char *key) {
 }
 
 int8_t
+map_empty(hash_map map) {
+    return map->n <= 0;
+}
+
+int8_t
 contains(hash_map map, const char *key) {
     return get(map, key) != NULL;
+}
+
+vector
+key_set(hash_map map) {
+    vector new_vector = vector_init(vector_size(map->key_set));
+    int i;
+    for (i = 0; i < vector_size(map->key_set); i++) {
+        if (contains(map, vector_get(map->key_set, i))) {
+            vector_add(new_vector, vector_get(map->key_set, i));
+        }
+    }
+    return new_vector;
 }

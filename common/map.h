@@ -3,6 +3,8 @@
 //
 
 #include <stdint-gcc.h>
+#include <stddef.h>
+#include "vector.h"
 
 #ifndef SDL_GRAPHICS_MAP_H
 #define SDL_GRAPHICS_MAP_H
@@ -49,5 +51,16 @@ void remove_entry(hash_map, const char *);
  * A true result from this call does not guarantee that the value is not NULL
  */
 int8_t contains(hash_map, const char *);
+
+/*
+ * Return the full set of keys contained by the hashmap
+ * It is the client's responsibility to free the returned vector
+ */
+vector key_set(hash_map);
+
+/*
+ * Returns whether the map is in an empty state
+ */
+int8_t map_empty(hash_map);
 
 #endif //SDL_GRAPHICS_MAP_H

@@ -6,10 +6,10 @@
 #include <string.h>
 #include <colors.h>
 #include <list.h>
-#include "list.h"
-#include "util.h"
-#include "map.h"
-#include "vector.h"
+#include <util.h>
+#include <map.h>
+#include <vector.h>
+#include <preference.h>
 
 #define LOG_RED(s) printf("%s %s %s", ANSI_COLOR_RED, (s), ANSI_COLOR_RED)
 #define LOG_GREEN(s) printf("%s%s%s", ANSI_COLOR_GREEN, (s), ANSI_COLOR_RESET)
@@ -296,11 +296,46 @@ run_vector_test(void) {
     LOG_GREEN("Vector Tests Completed\n\n");
 }
 
+internal void
+run_pref_test(void) {
+
+    LOG_YELLOW("Starting Preference Test\n");
+    char *test_file = "/.sdl/unit/test/preference.config";
+
+    printf("Starting Preference Read Test\n");
+    preference prefs = read_pref(test_file);
+    printf("Preferences Read\n\n");
+
+    if (!pref_empty(prefs)) {
+        printf("Starting Preference Get Tests\n");
+        printf("Expected: %s, result: %s\n", "preferences", get_spref(prefs, "testing"));
+        printf("Expected: %s, result: %s\n", "pref_test", get_spref(prefs, "another"));
+        printf("Expected: %s, result: %s\n", "test!", get_spref(prefs, "third"));
+        printf("Preferences Retrieved\n\n");
+    }
+
+    printf("Starting Preference Put Test\n");
+    put_spref(prefs, "testing", "preferences");
+    put_spref(prefs, "another", "pref_test");
+    put_spref(prefs, "third", "test!");
+    printf("Preferences Put\n\n");
+
+    printf("Starting Preference Write Test\n");
+    write_pref(prefs);
+    printf("Preferences Written\n\n");
+
+    printf("Starting Preferences Free Test\n");
+    free_pref(prefs);
+    printf("Preferences Freed\n");
+    LOG_GREEN("Preference Tests Completed\n\n");
+}
+
 int
 main(int argc, char **argv) {
     run_list_test();
     run_itoa_test();
     run_map_test();
     run_vector_test();
+    run_pref_test();
     return EXIT_SUCCESS;
 }
