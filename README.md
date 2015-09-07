@@ -22,4 +22,5 @@ Sub-Projects
 2. ~~[Pong](https://github.com/bbergen/SDL_Graphics/tree/master/pong)~~ (done)
 3. ~~[Brick Breaker](https://github.com/bbergen/SDL_Graphics/tree/master/breaker)~~ (done)
 4. [Asteroids](https://github.com/bbergen/SDL_Graphics/tree/master/asteroids) (In Progress!!)
-5. Something Original (//TODO)
+5. Flappy Bird Clone (//TODO) 
+6. Something Original (//TODO)
