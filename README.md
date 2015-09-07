@@ -4,15 +4,6 @@ SDL Graphics
 #### A small project for learning [Simple DirectMedia Layer 2.0](https://www.libsdl.org/) library
 As well as learning more C, developing style with the language, and enjoying building much from scratch
 
-Sub-Projects
-------------
-
-1. ~~[Bouncing Ball](https://github.com/bbergen/SDL_Graphics/tree/master/ball)~~ (done)
-2. ~~[Pong](https://github.com/bbergen/SDL_Graphics/tree/master/pong)~~ (done)
-3. ~~[Brick Breaker](https://github.com/bbergen/SDL_Graphics/tree/master/breaker)~~ (done)
-4. [Asteroids](https://github.com/bbergen/SDL_Graphics/tree/master/asteroids) (In Progress!!)
-5. Something Original (//TODO)
-
 ### Build Instructions  
 ----------------------
 
@@ -23,3 +14,12 @@ Sub-Projects
 5. Run Make: `make`
 6. Change to `bin` directory: `cd bin`
 7. Execute the project you'd like to run
+
+Sub-Projects
+------------
+
+1. ~~[Bouncing Ball](https://github.com/bbergen/SDL_Graphics/tree/master/ball)~~ (done)
+2. ~~[Pong](https://github.com/bbergen/SDL_Graphics/tree/master/pong)~~ (done)
+3. ~~[Brick Breaker](https://github.com/bbergen/SDL_Graphics/tree/master/breaker)~~ (done)
+4. [Asteroids](https://github.com/bbergen/SDL_Graphics/tree/master/asteroids) (In Progress!!)
+5. Something Original (//TODO)

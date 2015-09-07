@@ -22,6 +22,7 @@ set(BREAKER_SOURCE
     common/list.c
     common/util.c
     common/map.c
+    common/vector.c
     common/menu.c
 )
 set(ASTEROIDS_SOURCE
@@ -36,6 +37,7 @@ set(ASTEROIDS_SOURCE
     common/menu.c
     common/map.c
     common/list.c
+    common/vector.c
     asteroids/asteroid_types.h)
 add_executable(SDL_Ball ${BALL_SOURCE})
 add_executable(SDL_Pong ${PONG_SOURCE})
