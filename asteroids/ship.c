@@ -28,6 +28,8 @@ typedef struct _ship {
     point *engine_vertices;
     list *bullets;
     int8_t thrusting;
+    on_shoot_function shoot;
+    void *on_shoot_arg;
 } _ship;
 
 typedef struct _bullet {
@@ -109,7 +111,7 @@ render_bullets(void *b, void *r) {
 }
 
 ship
-allocate_ship(int x, int y) {
+allocate_ship(int x, int y, on_shoot_function shoot, void *on_shoot_arg) {
     _ship *s = malloc(sizeof(_ship));
     s->bullets = malloc(sizeof(list));
     list_init(s->bullets, sizeof(_bullet), NULL);
@@ -124,6 +126,8 @@ allocate_ship(int x, int y) {
     s->x_delta = 0.0;
     s->y_delta = 0.0;
     s->dir = RADIANS;
+    s->shoot = shoot;
+    s->on_shoot_arg = on_shoot_arg;
     return s;
 }
 
@@ -223,6 +227,7 @@ update_ship_impl(_ship *this, keyboard keys, screen scrn) {
         ticks_passed = 0.0;
         _bullet bullet = new_bullet(this->dir, this->x_delta, this->y_delta, this->ship_vertices[1]);
         list_add(this->bullets, &bullet);
+        this->shoot(this->on_shoot_arg); // callback
     }
     list_for_each_with_param(this->bullets, update_bullets, &scrn);
 

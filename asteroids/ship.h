@@ -14,6 +14,11 @@
 typedef void* ship;
 
 /*
+ * Callback function called when the ship shoots
+ */
+typedef void (*on_shoot_function)(void*);
+
+/*
  * Updates the state and location of the player's ship on the screen
  */
 void update_ship(ship s, keyboard keys, screen scrn);
@@ -26,7 +31,7 @@ void render_ship(SDL_Renderer *renderer, ship s);
 /*
  * Allocates memory for a ship
  */
-ship allocate_ship(int x, int y);
+ship allocate_ship(int x, int y, on_shoot_function shoot, void*);
 
 /*
  * Frees memory associated with a ship

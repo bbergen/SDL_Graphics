@@ -131,7 +131,9 @@ init_sounds(asteroids_game *game) {
     if (game->sounds) {
         // we need to map only the pointer to the chunk pointer so that we can properly free later
         Mix_Chunk *thrust = Mix_LoadWAV(SOUND_SHIP_THRUSTER);
+        Mix_Chunk *shoot = Mix_LoadWAV(SOUND_SHIP_SHOOT);
         put(game->sounds, SOUND_SHIP_THRUSTER, &thrust, sizeof(Mix_Chunk*));
+        put(game->sounds, SOUND_SHIP_SHOOT, &shoot, sizeof(Mix_Chunk*));
     }
 }
 
@@ -152,6 +154,7 @@ free_game(asteroids_game *game) {
     if (game->sounds) {
         // sound map contains only pointers to chunk pointers for proper freeing
         Mix_FreeChunk(*((Mix_Chunk**)get(game->sounds, SOUND_SHIP_THRUSTER)));
+        Mix_FreeChunk(*((Mix_Chunk**)get(game->sounds, SOUND_SHIP_SHOOT)));
     }
     free_map(game->sounds);
     free(game->keys);
@@ -214,6 +217,11 @@ process_event(asteroids_game *game) {
     }
 }
 
+internal void
+play_lazer_sound(void *sound) {
+    Mix_Chunk *shot = sound;
+    play_sound_effect(FREE_CHANNEL, shot, 0);
+}
 
 internal void
 run(asteroids_game *game) {
@@ -243,7 +251,10 @@ run(asteroids_game *game) {
     display_starting_menu(renderer, game);
 
     // initialize game objects
-    game->current_ship = allocate_ship(game->scrn->width >> 1, game->scrn->height >> 1);
+    game->current_ship = allocate_ship(game->scrn->width >> 1,
+                                       game->scrn->height >> 1,
+                                       play_lazer_sound,
+                                       *((Mix_Chunk**)get(game->sounds, SOUND_SHIP_SHOOT)));
 
     uint32_t then;
     uint32_t now = SDL_GetTicks();
