@@ -140,32 +140,32 @@ run_map_test(void) {
     LOG_YELLOW("Starting Map Tests...\n");
 
     hash_map map;
-    map = init_map();
+    map = map_init();
 
     // test put
     printf("Starting put test...\n");
     char *key_1 = "key_1";
     char *value_1 = "hello world!";
-    put(map, key_1, value_1, strlen(value_1) + 1);
-    printf("Expected: %s, Result: %s\n", value_1, (char*) get(map, key_1 ));
+    map_put(map, key_1, value_1, strlen(value_1) + 1);
+    printf("Expected: %s, Result: %s\n", value_1, (char*) map_get(map, key_1 ));
     printf("End put test\n\n");
 
     // test overwrite
     printf("Starting overwrite test...\n");
     char *value_2 = "good bye!";
-    put(map, key_1, value_2, strlen(value_2) + 1);
-    printf("Expected: %s, Result: %s\n", value_2, (char*) get(map, key_1));
+    map_put(map, key_1, value_2, strlen(value_2) + 1);
+    printf("Expected: %s, Result: %s\n", value_2, (char*) map_get(map, key_1));
     printf("End overwrite test\n\n");
 
     // test delete
     printf("Starting removal test...\n");
     char *key_2 = "KEY_TWO";
-    put(map, key_2, value_2, strlen(value_2) + 1);
-    remove_entry(map, key_2);
-    printf("Entry Removal %s\n", get(map, key_2) ? "Failed" : "Succeeded");
+    map_put(map, key_2, value_2, strlen(value_2) + 1);
+    map_remove(map, key_2);
+    printf("Entry Removal %s\n", map_get(map, key_2) ? "Failed" : "Succeeded");
 
     // test idempotency of delete
-    remove_entry(map, key_2);
+    map_remove(map, key_2);
     printf("End removal test\n\n");
 
     // test map growth
@@ -174,19 +174,19 @@ run_map_test(void) {
     int i;
     for (i = 0; i < 10000; i++) {
         sprintf(buffer, "%d", i);
-        put(map, buffer, buffer, strlen(buffer));
+        map_put(map, buffer, buffer, strlen(buffer));
     }
     for (i = 0; i < 10000; i += 1000) {
         sprintf(buffer, "%d", i);
-        printf("Stored Value: %s\n", (char*) get(map, buffer));
+        printf("Stored Value: %s\n", (char*) map_get(map, buffer));
     }
     printf("End growth test\n\n");
 
     //test map freeing
-    free_map(map);
+    map_free(map);
 
     // new map
-    map =  init_map();
+    map =  map_init();
 
     // testing struct values
     test_data data_1;
@@ -200,30 +200,30 @@ run_map_test(void) {
     char *key_5 = "duplicate_key";
 
     printf("Starting struct value test...\n");
-    put(map, key_3, &data_1, sizeof(test_data));
-    put(map, key_4, &data_2, sizeof(test_data));
-    put(map, key_5, &data_3, sizeof(test_data));
+    map_put(map, key_3, &data_1, sizeof(test_data));
+    map_put(map, key_4, &data_2, sizeof(test_data));
+    map_put(map, key_5, &data_3, sizeof(test_data));
 
     printf("Expected: \n");
     print_test_data(&data_1);
     printf("Result: \n");
-    print_test_data(get(map, key_3));
+    print_test_data(map_get(map, key_3));
 
     printf("Expected: \n");
     print_test_data(&data_3);
     printf("Result: \n");
-    print_test_data(get(map, key_4));
+    print_test_data(map_get(map, key_4));
 
     printf("Expected: \n");
     print_test_data(&data_3);
     printf("Result: \n");
-    print_test_data(get(map, key_5));
+    print_test_data(map_get(map, key_5));
 
     test_free(&data_1);
     test_free(&data_2);
     test_free(&data_3);
     printf("End struct value test\n\n");
-    free_map(map);
+    map_free(map);
 
     LOG_GREEN("Map Tests Completed\n\n");
 }

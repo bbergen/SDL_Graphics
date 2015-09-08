@@ -48,12 +48,12 @@ _init_map(int size) {
 }
 
 hash_map
-init_map(void) {
+map_init(void) {
     return _init_map(INITIAL_SIZE);
 }
 
 void
-free_map(hash_map map) {
+map_free(hash_map map) {
 
     int i;
     entry *e;
@@ -99,18 +99,18 @@ resize_map(hash_map map) {
     for (i = 0; i < map->size; ++i) {
         for (e = map->hash_table[i]; e; e = e->next) {
             // just a straight up copy for now... slow
-            put(new_map, e->key, e->value, e->value_size);
+            map_put(new_map, e->key, e->value, e->value_size);
         }
     }
 
     tmp = *map;
     *map = *new_map;
     *new_map = tmp;
-    free_map(new_map);
+    map_free(new_map);
 }
 
 void
-put(hash_map map, const char *key, void *value, size_t value_size) {
+map_put(hash_map map, const char *key, void *value, size_t value_size) {
     entry *e;
     uint64_t hash;
     if (key && value) {
@@ -136,7 +136,7 @@ put(hash_map map, const char *key, void *value, size_t value_size) {
 }
 
 void*
-get(hash_map map, const char *key) {
+map_get(hash_map map, const char *key) {
     entry *e;
     for (e = map->hash_table[hash_function(key) % map->size]; e; e = e->next) {
         if (!strcmp(e->key, key)) {
@@ -148,7 +148,7 @@ get(hash_map map, const char *key) {
 }
 
 void
-remove_entry(hash_map map, const char *key) {
+map_remove(hash_map map, const char *key) {
     //TODO make this delete all chained values if there were collisions.
     entry **prev;
     entry *e;
@@ -172,8 +172,8 @@ map_empty(hash_map map) {
 }
 
 int8_t
-contains(hash_map map, const char *key) {
-    return get(map, key) != NULL;
+map_contains(hash_map map, const char *key) {
+    return map_get(map, key) != NULL;
 }
 
 vector
@@ -181,7 +181,7 @@ key_set(hash_map map) {
     vector new_vector = vector_init(vector_size(map->key_set));
     int i;
     for (i = 0; i < vector_size(map->key_set); i++) {
-        if (contains(map, vector_get(map->key_set, i))) {
+        if (map_contains(map, vector_get(map->key_set, i))) {
             vector_add(new_vector, vector_get(map->key_set, i));
         }
     }

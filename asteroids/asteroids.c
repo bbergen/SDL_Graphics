@@ -24,7 +24,7 @@ internal void
 update_sounds(asteroids_game *game) {
     persistent int thrust_channel = FREE_CHANNEL;
     if (ship_thrusting(game->current_ship) && !Mix_Playing(thrust_channel)) {
-        Mix_Chunk *chunk = *((Mix_Chunk**) get(game->sounds, SOUND_SHIP_THRUSTER));
+        Mix_Chunk *chunk = *((Mix_Chunk**) map_get(game->sounds, SOUND_SHIP_THRUSTER));
         thrust_channel = play_sound_effect(thrust_channel, chunk, -1);
     } else if (!ship_thrusting(game->current_ship) &&
             thrust_channel != FREE_CHANNEL &&
@@ -137,8 +137,8 @@ init_sounds(asteroids_game *game) {
         // we need to map only the pointer to the chunk pointer so that we can properly free later
         Mix_Chunk *thrust = Mix_LoadWAV(SOUND_SHIP_THRUSTER);
         Mix_Chunk *shoot = Mix_LoadWAV(SOUND_SHIP_SHOOT);
-        put(game->sounds, SOUND_SHIP_THRUSTER, &thrust, sizeof(Mix_Chunk*));
-        put(game->sounds, SOUND_SHIP_SHOOT, &shoot, sizeof(Mix_Chunk*));
+        map_put(game->sounds, SOUND_SHIP_THRUSTER, &thrust, sizeof(Mix_Chunk*));
+        map_put(game->sounds, SOUND_SHIP_SHOOT, &shoot, sizeof(Mix_Chunk*));
     }
 }
 
@@ -149,7 +149,7 @@ init_game(void) {
     game->running = true;
     game->event = malloc(sizeof(SDL_Event));
     game->scrn = malloc(sizeof(screen));
-    game->sounds = init_map();
+    game->sounds = map_init();
     return game;
 }
 
@@ -158,10 +158,10 @@ free_game(asteroids_game *game) {
     free_ship(game->current_ship);
     if (game->sounds) {
         // sound map contains only pointers to chunk pointers for proper freeing
-        Mix_FreeChunk(*((Mix_Chunk**)get(game->sounds, SOUND_SHIP_THRUSTER)));
-        Mix_FreeChunk(*((Mix_Chunk**)get(game->sounds, SOUND_SHIP_SHOOT)));
+        Mix_FreeChunk(*((Mix_Chunk**) map_get(game->sounds, SOUND_SHIP_THRUSTER)));
+        Mix_FreeChunk(*((Mix_Chunk**) map_get(game->sounds, SOUND_SHIP_SHOOT)));
     }
-    free_map(game->sounds);
+    map_free(game->sounds);
     free(game->keys);
     free(game->scrn);
     free(game->event);
@@ -259,7 +259,7 @@ run(asteroids_game *game) {
     game->current_ship = allocate_ship(game->scrn->width >> 1,
                                        game->scrn->height >> 1,
                                        play_lazer_sound,
-                                       *((Mix_Chunk**)get(game->sounds, SOUND_SHIP_SHOOT)));
+                                       *((Mix_Chunk**) map_get(game->sounds, SOUND_SHIP_SHOOT)));
 
     uint32_t then;
     uint32_t now = SDL_GetTicks();

@@ -34,7 +34,7 @@ typedef struct _pref* pref;
 
 void free_pref(preference p) {
     pref this = p;
-    free_map(this->pref_map);
+    map_free(this->pref_map);
     free(this->file);
     free(this);
 }
@@ -44,7 +44,7 @@ preference read_pref(char* file_name) {
     // initialize preference
     pref this = calloc(1, sizeof(struct _pref));
     this->file = calloc(FILE_NAME_LENGTH, sizeof(char));
-    this->pref_map = init_map();
+    this->pref_map = map_init();
 
     // see if we can find the passed file name
     char *home = getenv("HOME");
@@ -59,7 +59,7 @@ preference read_pref(char* file_name) {
         while(fscanf(pref_file, "%s", line) != EOF) {
             char *key = strtok(line, PREF_DELIM);
             char *value = strtok(NULL, PREF_DELIM);
-            put(this->pref_map, key, value, strlen(value) + 1);
+            map_put(this->pref_map, key, value, strlen(value) + 1);
         }
         fclose(pref_file);
     }
@@ -116,7 +116,7 @@ void write_pref(preference p) {
         int i;
         for (i = 0; i < vector_size(keys); i++) {
             char *key = vector_get(keys, i);
-            char *value = get(this->pref_map, key);
+            char *value = map_get(this->pref_map, key);
             fprintf(pref_file, "%s%s%s\n", key, PREF_DELIM, value);
         }
         vector_free(keys);
@@ -129,7 +129,7 @@ void write_pref(preference p) {
 
 char* get_spref(preference p, char *key) {
     pref this = p;
-    return get(this->pref_map, key);
+    return map_get(this->pref_map, key);
 }
 
 int8_t
@@ -140,5 +140,5 @@ pref_empty(preference p) {
 
 void put_spref(preference p, char *key, char *value) {
     pref this = p;
-    put(this->pref_map, key, value, strlen(value) + 1);
+    map_put(this->pref_map, key, value, strlen(value) + 1);
 }
