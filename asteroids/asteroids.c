@@ -71,19 +71,41 @@ internal int8_t
 asteroids_menu_callback(SDL_Renderer *renderer, int index, char **menu_item, void *param) {
     asteroids_game *game = param;
     switch (index) {
-        case 0:
+        case 0: // new game
             return false;
-        case 1:
+        case 1: // options
             display_options_menu(renderer, game);
             return true;
-        case 2:
+        case 2: // about
             return true;
-        case 3:
+        case 3: // quit
             free_game(game);
             shutdown();
             exit(EXIT_SUCCESS);
         default:
             return true;
+    }
+}
+
+internal int8_t
+asteroids_paused_menu_callback(SDL_Renderer *renderer, int index, char **menu_item, void *param) {
+    asteroids_game *game = param;
+    switch (index) {
+        case 0: // continue
+            return false;
+        case 1: // new game
+            //TODO init new game
+            return false;
+        case 2: // options
+            display_options_menu(renderer, game);
+            return true;
+        case 3: // about
+            return true;
+        case 4: // quit
+        default:
+            free_game((asteroids_game*)param);
+            shutdown();
+            exit(EXIT_SUCCESS);
     }
 }
 
@@ -105,6 +127,32 @@ display_starting_menu(SDL_Renderer *renderer, asteroids_game *game) {
     init_title_font(m, FONT_ASTEROIDS_TITLE);
 
     if (display_menu(renderer, m, FONT_ASTEROIDS_MENU, "Asteroids", game) == QUIT_FROM_MENU) {
+        free_game(game);
+        shutdown();
+        exit(EXIT_SUCCESS);
+    }
+    destroy_menu(m);
+}
+
+internal void
+display_pause_menu(SDL_Renderer *renderer, asteroids_game *game) {
+    char *menu_items[MENU_ITEM_SIZE];
+    menu_items[0] = "Continue";
+    menu_items[1] = "New Game";
+    menu_items[2] = "Options";
+    menu_items[3] = "About Asteroids";
+    menu_items[4] = "Quit";
+
+    SDL_Rect menu_rect = {};
+    menu_rect.x = 0;
+    menu_rect.y = 0;
+    menu_rect.w = game->scrn->width;
+    menu_rect.h = game->scrn->height;
+
+    menu m = init_menu(5, asteroids_paused_menu_callback, menu_items, &BLACK, &BLUE, &menu_rect);
+    init_title_font(m, FONT_ASTEROIDS_TITLE);
+
+    if (display_menu(renderer, m, FONT_ASTEROIDS_MENU, "Paused", game) == QUIT_FROM_MENU) {
         free_game(game);
         shutdown();
         exit(EXIT_SUCCESS);
@@ -169,6 +217,14 @@ free_game(asteroids_game *game) {
 }
 
 internal void
+clear_keys(keyboard **keys) {
+    if (*keys) {
+        free(*keys);
+        *keys = calloc(1, sizeof(keyboard));
+    }
+}
+
+internal void
 process_event(asteroids_game *game) {
     switch (game->event->type) {
         case SDL_QUIT:
@@ -176,9 +232,15 @@ process_event(asteroids_game *game) {
             break;
         case SDL_KEYDOWN:
             switch (game->event->key.keysym.sym) {
-                case SDLK_ESCAPE:
-                    game->running = false;
-                    break;
+                case SDLK_PAUSE:
+                case SDLK_ESCAPE: {
+                    SDL_Window *window = SDL_GetWindowFromID(game->event->window.windowID);
+                    SDL_Renderer *renderer = SDL_GetRenderer(window);
+                    thrusting_state(game->current_ship, false);
+                    update_sounds(game);
+                    display_pause_menu(renderer, game);
+                    clear_keys(&game->keys);
+                } break;
                 case SDLK_UP:
                     game->keys->up_down = true;
                     break;

@@ -43,4 +43,9 @@ void free_ship(ship s);
  */
 int8_t ship_thrusting(ship s);
 
+/*
+ * Sets the state of the ships thrusting sound
+ */
+void thrusting_state(ship s, int8_t state);
+
 #endif //SDL_GRAPHICS_SHIP_H

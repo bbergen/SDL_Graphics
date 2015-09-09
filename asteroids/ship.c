@@ -305,3 +305,9 @@ ship_thrusting(ship s) {
     assert(s);
     return ((_ship*)s)->thrusting;
 }
+
+void
+thrusting_state(ship s, int8_t state) {
+    assert(s);
+    ((_ship*)s)->thrusting = state;
+}
