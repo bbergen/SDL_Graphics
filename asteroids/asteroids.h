@@ -26,6 +26,7 @@ global const char* SOUND_SHIP_SHOOT = "resources/sounds/asteroids/effects/shoot.
  */
 typedef struct asteroids_game {
     int8_t running;
+    int8_t game_over;
     SDL_Event *event;
     keyboard *keys;
     screen *scrn;

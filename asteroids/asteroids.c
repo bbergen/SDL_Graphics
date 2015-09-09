@@ -94,7 +94,7 @@ asteroids_paused_menu_callback(SDL_Renderer *renderer, int index, char **menu_it
         case 0: // continue
             return false;
         case 1: // new game
-            //TODO init new game
+            game->game_over = true;
             return false;
         case 2: // options
             display_options_menu(renderer, game);
@@ -195,6 +195,7 @@ init_game(void) {
     asteroids_game *game = malloc(sizeof(asteroids_game));
     game->keys = calloc(1, sizeof(keyboard)); //keys must be zeroed
     game->running = true;
+    game->game_over = false;
     game->event = malloc(sizeof(SDL_Event));
     game->scrn = malloc(sizeof(screen));
     game->sounds = map_init();
@@ -291,6 +292,17 @@ play_lazer_sound(void *sound) {
 }
 
 internal void
+reset_game_state(SDL_Window *window, asteroids_game *game) {
+    game = init_game();
+    init_sounds(game);
+    SDL_GetWindowSize(window, &game->scrn->width, &game->scrn->height);
+    game->current_ship = allocate_ship(game->scrn->width >> 1,
+                                       game->scrn->height >> 1,
+                                       play_lazer_sound,
+                                       *((Mix_Chunk**) map_get(game->sounds, SOUND_SHIP_SHOOT)));
+}
+
+internal void
 run(asteroids_game *game) {
 
     SDL_Window *window = SDL_CreateWindow("Asteroids!",
@@ -305,7 +317,7 @@ run(asteroids_game *game) {
     }
 
     //TODO change to a user preference later on
-    SDL_SetWindowFullscreen(window, SDL_WINDOW_FULLSCREEN_DESKTOP);
+//    SDL_SetWindowFullscreen(window, SDL_WINDOW_FULLSCREEN_DESKTOP);
     SDL_GetWindowSize(window, &game->scrn->width, &game->scrn->height);
 
     SDL_Renderer *renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
@@ -336,6 +348,11 @@ run(asteroids_game *game) {
 
         while(SDL_PollEvent(game->event) != 0) {
             process_event(game);
+        }
+
+        if (game->game_over) {
+            free_game(game);
+            reset_game_state(window, game);
         }
 
         if (ticks_passed >= update_freq) {
