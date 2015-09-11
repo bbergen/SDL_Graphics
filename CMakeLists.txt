@@ -13,7 +13,8 @@ set(TEST_SOURCE
     common/util.c
     common/map.c
     common/vector.c
-    common/preference.c)
+    common/preference.c
+    common/random.c)
 set(BALL_SOURCE ball/ball.c)
 set(PONG_SOURCE pong/pong.c pong/pong.h)
 set(BREAKER_SOURCE

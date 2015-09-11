@@ -164,6 +164,7 @@ display_pause_menu(SDL_Renderer *renderer, asteroids_game *game) {
 internal void
 update(asteroids_game *game) {
     update_ship(game->current_ship, *game->keys, *game->scrn);
+    update_asteroid(game->test, *game->scrn);
     update_sounds(game);
 }
 

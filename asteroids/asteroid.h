@@ -6,6 +6,7 @@
 #define SDL_GRAPHICS_ASTEROID_H
 
 #include <SDL2/SDL_render.h>
+#include "asteroid_types.h"
 
 typedef enum ASTEROID_TYPE {
     LARGE, SMALL
@@ -19,7 +20,7 @@ typedef void* asteroid;
 /*
  * Updates location of asteroid on the screen
  */
-void update_asteroid(asteroid a);
+void update_asteroid(asteroid a, screen scrn);
 
 /*
  * Draws an asteroid to the screen

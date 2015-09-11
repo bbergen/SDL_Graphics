@@ -10,6 +10,7 @@
 #include <map.h>
 #include <vector.h>
 #include <preference.h>
+#include <random.h>
 
 #define LOG_RED(s) printf("%s %s %s", ANSI_COLOR_RED, (s), ANSI_COLOR_RED)
 #define LOG_GREEN(s) printf("%s%s%s", ANSI_COLOR_GREEN, (s), ANSI_COLOR_RESET)
@@ -330,6 +331,17 @@ run_pref_test(void) {
     LOG_GREEN("Preference Tests Completed\n\n");
 }
 
+internal void
+run_random_test(void) {
+    LOG_YELLOW("Starting Random Test\n");
+    int i;
+    for (i = 0; i < 100; i++) {
+        printf("Min: %d, Max: %d, Value: %d\n", 10, 30, (int) random_in_range(10, 30));
+        printf("Random Double: %f\n", random_double());
+    }
+    LOG_GREEN("Random Test Completed\n");
+}
+
 int
 main(int argc, char **argv) {
     run_list_test();
@@ -337,5 +349,6 @@ main(int argc, char **argv) {
     run_map_test();
     run_vector_test();
     run_pref_test();
+    run_random_test();
     return EXIT_SUCCESS;
 }
