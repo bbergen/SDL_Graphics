@@ -19,7 +19,7 @@ long random_in_range(long, long);
 int8_t random_bool(void);
 
 /*
- * Generates a pseudo-random, uniform integer between 0 and RAND_MAX
+ * Generates a pseudo-random, uniform double between 0 and 1.0000
  */
 double random_double(void);
 
