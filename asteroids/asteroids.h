@@ -8,6 +8,7 @@
 #include <map.h>
 #include "ship.h"
 #include "asteroid_types.h"
+#include "asteroid.h"
 
 #define FREE_CHANNEL -1
 
@@ -31,6 +32,7 @@ typedef struct asteroids_game {
     keyboard *keys;
     screen *scrn;
     ship current_ship;
+    asteroid test;
     hash_map sounds;
 } asteroids_game;
 

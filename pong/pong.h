@@ -1,6 +1,8 @@
 //
 // Created by bryan on 7/23/15.
 //
+#include <SDL2/SDL_mixer.h>
+#include <SDL2/SDL_ttf.h>
 #include "common.h"
 
 #ifndef SDL_GRAPHICS_PONG_H

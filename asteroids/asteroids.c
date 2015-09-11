@@ -12,6 +12,7 @@
 #include <SDL2/SDL_mixer.h>
 #include <colors.h>
 #include <menu.h>
+#include <time.h>
 #include "asteroids.h"
 
 
@@ -173,6 +174,7 @@ render(SDL_Renderer *renderer, asteroids_game *game) {
     SDL_RenderClear(renderer);
 
     //TODO do drawing here
+    render_asteroid(renderer, game->test);
     render_ship(renderer, game->current_ship);
 
     // present renderer
@@ -199,6 +201,7 @@ init_game(void) {
     game->event = malloc(sizeof(SDL_Event));
     game->scrn = malloc(sizeof(screen));
     game->sounds = map_init();
+    game->test = generate_asteroid(500, 500, LARGE);
     return game;
 }
 
@@ -211,6 +214,7 @@ free_game(asteroids_game *game) {
         Mix_FreeChunk(*((Mix_Chunk**) map_get(game->sounds, SOUND_SHIP_SHOOT)));
     }
     map_free(game->sounds);
+    free_asteroid(game->test);
     free(game->keys);
     free(game->scrn);
     free(game->event);
@@ -242,15 +246,19 @@ process_event(asteroids_game *game) {
                     display_pause_menu(renderer, game);
                     clear_keys(&game->keys);
                 } break;
+                case SDLK_w:
                 case SDLK_UP:
                     game->keys->up_down = true;
                     break;
+                case SDLK_s:
                 case SDLK_DOWN:
                     game->keys->down_down = true;
                     break;
+                case SDLK_a:
                 case SDLK_LEFT:
                     game->keys->left_down = true;
                     break;
+                case SDLK_d:
                 case SDLK_RIGHT:
                     game->keys->right_down = true;
                     break;
@@ -262,15 +270,19 @@ process_event(asteroids_game *game) {
             break;
         case SDL_KEYUP:
             switch (game->event->key.keysym.sym) {
+                case SDLK_w:
                 case SDLK_UP:
                     game->keys->up_down = false;
                     break;
+                case SDLK_s:
                 case SDLK_DOWN:
                     game->keys->down_down = false;
                     break;
+                case SDLK_a:
                 case SDLK_LEFT:
                     game->keys->left_down = false;
                     break;
+                case SDLK_d:
                 case SDLK_RIGHT:
                     game->keys->right_down = false;
                     break;
@@ -317,7 +329,7 @@ run(asteroids_game *game) {
     }
 
     //TODO change to a user preference later on
-//    SDL_SetWindowFullscreen(window, SDL_WINDOW_FULLSCREEN_DESKTOP);
+    SDL_SetWindowFullscreen(window, SDL_WINDOW_FULLSCREEN_DESKTOP);
     SDL_GetWindowSize(window, &game->scrn->width, &game->scrn->height);
 
     SDL_Renderer *renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
