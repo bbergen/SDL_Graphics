@@ -7,6 +7,8 @@
 #include <colors.h>
 #include "asteroid.h"
 
+#define MIN_ROTATION 0.005
+#define MAX_ROTATION 0.03
 #define MAX_VERTICES 12
 #define MAX_ASTEROID_SPEED 7
 #define MIN_ASTEROID_SPEED 2
@@ -17,6 +19,8 @@ typedef struct _asteroid {
     double anchor_x;
     double anchor_y;
     double dir;
+    double rotation_dir;
+    double rotational_speed;
     int speed;
     int vertices;
     int *x_offsets;
@@ -61,7 +65,10 @@ generate_asteroid(int x, int y, ASTEROID_TYPE type) {
     this->speed = (int) random_in_range(MIN_ASTEROID_SPEED, MAX_ASTEROID_SPEED);
 
     // generate random asteroid rotation
-    //TODO implement rotation
+    this->rotation_dir = RADIANS;
+    double rotation_speed = random_double() * (MAX_ROTATION - MIN_ROTATION) + MAX_ROTATION;
+    rotation_speed *= random_bool() ? 1 : -1;
+    this->rotational_speed = rotation_speed;
 
     return this;
 }
@@ -93,6 +100,14 @@ update_asteroid(asteroid a, screen scrn) {
     double y_vector = cos(this->dir);
     this->anchor_x += x_vector * this->speed;
     this->anchor_y -= y_vector * this->speed;
+
+    this->rotation_dir += this->rotational_speed;
+    if (this->rotation_dir > RADIANS) {
+        this->rotation_dir = 0.0;
+    } else if (this->rotation_dir < 0.0 ) {
+        this->rotation_dir = RADIANS;
+    }
+
     enforce_bounds(&this->anchor_x, &this->anchor_y, scrn);
 }
 
@@ -100,13 +115,26 @@ void
 render_asteroid(SDL_Renderer *renderer, asteroid a) {
     SDL_SetRenderDrawColor(renderer, WHITE.r, WHITE.g, WHITE.b, WHITE.a);
     _asteroid *this = a;
+
+    double cosine = cos(this->rotation_dir);
+    double sine = sin(this->rotation_dir);
+
     int i;
     for (i = 0; i < this->vertices; i++) {
-        int x = (int) this->anchor_x + this->x_offsets[i];
-        int y = (int) this->anchor_y + this->y_offsets[i];
-        int next_x = (int) this->anchor_x + this->x_offsets[(i + 1) % this->vertices];
-        int next_y = (int) this->anchor_y + this->y_offsets[(i + 1) % this->vertices];
-        SDL_RenderDrawLine(renderer, x, y, next_x, next_y);
+
+        int distance_x = -this->x_offsets[i];
+        int distance_y = -this->y_offsets[i];
+
+        int rotated_x = (int) (cosine * distance_x - sine * distance_y + this->anchor_x);
+        int rotated_y = (int) (sine * distance_x + cosine * distance_y + this->anchor_y);
+
+        int d_next_x = -this->x_offsets[(i + 1) % this->vertices];
+        int d_next_y = -this->y_offsets[(i + 1) % this->vertices];
+
+        int next_rotated_x = (int) (cosine * d_next_x - sine * d_next_y + this->anchor_x);
+        int next_rotated_y = (int) (sine * d_next_x + cosine * d_next_y + this->anchor_y);
+
+        SDL_RenderDrawLine(renderer, rotated_x, rotated_y, next_rotated_x, next_rotated_y);
     }
 }
 
