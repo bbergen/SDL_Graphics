@@ -8,7 +8,9 @@ install:
 
 script:
   - cmake . && make
-  - cd test && ./TEST_Common
+
+after_script:
+  - cd bin && ./TEST_Common
 
 compiler:
   - gcc
