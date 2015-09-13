@@ -8,13 +8,22 @@
 #include <list.h>
 #include <util.h>
 #include <map.h>
-#include <vector.h>
 #include <preference.h>
 #include <random.h>
+#include <unistd.h>
 
-#define LOG_RED(s) printf("%s %s %s", ANSI_COLOR_RED, (s), ANSI_COLOR_RED)
+#define ACCEPTABLE_THRESHOLD 1.0
+
+#define LOG_RED(s) printf("%s%s%s", ANSI_COLOR_RED, (s), ANSI_COLOR_RESET)
 #define LOG_GREEN(s) printf("%s%s%s", ANSI_COLOR_GREEN, (s), ANSI_COLOR_RESET)
 #define LOG_YELLOW(s) printf("%s%s%s", ANSI_COLOR_YELLOW, (s), ANSI_COLOR_RESET)
+
+#define ASSERT_TRUE(val) if (!(val)) { return false; }
+#define ASSERT_FALSE(val) if ((val)) { return false; }
+#define ASSERT_I_EQUAL(x, y) if ((x) != (y)) { return false; }
+#define ASSERT_S_EQUAL(x, y) if (strcmp((x), (y)) != 0) { return false; }
+
+typedef int8_t (*test_function)(void);
 
 typedef struct test_data {
     char *display_text;
@@ -22,28 +31,23 @@ typedef struct test_data {
     int y;
 } test_data;
 
+internal int8_t
+test_data_equals(test_data *first, test_data *second) {
+    if (first->x != second->x) {
+        return false;
+    }
+
+    if (first->y != second->y) {
+        return false;
+    }
+
+    return strcmp(first->display_text, second->display_text) == 0;
+}
+
 internal void
 test_free(void *data) {
     test_data *test = (test_data*) data;
-    printf("Freeing: %s\n", test->display_text);
     free(test->display_text);
-}
-
-internal int8_t
-print_test_data(void *data) {
-    test_data *test = (test_data*) data;
-    printf("Printing: %s\n", test->display_text);
-    printf("X: %d, Y: %d\n\n", test->x, test->y);
-    return true;
-}
-
-internal int8_t
-print_test_node_params(void *data, void *param) {
-    test_data *test = (test_data*) data;
-    char *param_string = (char*) param;
-    printf("Printing: %s\n", test->display_text);
-    printf("Parameter: %s\n\n", param_string);
-    return true;
 }
 
 internal void
@@ -54,14 +58,19 @@ allocate_test_data(test_data *test, char *display_text, int x, int y) {
     test->y = y;
 }
 
-internal void
+internal int8_t
+for_each_list(void *node, void *param) {
+    int *ptr = param;
+    (*ptr)++;
+    return true;
+}
+
+internal int8_t
 run_list_test(void) {
-    LOG_YELLOW("Starting List Tests...\n");
 
     list test_list;
-
     list_init(&test_list, sizeof(test_data), test_free);
-
+    ASSERT_TRUE(&test_list);
 
     test_data first;
     test_data second;
@@ -74,12 +83,12 @@ run_list_test(void) {
     list_add(&test_list, &first);
     list_add(&test_list, &second);
     list_add(&test_list, &third);
+    ASSERT_I_EQUAL(list_size(&test_list), 3);
 
-    printf("Size of test_list: %d\n", list_size(&test_list));
-    list_for_each(&test_list, print_test_data);
-    list_for_each_with_param(&test_list, print_test_node_params, "Dynamic Parameter");
+    int count = 0;
+    list_for_each_with_param(&test_list, for_each_list, &count);
+    ASSERT_I_EQUAL(count, list_size(&test_list));
 
-    printf("Testing Add At\n");
     test_data head;
     test_data tail;
     test_data mid;
@@ -88,108 +97,62 @@ run_list_test(void) {
     allocate_test_data(&tail, "Inserted at TAIL", 99, 99);
     allocate_test_data(&mid, "Inserted at MID", 33, 33);
 
-    printf("List Size: %d\n", test_list.length);
-    list_add_at(&test_list, 0, &head);
-    printf("List Size: %d\n", test_list.length);
-    list_add_at(&test_list, list_size(&test_list), &tail);
-    printf("List Size: %d\n", test_list.length);
-    list_add_at(&test_list, 2, &mid);
-    printf("List Size: %d\n", test_list.length);
-    list_for_each(&test_list, print_test_data);
-    printf("Add At Test Success!\n");
-
-    printf("Testing Remove At\n");
-
-    printf("List Size: %d\n", test_list.length);
-    list_remove(&test_list, 0); // test head removal
-    printf("List Size: %d\n", test_list.length);
-    list_remove(&test_list, test_list.length - 1); // test tail removal
-    printf("List Size: %d\n", test_list.length);
-    list_remove(&test_list, 1); // test mid removal
-    printf("List Size: %d\n", test_list.length);
-    list_for_each(&test_list, print_test_data);
-
-    printf("Remove At Test Success\n");
-
-    printf("Address of allocated test_list head: %p\n", test_list.head);
     list_free(&test_list);
-    printf("Address of freed test_list head: %p\n", test_list.head);
-
-    LOG_GREEN("List Test Completed\n\n");
+    return true;
 }
 
-internal void
+internal int8_t
 run_itoa_test(void) {
-    LOG_YELLOW("Starting Util Tests...\n");
-
     int n = 123;
     char *expected = "0000123";
     char test[100];
     itoa(n, test, 7);
-    printf("Expected: %s, Result: %s\n\n", expected, test);
+    ASSERT_S_EQUAL(expected, test);
 
     n = -54321;
     char test2[100];
     itoa(n, test2, 0);
-    printf("Expected: %d, Result: %s\n\n", n, test2);
+    char ex[10] = {};
+    sprintf(ex, "%d", n);
+    ASSERT_S_EQUAL(ex, test2);
 
-    LOG_GREEN("Util Tests Completed\n\n");
+    return true;
 }
 
-internal void
+internal int8_t
 run_map_test(void) {
-    LOG_YELLOW("Starting Map Tests...\n");
 
-    hash_map map;
-    map = map_init();
+    hash_map map = map_init();
+    ASSERT_TRUE(map);
 
-    // test put
-    printf("Starting put test...\n");
     char *key_1 = "key_1";
     char *value_1 = "hello world!";
     map_put(map, key_1, value_1, strlen(value_1) + 1);
-    printf("Expected: %s, Result: %s\n", value_1, (char*) map_get(map, key_1 ));
-    printf("End put test\n\n");
+    ASSERT_S_EQUAL(value_1, map_get(map, key_1));
 
-    // test overwrite
-    printf("Starting overwrite test...\n");
     char *value_2 = "good bye!";
     map_put(map, key_1, value_2, strlen(value_2) + 1);
-    printf("Expected: %s, Result: %s\n", value_2, (char*) map_get(map, key_1));
-    printf("End overwrite test\n\n");
+    ASSERT_S_EQUAL(value_2, map_get(map, key_1));
 
-    // test delete
-    printf("Starting removal test...\n");
     char *key_2 = "KEY_TWO";
     map_put(map, key_2, value_2, strlen(value_2) + 1);
     map_remove(map, key_2);
-    printf("Entry Removal %s\n", map_get(map, key_2) ? "Failed" : "Succeeded");
-
-    // test idempotency of delete
+    ASSERT_FALSE(map_get(map, key_2));
     map_remove(map, key_2);
-    printf("End removal test\n\n");
+    ASSERT_FALSE(map_get(map, key_2));
 
-    // test map growth
-    printf("Starting growth test...\n");
-    char buffer[512];
+    char buffer[512] = {};
     int i;
     for (i = 0; i < 10000; i++) {
         sprintf(buffer, "%d", i);
         map_put(map, buffer, buffer, strlen(buffer));
+        ASSERT_TRUE(map_get(map, buffer));
     }
-    for (i = 0; i < 10000; i += 1000) {
-        sprintf(buffer, "%d", i);
-        printf("Stored Value: %s\n", (char*) map_get(map, buffer));
-    }
-    printf("End growth test\n\n");
 
-    //test map freeing
     map_free(map);
-
-    // new map
     map =  map_init();
+    ASSERT_TRUE(map);
 
-    // testing struct values
     test_data data_1;
     test_data data_2;
     test_data data_3;
@@ -200,59 +163,51 @@ run_map_test(void) {
     char *key_4 = "duplicate_key";
     char *key_5 = "duplicate_key";
 
-    printf("Starting struct value test...\n");
     map_put(map, key_3, &data_1, sizeof(test_data));
     map_put(map, key_4, &data_2, sizeof(test_data));
     map_put(map, key_5, &data_3, sizeof(test_data));
 
-    printf("Expected: \n");
-    print_test_data(&data_1);
-    printf("Result: \n");
-    print_test_data(map_get(map, key_3));
+    test_data data[] = {
+            {"Test Struct One!", 42, 42},
+            {"Test Struct Two!", 11, 21},
+            {"Test Struct Three!", 400, -67}
+    };
 
-    printf("Expected: \n");
-    print_test_data(&data_3);
-    printf("Result: \n");
-    print_test_data(map_get(map, key_4));
-
-    printf("Expected: \n");
-    print_test_data(&data_3);
-    printf("Result: \n");
-    print_test_data(map_get(map, key_5));
+    ASSERT_TRUE(test_data_equals(&data[0], map_get(map, key_3)));
+    ASSERT_TRUE(test_data_equals(&data[2], map_get(map, key_4)));
+    ASSERT_TRUE(test_data_equals(&data[2], map_get(map, key_5)));
 
     test_free(&data_1);
     test_free(&data_2);
     test_free(&data_3);
-    printf("End struct value test\n\n");
     map_free(map);
 
-    LOG_GREEN("Map Tests Completed\n\n");
+    return true;
 }
 
-internal void
+internal int8_t
 run_vector_test(void) {
-    LOG_YELLOW("Starting Vector Tests...\n");
 
-    printf("Starting Vector Initialization Tests\n");
     vector v = vector_init(10);
+
+    ASSERT_TRUE(v);
     vector_add(v, "Test");
     vector_add(v, "Vector");
     vector_add(v, "Please");
     vector_add(v, "Ignore");
-    printf("Vector Initialization Successful\n");
+    ASSERT_I_EQUAL(vector_size(v), 4);
 
-    printf("Starting Standard Iteration Tests\n");
-    int i;
-    for (i = 0; i < vector_size(v); i++) {
-        printf("%s ", (char*) vector_get(v, i));
-    }
-    printf("\n");
+    ASSERT_S_EQUAL("Test", vector_get(v, 0));
+    ASSERT_S_EQUAL("Vector", vector_get(v, 1));
+    ASSERT_S_EQUAL("Please", vector_get(v, 2));
+    ASSERT_S_EQUAL("Ignore", vector_get(v, 3));
 
     test_data data1;
     test_data data2;
     test_data data3;
     test_data data4;
     vector v2 = vector_init(0);
+    ASSERT_TRUE(v2);
     allocate_test_data(&data1, "Test", 1, 2);
     vector_add(v2, &data1);
     allocate_test_data(&data2, "Vector", 3, 4);
@@ -261,94 +216,142 @@ run_vector_test(void) {
     vector_add(v2, &data3);
     allocate_test_data(&data4, "Ignore", 7, 8);
     vector_add(v2, &data4);
+    ASSERT_I_EQUAL(vector_size(v2), 4);
 
+    test_data data[] = {
+            {"Test", 1, 2},
+            {"Vector", 3, 4},
+            {"Please", 5, 6},
+            {"Ignore", 7, 8}
+    };
+
+    int i;
     for (i = 0; i < vector_size(v2); i++) {
-        print_test_data(vector_get(v2, i));
+        ASSERT_TRUE(test_data_equals(vector_get(v2, i), &data[i]));
     }
-
-    printf("\nStandard Iteration Success!\n");
-
-    printf("Starting Vector Set & Remove Tests\n");
 
     vector_remove(v, 3);
     vector_remove(v, 2);
     vector_remove(v, 1);
+    ASSERT_I_EQUAL(vector_size(v), 1);
     vector_set(v, 0, "Hello");
+    ASSERT_I_EQUAL(vector_size(v), 1);
     vector_add(v, "World!");
+    ASSERT_I_EQUAL(vector_size(v), 2);
 
-    for (i = 0; i < vector_size(v); i++) {
-        printf("%s ", (char*) vector_get(v, i));
-    }
-    printf("\nVector Set & Remove Tests Success!\n");
+    ASSERT_S_EQUAL("Hello", vector_get(v, 0));
+    ASSERT_S_EQUAL("World!", vector_get(v, 1));
 
-    printf("Starting Vector Resize Tests\n");
     vector v3 = vector_init(0);
+    ASSERT_TRUE(v3);
+
     for (i = 0; i < 10000; i++) {
         vector_add(v3, "TEST_STRING");
     }
-    printf("Vector Size Expected: %d, Actual: %d\n", 10000, vector_size(v3));
-    printf("Vector Resize Test Success!\n");
+    ASSERT_I_EQUAL(vector_size(v3), 10000);
 
-    printf("Starting Vector Free Test\n");
     vector_free(v);
     vector_free(v2);
     vector_free(v3);
-    printf("Vector Free Test Success!\n");
-    LOG_GREEN("Vector Tests Completed\n\n");
+    return true;
 }
 
-internal void
+internal int8_t
 run_pref_test(void) {
 
-    LOG_YELLOW("Starting Preference Test\n");
     char *test_file = "/.sdl/unit/test/preference.config";
 
-    printf("Starting Preference Read Test\n");
     preference prefs = read_pref(test_file);
-    printf("Preferences Read\n\n");
+    ASSERT_TRUE(prefs);
 
     if (!pref_empty(prefs)) {
-        printf("Starting Preference Get Tests\n");
-        printf("Expected: %s, result: %s\n", "preferences", get_spref(prefs, "testing"));
-        printf("Expected: %s, result: %s\n", "pref_test", get_spref(prefs, "another"));
-        printf("Expected: %s, result: %s\n", "test!", get_spref(prefs, "third"));
-        printf("Preferences Retrieved\n\n");
+        ASSERT_S_EQUAL("preferences", get_spref(prefs, "testing"));
+        ASSERT_S_EQUAL("pref_test", get_spref(prefs, "another"));
+        ASSERT_S_EQUAL("test!", get_spref(prefs, "third"));
     }
 
-    printf("Starting Preference Put Test\n");
     put_spref(prefs, "testing", "preferences");
     put_spref(prefs, "another", "pref_test");
     put_spref(prefs, "third", "test!");
-    printf("Preferences Put\n\n");
+    ASSERT_TRUE(!pref_empty(prefs));
 
-    printf("Starting Preference Write Test\n");
     write_pref(prefs);
-    printf("Preferences Written\n\n");
 
-    printf("Starting Preferences Free Test\n");
+    char file[50] = {};
+    char *home = getenv("HOME");
+    strcat(file, home);
+    strcat(file, test_file);
+    ASSERT_TRUE(access(file, F_OK) != -1);
+
     free_pref(prefs);
-    printf("Preferences Freed\n");
-    LOG_GREEN("Preference Tests Completed\n\n");
+    return true;
 }
 
-internal void
+internal int8_t
 run_random_test(void) {
-    LOG_YELLOW("Starting Random Test\n");
     int i;
-    for (i = 0; i < 100; i++) {
-        printf("Min: %d, Max: %d, Value: %d\n", 10, 30, (int) random_in_range(10, 30));
-        printf("Random Double: %f\n", random_double());
+    for (i = 0; i < 10000; i++) {
+        int rand_int = (int) random_in_range(10, 30);
+        ASSERT_TRUE(rand_int >= 10 && rand_int <= 30);
+        double rand_double = random_double();
+        ASSERT_TRUE(rand_double >= 0.0 && rand_double <= 1.0);
     }
-    LOG_GREEN("Random Test Completed\n");
+    return true;
+}
+
+/*
+ * Add test cases to this array
+ */
+global test_function tests[] = {
+        run_list_test,
+        run_itoa_test,
+        run_map_test,
+        run_vector_test,
+        run_pref_test,
+        run_random_test
+};
+
+global char* test_names[] = {
+        "List Test",
+        "ITOA Test",
+        "Map Test",
+        "Vector Test",
+        "Preference Test",
+        "Random Utilities Test"
+};
+
+internal int
+run_all_tests(void) {
+    double total_tests = count(tests);
+    double passed = 0;
+
+    int i;
+    for (i = 0; i < total_tests; i++) {
+        char start[50];
+        LOG_YELLOW(test_names[i]);
+        LOG_YELLOW("\nStarting Test...\t\t\t\t\t");
+        int8_t result = tests[i]();
+        char end[50];
+        if (result) {
+            passed++;
+            sprintf(end, "PASSED!");
+            LOG_GREEN(end);
+        } else {
+            sprintf(end, "FAILED!");
+            LOG_RED(end);
+        }
+        printf("\n");
+    }
+
+    double percent = passed / total_tests;
+    if (percent >= ACCEPTABLE_THRESHOLD) {
+        return EXIT_SUCCESS;
+    } else {
+        return EXIT_FAILURE;
+    }
 }
 
 int
 main(int argc, char **argv) {
-    run_list_test();
-    run_itoa_test();
-    run_map_test();
-    run_vector_test();
-    run_pref_test();
-    run_random_test();
-    return EXIT_SUCCESS;
+    return run_all_tests();
 }

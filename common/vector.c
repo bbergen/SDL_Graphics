@@ -35,10 +35,6 @@ vector_resize(vector v, int capacity) {
         return;
     }
 
-#if DEBUG
-    printf("resize_vector: %d to %d\n", this->capacity, capacity);
-#endif
-
     void **data = realloc(this->data, sizeof(void*) * capacity);
     if (data) {
         this->data = data;
