@@ -1,0 +1,12 @@
+language: c
+
+install:
+  - sudo apt-get install cmake gcc build-essential
+  - sudo apt-get install pkg-config
+  - sudo apt-get install libsdl2-dev libsdl2-gfx-dev libsdl2-image-dev libsdl2-mixer-dev libsdl2-ttf-dev libsdl2-net-dev
+
+script:
+  - cmake . && make
+
+compiler:
+  - gcc

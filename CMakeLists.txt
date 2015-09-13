@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.2)
+cmake_minimum_required(VERSION 3.0)
 project(SDL_Graphics)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
@@ -47,12 +47,8 @@ add_executable(SDL_Breaker ${BREAKER_SOURCE})
 add_executable(SDL_Asteroids ${ASTEROIDS_SOURCE})
 add_executable(TEST_Common ${TEST_SOURCE})
 
-INCLUDE(FindPkgConfig)
-
-PKG_SEARCH_MODULE(SDL2 REQUIRED sdl2)
-
 include_directories(SDL_Graphics ${SDL2_INCLUDE_DIR})
-target_link_libraries(SDL_Ball ${SDL2_LIBRARIES})
-target_link_libraries(SDL_Pong ${SDL2_LIBRARIES} SDL2_ttf SDL2_mixer)
-target_link_libraries(SDL_Breaker ${SDL2_LIBRARIES} m SDL2_ttf SDL2_mixer SDL2_image)
-target_link_libraries(SDL_Asteroids ${SDL2_LIBRARIES} m SDL2_ttf SDL2_mixer SDL2_image)
+target_link_libraries(SDL_Ball ${SDL2_LIBRARIES} SDL2)
+target_link_libraries(SDL_Pong ${SDL2_LIBRARIES} SDL2 SDL2_ttf SDL2_mixer)
+target_link_libraries(SDL_Breaker ${SDL2_LIBRARIES} m SDL2 SDL2_ttf SDL2_mixer SDL2_image)
+target_link_libraries(SDL_Asteroids ${SDL2_LIBRARIES} m SDL2 SDL2_ttf SDL2_mixer SDL2_image)

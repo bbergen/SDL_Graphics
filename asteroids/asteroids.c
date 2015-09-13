@@ -12,7 +12,6 @@
 #include <SDL2/SDL_mixer.h>
 #include <colors.h>
 #include <menu.h>
-#include <time.h>
 #include "asteroids.h"
 
 

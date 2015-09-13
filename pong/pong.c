@@ -216,7 +216,8 @@ render_score(SDL_Renderer *renderer, score_box *score) {
 internal void
 render_center_line(SDL_Renderer *renderer) {
     SDL_SetRenderDrawColor(renderer, 0xFF, 0xFF, 0xFF, 0xFF);
-    for (int i = 0; i < SCREEN_HEIGHT; i += 5) {
+    int i;
+    for (i = 0; i < SCREEN_HEIGHT; i += 5) {
         SDL_RenderDrawPoint(renderer, SCREEN_WIDTH >> 1, i);
     }
 }

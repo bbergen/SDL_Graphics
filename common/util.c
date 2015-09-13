@@ -11,9 +11,10 @@
 internal void
 reverse(char s[]) {
     int tmp;
+    int i;
     int j;
 
-    for (int i = 0, j = strlen(s) - 1; i < j; i++, j--) {
+    for (i = 0, j = (int) strlen(s) - 1; i < j; i++, j--) {
         tmp = s[i];
         s[i] = s[j];
         s[j] = (char) tmp;
