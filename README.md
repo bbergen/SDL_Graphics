@@ -7,10 +7,17 @@ As well as learning more C, developing style with the language, and enjoying bui
 ### Build Instructions  
 ----------------------
 
-1. Ensure you have [SDL2](https://www.libsdl.org/download-2.0.php), and the SDL extension libraries [SDL_ttf 2.0](https://www.libsdl.org/projects/SDL_ttf/), [SDL_mixer 2.0](https://www.libsdl.org/projects/SDL_mixer/), and [SDL_image 2.0](https://www.libsdl.org/projects/SDL_mixer/) downloaded and installed.   
+1. Install the following dependencies (mostly SDL2 libs):
+    `   build-essential 
+        libsdl2-dev 
+        libsdl2-gfx-dev 
+        libsdl2-image-dev
+        libsdl2-mixer-dev
+        libsdl2-net-dev
+        libsdl2-ttf-dev`
 2. Check out project: `git clone https://github.com/bbergen/SDL_Graphics`
 3. Change to project directory: `cd SDL_Graphics`
-4. Run CMake: `ccmake .`
+4. Run CMake: `cmake .`
 5. Run Make: `make`
 6. Change to `bin` directory: `cd bin`
 7. Execute the project you'd like to run
