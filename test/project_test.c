@@ -344,9 +344,18 @@ run_all_tests(void) {
     }
 
     double percent = passed / total_tests;
+    char final[50] = {};
+    sprintf(final, "\t\t%0.2f%% of Tests Passed!\n", percent * 100);
+    printf("\n\n");
+    printf("===============================================================\n");
+    printf("Unit Test Results: ");
     if (percent >= ACCEPTABLE_THRESHOLD) {
+        LOG_GREEN(final);
+        printf("===============================================================\n");
         return EXIT_SUCCESS;
     } else {
+        LOG_YELLOW(final);
+        printf("===============================================================\n");
         return EXIT_FAILURE;
     }
 }
