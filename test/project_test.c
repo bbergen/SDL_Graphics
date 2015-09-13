@@ -308,6 +308,7 @@ global test_function tests[] = {
         run_map_test,
         run_vector_test,
         run_pref_test,
+        run_pref_test,
         run_random_test
 };
 
@@ -316,7 +317,8 @@ global char* test_names[] = {
         "ITOA Test",
         "Map Test",
         "Vector Test",
-        "Preference Test",
+        "Preference Write Test",
+        "Preference Read Test",
         "Random Utilities Test"
 };
 
@@ -331,14 +333,11 @@ run_all_tests(void) {
         LOG_YELLOW(test_names[i]);
         LOG_YELLOW("\nStarting Test...\t\t\t\t\t");
         int8_t result = tests[i]();
-        char end[50];
         if (result) {
             passed++;
-            sprintf(end, "PASSED!");
-            LOG_GREEN(end);
+            LOG_GREEN("PASSED!");
         } else {
-            sprintf(end, "FAILED!");
-            LOG_RED(end);
+            LOG_RED("FAILED!");
         }
         printf("\n");
     }
