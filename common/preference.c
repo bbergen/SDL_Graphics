@@ -71,9 +71,6 @@ internal void
 manage_directory(char *path, __mode_t permissions) {
     struct stat st = {};
     if (stat(path, &st) == -1) {
-#ifdef DEBUG
-        printf("Creating New Directory at: %s\n", path);
-#endif
         mkdir(path, permissions);
     }
 }
