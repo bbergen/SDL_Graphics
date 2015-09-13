@@ -7,13 +7,13 @@ As well as learning more C, developing style with the language, and enjoying bui
 ### Build Instructions  
 ----------------------
 
-1. Install the following dependencies. Package names may vary on your distribution:
-    `build-essential` 
-    `libsdl2-dev` 
-    `libsdl2-image-dev`
-    `libsdl2-mixer-dev`
-    `libsdl2-net-dev`
-    `libsdl2-ttf-dev`
+1. Install the following dependencies. Package names may vary on your distribution:  
+    `build-essential`   
+    `libsdl2-dev`   
+    `libsdl2-image-dev`  
+    `libsdl2-mixer-dev`  
+    `libsdl2-net-dev`  
+    `libsdl2-ttf-dev`  
 2. Check out project: `git clone https://github.com/bbergen/SDL_Graphics`
 3. Change to project directory: `cd SDL_Graphics`
 4. Run CMake: `cmake .`
