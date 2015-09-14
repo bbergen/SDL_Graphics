@@ -34,8 +34,8 @@ generate_asteroid(int x, int y, ASTEROID_TYPE type) {
     this->y_offsets = malloc(sizeof(int) * MAX_VERTICES);
     this->type = type;
 
-    int min_radius = 50;
-    int max_radius = 40;
+    int min_radius = type == LARGE ? 75 : 25;
+    int max_radius = type == LARGE ? 60 : 20;
 
     // generate random asteroid shape
     this->anchor_x = x;

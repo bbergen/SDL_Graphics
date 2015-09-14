@@ -12,6 +12,7 @@
 #include <SDL2/SDL_mixer.h>
 #include <colors.h>
 #include <menu.h>
+#include <random.h>
 #include "asteroids.h"
 
 
@@ -192,6 +193,31 @@ init_sounds(asteroids_game *game) {
     }
 }
 
+internal point
+random_asteroid_coordinate(screen scrn) {
+
+    point p = {};
+
+    if (random_bool()) {
+        // generate X first
+        int x = (int) random_in_range(0, scrn.width);
+        int y_range = (int) (scrn.height * .4);
+        int lower_y = (int) random_in_range(0, y_range);
+        int upper_y = (int) random_in_range(scrn.height - y_range, scrn.height);
+        p.x = x;
+        p.y = random_bool() ? lower_y : upper_y;
+    } else {
+        // generate Y first
+        int y = (int) random_in_range(0, scrn.height);
+        int x_range = (int) (scrn.width * .4);
+        int lower_x = (int) random_in_range(0, x_range);
+        int upper_x = (int) random_in_range(scrn.width - x_range, scrn.width);
+        p.y = y;
+        p.x = random_bool() ? lower_x : upper_x;
+    }
+    return p;
+}
+
 internal asteroids_game*
 init_game(void) {
     asteroids_game *game = malloc(sizeof(asteroids_game));
@@ -201,7 +227,6 @@ init_game(void) {
     game->event = malloc(sizeof(SDL_Event));
     game->scrn = malloc(sizeof(screen));
     game->sounds = map_init();
-    game->test = generate_asteroid(500, 500, LARGE);
     return game;
 }
 
@@ -214,7 +239,9 @@ free_game(asteroids_game *game) {
         Mix_FreeChunk(*((Mix_Chunk**) map_get(game->sounds, SOUND_SHIP_SHOOT)));
     }
     map_free(game->sounds);
-    free_asteroid(game->test);
+    if (game->test) {
+        free_asteroid(game->test);
+    }
     free(game->keys);
     free(game->scrn);
     free(game->event);
@@ -312,6 +339,8 @@ reset_game_state(SDL_Window *window, asteroids_game *game) {
                                        game->scrn->height >> 1,
                                        play_lazer_sound,
                                        *((Mix_Chunk**) map_get(game->sounds, SOUND_SHIP_SHOOT)));
+    point p = random_asteroid_coordinate(*game->scrn);
+    game->test = generate_asteroid(p.x, p.y, random_bool() ? LARGE : SMALL);
 }
 
 internal void
@@ -346,6 +375,9 @@ run(asteroids_game *game) {
                                        game->scrn->height >> 1,
                                        play_lazer_sound,
                                        *((Mix_Chunk**) map_get(game->sounds, SOUND_SHIP_SHOOT)));
+    point p = random_asteroid_coordinate(*game->scrn);
+    game->test = generate_asteroid(p.x, p.y, random_bool() ? LARGE : SMALL);
+
 
     uint32_t then;
     uint32_t now = SDL_GetTicks();
