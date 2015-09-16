@@ -332,7 +332,6 @@ play_lazer_sound(void *sound) {
 
 internal void
 reset_game_state(SDL_Window *window, asteroids_game *game) {
-    game = init_game();
     init_sounds(game);
     SDL_GetWindowSize(window, &game->scrn->width, &game->scrn->height);
     game->current_ship = allocate_ship(game->scrn->width >> 1,
@@ -367,17 +366,10 @@ run(asteroids_game *game) {
         error(SDL_GetError);
     }
 
-    init_sounds(game);
     display_starting_menu(renderer, game);
 
-    // initialize game objects
-    game->current_ship = allocate_ship(game->scrn->width >> 1,
-                                       game->scrn->height >> 1,
-                                       play_lazer_sound,
-                                       *((Mix_Chunk**) map_get(game->sounds, SOUND_SHIP_SHOOT)));
-    point p = random_asteroid_coordinate(*game->scrn);
-    game->test = generate_asteroid(p.x, p.y, random_bool() ? LARGE : SMALL);
-
+    // init sound, allocate game objects
+    reset_game_state(window, game);
 
     uint32_t then;
     uint32_t now = SDL_GetTicks();
@@ -396,6 +388,7 @@ run(asteroids_game *game) {
 
         if (game->game_over) {
             free_game(game);
+            game = init_game();
             reset_game_state(window, game);
         }
 
