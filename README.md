@@ -49,3 +49,7 @@ As well as learning more C, developing style with the language, and enjoying bui
 * Asteroids (Work in Progress)
 
 ![asteroids_for_readme](https://cloud.githubusercontent.com/assets/5553971/9722416/8f70f4fe-5561-11e5-8ed7-dc0edb91f46f.png)
+
+* Asteroids (No collision yet)
+
+![screenshot from 2015-09-15 17-59-05](https://cloud.githubusercontent.com/assets/5553971/9893976/8bb64170-5bd3-11e5-82ec-69950810769f.png)

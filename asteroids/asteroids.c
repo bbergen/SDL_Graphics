@@ -164,7 +164,10 @@ display_pause_menu(SDL_Renderer *renderer, asteroids_game *game) {
 internal void
 update(asteroids_game *game) {
     update_ship(game->current_ship, *game->keys, *game->scrn);
-    update_asteroid(game->test, *game->scrn);
+    int i;
+    for (i = 0; i < BASE_ASTEROIDS; i++) {
+        update_asteroid(vector_get(game->asteroids, i), *game->scrn);
+    }
     update_sounds(game);
 }
 
@@ -175,7 +178,10 @@ render(SDL_Renderer *renderer, asteroids_game *game) {
     SDL_RenderClear(renderer);
 
     //TODO do drawing here
-    render_asteroid(renderer, game->test);
+    int i;
+    for (i = 0; i < BASE_ASTEROIDS; i++) {
+        render_asteroid(renderer, vector_get(game->asteroids, i));
+    }
     render_ship(renderer, game->current_ship);
 
     // present renderer
@@ -239,9 +245,11 @@ free_game(asteroids_game *game) {
         Mix_FreeChunk(*((Mix_Chunk**) map_get(game->sounds, SOUND_SHIP_SHOOT)));
     }
     map_free(game->sounds);
-    if (game->test) {
-        free_asteroid(game->test);
+    int i;
+    for (i = 0; i < BASE_ASTEROIDS; i++) {
+        free_asteroid(vector_get(game->asteroids, i));
     }
+    vector_free(game->asteroids);
     free(game->keys);
     free(game->scrn);
     free(game->event);
@@ -338,8 +346,13 @@ reset_game_state(SDL_Window *window, asteroids_game *game) {
                                        game->scrn->height >> 1,
                                        play_lazer_sound,
                                        *((Mix_Chunk**) map_get(game->sounds, SOUND_SHIP_SHOOT)));
-    point p = random_asteroid_coordinate(*game->scrn);
-    game->test = generate_asteroid(p.x, p.y, random_bool() ? LARGE : SMALL);
+
+    game->asteroids = vector_init(BASE_ASTEROIDS);
+    int i;
+    for (i = 0; i < BASE_ASTEROIDS; i++) {
+        point p = random_asteroid_coordinate(*game->scrn);
+        vector_add(game->asteroids, generate_asteroid(p.x, p.y, LARGE));
+    }
 }
 
 internal void
@@ -357,7 +370,7 @@ run(asteroids_game *game) {
     }
 
     //TODO change to a user preference later on
-    SDL_SetWindowFullscreen(window, SDL_WINDOW_FULLSCREEN_DESKTOP);
+//    SDL_SetWindowFullscreen(window, SDL_WINDOW_FULLSCREEN_DESKTOP);
     SDL_GetWindowSize(window, &game->scrn->width, &game->scrn->height);
 
     SDL_Renderer *renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);

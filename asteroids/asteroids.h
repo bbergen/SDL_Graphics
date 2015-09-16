@@ -15,6 +15,7 @@
 /*
  *  Global Constants
  */
+global const int BASE_ASTEROIDS = 12;
 global const int SCREEN_WIDTH = 1360;
 global const int SCREEN_HEIGHT = 768;
 global const char* FONT_ASTEROIDS_TITLE = "resources/fonts/over_there.ttf";
@@ -32,8 +33,8 @@ typedef struct asteroids_game {
     keyboard *keys;
     screen *scrn;
     ship current_ship;
-    asteroid test;
     hash_map sounds;
+    vector asteroids;
 } asteroids_game;
 
 
