@@ -7,6 +7,10 @@
 #include <colors.h>
 #include "asteroid.h"
 
+#define MIN_RADIUS_LARGE 60
+#define MIN_RADIUS_SMALL 20
+#define MAX_RADIUS_LARGE 75
+#define MAX_RADIUS_SMALL 25
 #define MIN_ROTATION 0.005
 #define MAX_ROTATION 0.03
 #define MAX_VERTICES 12
@@ -34,8 +38,8 @@ generate_asteroid(int x, int y, ASTEROID_TYPE type) {
     this->y_offsets = malloc(sizeof(int) * MAX_VERTICES);
     this->type = type;
 
-    int min_radius = type == LARGE ? 75 : 25;
-    int max_radius = type == LARGE ? 60 : 20;
+    int min_radius = type == LARGE ? MIN_RADIUS_LARGE : MIN_RADIUS_SMALL;
+    int max_radius = type == LARGE ? MAX_RADIUS_LARGE : MAX_RADIUS_SMALL;
 
     // generate random asteroid shape
     this->anchor_x = x;
@@ -76,19 +80,19 @@ generate_asteroid(int x, int y, ASTEROID_TYPE type) {
 internal void
 enforce_bounds(double *x, double *y, screen scrn) {
 
-    if (*x < 0) {
+    if (*x < -MAX_RADIUS_LARGE) {
         *x = scrn.width;
     }
 
-    if (*x > scrn.width) {
+    if (*x > scrn.width + MAX_RADIUS_LARGE) {
         *x = 0;
     }
 
-    if (*y < 0) {
+    if (*y < -MAX_RADIUS_LARGE) {
         *y = scrn.height;
     }
 
-    if (*y > scrn.height) {
+    if (*y > scrn.height + MAX_RADIUS_LARGE) {
         *y = 0;
     }
 }
