@@ -30,7 +30,7 @@ void render_asteroid(SDL_Renderer *renderer, asteroid a);
 /*
  * Creates an asteroid of the specific type at the specific location
  */
-asteroid generate_asteroid(int x, int y, ASTEROID_TYPE type);
+asteroid generate_asteroid(int x, int y, screen scrn, ASTEROID_TYPE type);
 
 /*
  * Frees asteroid memory

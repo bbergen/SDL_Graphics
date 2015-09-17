@@ -7,10 +7,10 @@
 #include <colors.h>
 #include "asteroid.h"
 
-#define MIN_RADIUS_LARGE 60
-#define MIN_RADIUS_SMALL 20
-#define MAX_RADIUS_LARGE 75
-#define MAX_RADIUS_SMALL 25
+#define MIN_RADIUS_LARGE .03
+#define MIN_RADIUS_SMALL .005
+#define MAX_RADIUS_LARGE .05
+#define MAX_RADIUS_SMALL .025
 #define MIN_ROTATION 0.005
 #define MAX_ROTATION 0.03
 #define MAX_VERTICES 12
@@ -20,6 +20,7 @@
 
 typedef struct _asteroid {
     ASTEROID_TYPE type;
+    int8_t visible;
     double anchor_x;
     double anchor_y;
     double dir;
@@ -32,14 +33,15 @@ typedef struct _asteroid {
 } _asteroid;
 
 asteroid
-generate_asteroid(int x, int y, ASTEROID_TYPE type) {
+generate_asteroid(int x, int y, screen scrn, ASTEROID_TYPE type) {
     _asteroid *this = malloc(sizeof(_asteroid));
     this->x_offsets = malloc(sizeof(int) * MAX_VERTICES);
     this->y_offsets = malloc(sizeof(int) * MAX_VERTICES);
     this->type = type;
+    this->visible = true;
 
-    int min_radius = type == LARGE ? MIN_RADIUS_LARGE : MIN_RADIUS_SMALL;
-    int max_radius = type == LARGE ? MAX_RADIUS_LARGE : MAX_RADIUS_SMALL;
+    double min_radius = this->type == LARGE ? scrn.width * MIN_RADIUS_LARGE : scrn.width * MIN_RADIUS_SMALL;
+    double max_radius = this->type == LARGE ? scrn.width * MAX_RADIUS_LARGE : scrn.width * MAX_RADIUS_SMALL;
 
     // generate random asteroid shape
     this->anchor_x = x;
@@ -117,8 +119,13 @@ update_asteroid(asteroid a, screen scrn) {
 
 void
 render_asteroid(SDL_Renderer *renderer, asteroid a) {
-    SDL_SetRenderDrawColor(renderer, WHITE.r, WHITE.g, WHITE.b, WHITE.a);
     _asteroid *this = a;
+
+    if (!this->visible) {
+        return;
+    }
+
+    SDL_SetRenderDrawColor(renderer, WHITE.r, WHITE.g, WHITE.b, WHITE.a);
 
     double cosine = cos(this->rotation_dir);
     double sine = sin(this->rotation_dir);

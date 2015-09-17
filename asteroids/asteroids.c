@@ -351,7 +351,7 @@ reset_game_state(SDL_Window *window, asteroids_game *game) {
     int i;
     for (i = 0; i < BASE_ASTEROIDS; i++) {
         point p = random_asteroid_coordinate(*game->scrn);
-        vector_add(game->asteroids, generate_asteroid(p.x, p.y, LARGE));
+        vector_add(game->asteroids, generate_asteroid(p.x, p.y, *game->scrn, LARGE));
     }
 }
 
