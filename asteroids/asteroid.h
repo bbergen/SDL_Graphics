@@ -37,4 +37,6 @@ asteroid generate_asteroid(int x, int y, screen scrn, ASTEROID_TYPE type);
  */
 void free_asteroid(asteroid a);
 
+int8_t asteroid_contains(asteroid a, point p);
+
 #endif //SDL_GRAPHICS_ASTEROID_H
