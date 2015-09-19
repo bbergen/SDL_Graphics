@@ -6,12 +6,18 @@
 #define SDL_GRAPHICS_SHIP_H
 
 #include <SDL2/SDL_render.h>
+#include <vector.h>
 #include "asteroid_types.h"
 
 /*
  * Hidden implementation
  */
 typedef void* ship;
+
+/*
+ * Hidden implementation
+ */
+typedef void* bullet;
 
 /*
  * Callback function called when the ship shoots
@@ -47,5 +53,20 @@ int8_t ship_thrusting(ship s);
  * Sets the state of the ships thrusting sound
  */
 void thrusting_state(ship s, int8_t state);
+
+/*
+ * Returns a vector containing all visible bullets
+ */
+vector visible_bullets(ship s);
+
+/*
+ * Marks a bullet to be removed
+ */
+void remove_bullet(bullet b);
+
+/*
+ * X Y location of the bullet
+ */
+point bullet_location(bullet b);
 
 #endif //SDL_GRAPHICS_SHIP_H

@@ -37,6 +37,11 @@ asteroid generate_asteroid(int x, int y, screen scrn, ASTEROID_TYPE type);
  */
 void free_asteroid(asteroid a);
 
+/*
+ * Checks if the asteroid polygon contains the passed point
+ */
 int8_t asteroid_contains(asteroid a, point p);
+
+void explode(asteroid a);
 
 #endif //SDL_GRAPHICS_ASTEROID_H

@@ -205,6 +205,11 @@ int8_t
 asteroid_contains(asteroid a, point p) {
     _asteroid *this = a;
 
+    // no need to check if the asteroid is not visible
+    if (!this->visible) {
+        return false;
+    }
+
     // first we do a speed check to see if its certainly no in the asteroid
     double min_x = this->anchor_x - this->radius;
     double max_x = this->anchor_x + this->radius;
@@ -249,4 +254,11 @@ asteroid_contains(asteroid a, point p) {
     }
 
     return (intersections & 1) == 1;
+}
+
+void
+explode(asteroid a) {
+    _asteroid *this = a;
+    // just set invisible for now
+    this->visible = false;
 }

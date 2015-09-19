@@ -162,12 +162,41 @@ display_pause_menu(SDL_Renderer *renderer, asteroids_game *game) {
 }
 
 internal void
+bullet_asteroid_collisions(vector asteroids, vector bullets) {
+
+    if (!bullets || !asteroids) {
+        return;
+    }
+
+    if (vector_empty(asteroids) || vector_empty(bullets)) {
+        return;
+    }
+
+    int i;
+    for (i = 0; i < vector_size(asteroids); i++) {
+        asteroid a = vector_get(asteroids, i);
+        int j;
+        for (j = 0; j < vector_size(bullets); j++) {
+            bullet b = vector_get(bullets, j);
+            if (asteroid_contains(a, bullet_location(b))) {
+                explode(a);
+                remove_bullet(b);
+            }
+        }
+    }
+}
+
+internal void
 update(asteroids_game *game) {
     update_ship(game->current_ship, *game->keys, *game->scrn);
     int i;
     for (i = 0; i < BASE_ASTEROIDS; i++) {
         update_asteroid(vector_get(game->asteroids, i), *game->scrn);
     }
+
+    //check collisions
+    bullet_asteroid_collisions(game->asteroids, visible_bullets(game->current_ship));
+
     update_sounds(game);
 }
 

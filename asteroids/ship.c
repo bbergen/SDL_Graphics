@@ -311,3 +311,36 @@ thrusting_state(ship s, int8_t state) {
     assert(s);
     ((_ship*)s)->thrusting = state;
 }
+
+internal int8_t
+copy_into_vector(void *b, void *v) {
+    _bullet *blt = b;
+    vector visible = v;
+    if (blt->ttl > 0) {
+        vector_add(visible, b);
+    }
+    return true;
+}
+
+vector
+visible_bullets(ship s) {
+    _ship *this = s;
+    vector v = vector_init(12);
+    list_for_each_with_param(this->bullets, copy_into_vector, v);
+    return v;
+}
+
+point
+bullet_location(bullet b) {
+    _bullet *blt = b;
+    point p = {blt->x, blt->y};
+    return p;
+}
+
+void
+remove_bullet(bullet b) {
+    _bullet *blt = b;
+    if (blt) {
+        blt->ttl = 0;
+    }
+}
