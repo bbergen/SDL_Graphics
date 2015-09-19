@@ -22,6 +22,7 @@ global const char* FONT_ASTEROIDS_TITLE = "resources/fonts/over_there.ttf";
 global const char* FONT_ASTEROIDS_MENU = "resources/fonts/built_tiling.ttf";
 global const char* SOUND_SHIP_THRUSTER = "resources/sounds/asteroids/effects/thruster.wav";
 global const char* SOUND_SHIP_SHOOT = "resources/sounds/asteroids/effects/shoot.wav";
+global const char* SOUND_EXPLOSION_1 = "resources/sounds/asteroids/effects/explosion_1.wav";
 
 /*
  *  Maintains the current state of the game

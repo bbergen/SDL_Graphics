@@ -162,7 +162,7 @@ display_pause_menu(SDL_Renderer *renderer, asteroids_game *game) {
 }
 
 internal void
-bullet_asteroid_collisions(vector asteroids, vector bullets) {
+bullet_asteroid_collisions(vector asteroids, vector bullets, Mix_Chunk *explosion) {
 
     if (!bullets || !asteroids) {
         return;
@@ -181,6 +181,7 @@ bullet_asteroid_collisions(vector asteroids, vector bullets) {
             if (asteroid_contains(a, bullet_location(b))) {
                 explode(a);
                 remove_bullet(b);
+                play_sound_effect(FREE_CHANNEL, explosion, 0);
             }
         }
     }
@@ -195,7 +196,9 @@ update(asteroids_game *game) {
     }
 
     //check collisions
-    bullet_asteroid_collisions(game->asteroids, visible_bullets(game->current_ship));
+    bullet_asteroid_collisions(game->asteroids,
+                               visible_bullets(game->current_ship),
+                               *((Mix_Chunk**) map_get(game->sounds, SOUND_EXPLOSION_1)));
 
     update_sounds(game);
 }
@@ -223,8 +226,10 @@ init_sounds(asteroids_game *game) {
         // we need to map only the pointer to the chunk pointer so that we can properly free later
         Mix_Chunk *thrust = Mix_LoadWAV(SOUND_SHIP_THRUSTER);
         Mix_Chunk *shoot = Mix_LoadWAV(SOUND_SHIP_SHOOT);
+        Mix_Chunk *explosion1 = Mix_LoadWAV(SOUND_EXPLOSION_1);
         map_put(game->sounds, SOUND_SHIP_THRUSTER, &thrust, sizeof(Mix_Chunk*));
         map_put(game->sounds, SOUND_SHIP_SHOOT, &shoot, sizeof(Mix_Chunk*));
+        map_put(game->sounds, SOUND_EXPLOSION_1, &explosion1, sizeof(Mix_Chunk*));
     }
 }
 
@@ -272,6 +277,7 @@ free_game(asteroids_game *game) {
         // sound map contains only pointers to chunk pointers for proper freeing
         Mix_FreeChunk(*((Mix_Chunk**) map_get(game->sounds, SOUND_SHIP_THRUSTER)));
         Mix_FreeChunk(*((Mix_Chunk**) map_get(game->sounds, SOUND_SHIP_SHOOT)));
+        Mix_FreeChunk(*((Mix_Chunk**) map_get(game->sounds, SOUND_EXPLOSION_1)));
     }
     map_free(game->sounds);
     int i;
