@@ -44,4 +44,14 @@ int8_t asteroid_contains(asteroid a, point p);
 
 void explode(asteroid a);
 
+/*
+ * Returns the type of the passed asteroid
+ */
+ASTEROID_TYPE asteroid_type(asteroid a);
+
+/*
+ * Returns the anchor of the asteroid in point form
+ */
+point asteroid_location(asteroid a);
+
 #endif //SDL_GRAPHICS_ASTEROID_H

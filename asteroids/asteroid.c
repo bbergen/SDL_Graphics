@@ -256,9 +256,21 @@ asteroid_contains(asteroid a, point p) {
     return (intersections & 1) == 1;
 }
 
+ASTEROID_TYPE
+asteroid_type(asteroid a) {
+    return ((_asteroid*)a)->type;
+}
+
 void
 explode(asteroid a) {
     _asteroid *this = a;
     // just set invisible for now
     this->visible = false;
+}
+
+point
+asteroid_location(asteroid a) {
+    _asteroid *this = a;
+    point p = {(int)this->anchor_x, (int)this->anchor_y};
+    return p;
 }

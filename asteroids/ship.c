@@ -48,9 +48,6 @@ prune_bullets(list *bullets) {
         _bullet *bullet = bullets->head->data;
         if (bullet && bullet->ttl <= 0) {
             list_remove(bullets, 0);
-#if DEBUG
-            printf("Pruning Bullet. List Size: %d\n", list_size(bullets));
-#endif
         }
     }
 }

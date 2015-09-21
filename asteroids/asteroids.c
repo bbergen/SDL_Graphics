@@ -162,7 +162,7 @@ display_pause_menu(SDL_Renderer *renderer, asteroids_game *game) {
 }
 
 internal void
-bullet_asteroid_collisions(vector asteroids, vector bullets, Mix_Chunk *explosion) {
+bullet_asteroid_collisions(vector asteroids, vector bullets, Mix_Chunk *explosion, screen scrn) {
 
     if (!bullets || !asteroids) {
         return;
@@ -172,6 +172,9 @@ bullet_asteroid_collisions(vector asteroids, vector bullets, Mix_Chunk *explosio
         return;
     }
 
+    // we need to store the locations to generate small asteroids at.
+    // we can't add to the asteroid vector while iterating over it
+    vector points = vector_init(vector_size(asteroids));
     int i;
     for (i = 0; i < vector_size(asteroids); i++) {
         asteroid a = vector_get(asteroids, i);
@@ -179,26 +182,48 @@ bullet_asteroid_collisions(vector asteroids, vector bullets, Mix_Chunk *explosio
         for (j = 0; j < vector_size(bullets); j++) {
             bullet b = vector_get(bullets, j);
             if (asteroid_contains(a, bullet_location(b))) {
+                if (asteroid_type(a) == LARGE) {
+                    // mark this location to generate small asteroids
+                    point *pnt = malloc(sizeof(point));
+                    *pnt = asteroid_location(a);
+                    vector_add(points, pnt);
+                }
+                // remove old asteroid
                 explode(a);
                 remove_bullet(b);
                 play_sound_effect(FREE_CHANNEL, explosion, 0);
             }
         }
     }
+
+    // now iterate over marked locations generating 2 small asteroids each
+    for (i = 0; i < vector_size(points); i++) {
+        point *p = vector_get(points, i);
+        vector_add(asteroids, generate_asteroid(p->x, p->y, scrn, SMALL));
+        vector_add(asteroids, generate_asteroid(p->x, p->y, scrn, SMALL));
+        if (random_bool()) {
+            vector_add(asteroids, generate_asteroid(p->x, p->y, scrn, SMALL));
+        }
+        // free the point
+        free(p);
+    }
+    // free the point list
+    vector_free(points);
 }
 
 internal void
 update(asteroids_game *game) {
     update_ship(game->current_ship, *game->keys, *game->scrn);
     int i;
-    for (i = 0; i < BASE_ASTEROIDS; i++) {
+    for (i = 0; i < vector_size(game->asteroids); i++) {
         update_asteroid(vector_get(game->asteroids, i), *game->scrn);
     }
 
     //check collisions
     bullet_asteroid_collisions(game->asteroids,
                                visible_bullets(game->current_ship),
-                               *((Mix_Chunk**) map_get(game->sounds, SOUND_EXPLOSION_1)));
+                               *((Mix_Chunk**) map_get(game->sounds, SOUND_EXPLOSION_1)),
+                               *game->scrn);
 
     update_sounds(game);
 }
@@ -211,7 +236,7 @@ render(SDL_Renderer *renderer, asteroids_game *game) {
 
     //TODO do drawing here
     int i;
-    for (i = 0; i < BASE_ASTEROIDS; i++) {
+    for (i = 0; i < vector_size(game->asteroids); i++) {
         render_asteroid(renderer, vector_get(game->asteroids, i));
     }
     render_ship(renderer, game->current_ship);
