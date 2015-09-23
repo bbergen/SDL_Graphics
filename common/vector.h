@@ -5,6 +5,8 @@
 #ifndef SDL_GRAPHICS_VECTOR_H
 #define SDL_GRAPHICS_VECTOR_H
 
+#include <stdint.h>
+
 /*
  *  Hidden Implementation
  */

@@ -14,6 +14,7 @@
 #include <menu.h>
 #include <random.h>
 #include "asteroids.h"
+#include "explosion.h"
 
 
 internal int
@@ -162,7 +163,11 @@ display_pause_menu(SDL_Renderer *renderer, asteroids_game *game) {
 }
 
 internal void
-bullet_asteroid_collisions(vector asteroids, vector bullets, Mix_Chunk *explosion, screen scrn) {
+bullet_asteroid_collisions(vector explosions,
+                           vector asteroids,
+                           vector bullets,
+                           Mix_Chunk *expn,
+                           screen scrn) {
 
     if (!bullets || !asteroids) {
         return;
@@ -191,7 +196,11 @@ bullet_asteroid_collisions(vector asteroids, vector bullets, Mix_Chunk *explosio
                 // remove old asteroid
                 explode(a);
                 remove_bullet(b);
-                play_sound_effect(FREE_CHANNEL, explosion, 0);
+                play_sound_effect(FREE_CHANNEL, expn, 0);
+                // create explosion
+                point p = asteroid_location(a);
+                explosion e = generate_explosion(p.x, p.y, scrn);
+                vector_add(explosions, e);
             }
         }
     }
@@ -255,9 +264,13 @@ update(asteroids_game *game) {
     for (i = 0; i < vector_size(game->asteroids); i++) {
         update_asteroid(vector_get(game->asteroids, i), *game->scrn);
     }
+    for (i = 0; i < vector_size(game->explosions); i++) {
+        update_explosion(vector_get(game->explosions, i));
+    }
 
     //check collisions
-    bullet_asteroid_collisions(game->asteroids,
+    bullet_asteroid_collisions(game->explosions,
+                               game->asteroids,
                                visible_bullets(game->current_ship),
                                *((Mix_Chunk**) map_get(game->sounds, SOUND_EXPLOSION_1)),
                                *game->scrn);
@@ -278,6 +291,9 @@ render(SDL_Renderer *renderer, asteroids_game *game) {
     int i;
     for (i = 0; i < vector_size(game->asteroids); i++) {
         render_asteroid(renderer, vector_get(game->asteroids, i));
+    }
+    for (i = 0; i < vector_size(game->explosions); i++) {
+        render_explosion(renderer, vector_get(game->explosions, i));
     }
     render_ship(renderer, game->current_ship);
 
@@ -346,10 +362,14 @@ free_game(asteroids_game *game) {
     }
     map_free(game->sounds);
     int i;
-    for (i = 0; i < BASE_ASTEROIDS; i++) {
+    for (i = 0; i < vector_size(game->asteroids); i++) {
         free_asteroid(vector_get(game->asteroids, i));
     }
+    for (i = 0; i < vector_size(game->explosions); i++) {
+        free_explosion(vector_get(game->explosions, i));
+    }
     vector_free(game->asteroids);
+    vector_free(game->explosions);
     free(game->keys);
     free(game->scrn);
     free(game->event);
@@ -453,6 +473,7 @@ reset_game_state(SDL_Window *window, asteroids_game *game) {
         point p = random_asteroid_coordinate(*game->scrn);
         vector_add(game->asteroids, generate_asteroid(p.x, p.y, *game->scrn, LARGE));
     }
+    game->explosions = vector_init(BASE_ASTEROIDS);
 }
 
 internal void

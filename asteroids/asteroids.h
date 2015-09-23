@@ -37,6 +37,7 @@ typedef struct asteroids_game {
     ship current_ship;
     hash_map sounds;
     vector asteroids;
+    vector explosions; //temp
 } asteroids_game;
 
 

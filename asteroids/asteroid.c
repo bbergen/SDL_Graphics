@@ -16,7 +16,6 @@
 #define MAX_VERTICES 12
 #define MAX_ASTEROID_SPEED 7
 #define MIN_ASTEROID_SPEED 2
-#define RADIANS (PI * 2)
 
 typedef struct _asteroid {
     ASTEROID_TYPE type;
@@ -264,7 +263,6 @@ asteroid_type(asteroid a) {
 void
 explode(asteroid a) {
     _asteroid *this = a;
-    // just set invisible for now
     this->visible = false;
 }
 

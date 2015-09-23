@@ -9,7 +9,6 @@
 
 global const int SHIP_POINTS = 5;
 global const int ENGINE_POINTS = 3;
-global const double RADIANS = PI * 2;
 global const double ACCELERATION_FACTOR = 0.25;
 global const double BASE_BULLET_DELTA = 15;
 global const int BASE_BULLET_TTL = 100;

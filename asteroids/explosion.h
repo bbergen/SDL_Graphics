@@ -3,6 +3,7 @@
 //
 
 #include <SDL2/SDL_render.h>
+#include "asteroid_types.h"
 
 #ifndef SDL_GRAPHICS_EXPLOSION_H
 #define SDL_GRAPHICS_EXPLOSION_H
@@ -25,7 +26,7 @@ void render_explosion(SDL_Renderer *renderer, explosion e);
 /*
  * Create an explosion
  */
-explosion allocate_explosion(int x, int y, int radius);
+explosion generate_explosion(int x, int y, screen scrn);
 
 /*
  * Free explosion memory

@@ -11,6 +11,7 @@
 #define count(array) (sizeof(array) / sizeof((array)[0]))
 #define MAX(x, y) (((x) > (y)) ? (x) : (y))
 #define MIN(x, y) (((x) < (y)) ? (x) : (y))
+#define RADIANS (PI * 2)
 #define TO_RADIANS(degrees) (degrees) * (PI / 180)
 #define TO_DEGREES(radians) (radians) * (180 / PI)
 
