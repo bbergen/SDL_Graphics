@@ -54,4 +54,6 @@ ASTEROID_TYPE asteroid_type(asteroid a);
  */
 point asteroid_location(asteroid a);
 
+int8_t asteroid_visible(asteroid a);
+
 #endif //SDL_GRAPHICS_ASTEROID_H

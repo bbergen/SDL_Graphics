@@ -52,4 +52,4 @@ As well as learning more C, developing style with the language, and enjoying bui
 
 * Asteroids (No collision yet)
 
-![screenshot from 2015-09-15 17-59-05](https://cloud.githubusercontent.com/assets/5553971/9893976/8bb64170-5bd3-11e5-82ec-69950810769f.png)
+![asteroids](https://cloud.githubusercontent.com/assets/5553971/10036836/28e4e3f0-6162-11e5-9544-7e1b31e1e5f4.gif)

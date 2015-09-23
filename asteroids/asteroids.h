@@ -18,6 +18,7 @@
 global const int BASE_ASTEROIDS = 12;
 global const int SCREEN_WIDTH = 1360;
 global const int SCREEN_HEIGHT = 768;
+global const int ASTEROID_THRESHOLD = 12;
 global const char* FONT_ASTEROIDS_TITLE = "resources/fonts/over_there.ttf";
 global const char* FONT_ASTEROIDS_MENU = "resources/fonts/built_tiling.ttf";
 global const char* SOUND_SHIP_THRUSTER = "resources/sounds/asteroids/effects/thruster.wav";
@@ -44,5 +45,6 @@ typedef struct asteroids_game {
  */
 internal void shutdown(void);
 internal void free_game(asteroids_game*);
+internal point random_asteroid_coordinate(screen scrn);
 
 #endif //SDL_GRAPHICS_ASTEROIDS_H

@@ -212,6 +212,43 @@ bullet_asteroid_collisions(vector asteroids, vector bullets, Mix_Chunk *explosio
 }
 
 internal void
+prune_asteroids(asteroids_game *game) {
+
+    vector transfer = vector_init(BASE_ASTEROIDS);
+    int i;
+    // populate transfer list
+    for (i = 0; i < vector_size(game->asteroids); i++) {
+        if (asteroid_visible(vector_get(game->asteroids, i))) {
+            vector_add(transfer, vector_get(game->asteroids, i));
+        } else {
+            free_asteroid(vector_get(game->asteroids, i));
+        }
+    }
+
+    // free the old list
+    vector_free(game->asteroids);
+
+    // transfer and populate the extra room
+    game->asteroids = transfer;
+    for (i = vector_size(transfer); i < BASE_ASTEROIDS; i++) {
+        point p = random_asteroid_coordinate(*game->scrn);
+        vector_add(game->asteroids, generate_asteroid(p.x, p.y, *game->scrn, LARGE));
+    }
+}
+
+internal int8_t
+below_asteroid_threshold(vector asteroids) {
+    int visible = 0;
+    int i;
+    for (i = 0; i < vector_size(asteroids); i++) {
+        if (asteroid_visible(vector_get(asteroids, i))) {
+            visible++;
+        }
+    }
+    return visible < ASTEROID_THRESHOLD;
+}
+
+internal void
 update(asteroids_game *game) {
     update_ship(game->current_ship, *game->keys, *game->scrn);
     int i;
@@ -225,6 +262,9 @@ update(asteroids_game *game) {
                                *((Mix_Chunk**) map_get(game->sounds, SOUND_EXPLOSION_1)),
                                *game->scrn);
 
+    if (below_asteroid_threshold(game->asteroids)) {
+        prune_asteroids(game);
+    }
     update_sounds(game);
 }
 

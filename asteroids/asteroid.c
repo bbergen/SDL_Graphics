@@ -274,3 +274,8 @@ asteroid_location(asteroid a) {
     point p = {(int)this->anchor_x, (int)this->anchor_y};
     return p;
 }
+
+int8_t
+asteroid_visible(asteroid a) {
+    return ((_asteroid*)a)->visible;
+}
