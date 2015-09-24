@@ -6,6 +6,7 @@
 #define SDL_GRAPHICS_ASTEROIDS_H
 
 #include <map.h>
+#include <list.h>
 #include "ship.h"
 #include "asteroid_types.h"
 #include "asteroid.h"
@@ -37,7 +38,7 @@ typedef struct asteroids_game {
     ship current_ship;
     hash_map sounds;
     vector asteroids;
-    vector explosions; //temp
+    list *explosions;
 } asteroids_game;
 
 

@@ -26,28 +26,32 @@ typedef struct _explosion {
     int y;
     vector motes;
     int ttl;
+    screen scrn;
 } _explosion;
 
 internal void
-update_mote(mote *m) {
+update_mote(mote *m, screen scrn) {
     double x_vector = sin(m->dir);
     double y_vector = cos(m->dir);
 
     m->x += x_vector * m->speed;
     m->y -= y_vector * m->speed;
+
+    //TODO screen wrap check
 }
 
-void
+int8_t
 update_explosion(explosion e) {
     _explosion *this = e;
     if (this->ttl <= 0) {
-        return;
+        return true;
     }
     int i;
     for (i = 0; i < vector_size(this->motes); i++) {
-        update_mote(vector_get(this->motes, i));
+        update_mote(vector_get(this->motes, i), this->scrn);
     }
     this->ttl--;
+    return true;
 }
 
 internal void
@@ -56,16 +60,18 @@ render_mote(SDL_Renderer *renderer, mote *m) {
     SDL_RenderDrawPoint(renderer, (int) m->x, (int) m->y);
 }
 
-void
-render_explosion(SDL_Renderer *renderer, explosion e) {
+int8_t
+render_explosion(explosion e, void *r) {
+    SDL_Renderer *renderer = r;
     _explosion *this = e;
     if (this->ttl <= 0) {
-        return;
+        return true;
     }
     int i;
     for (i = 0; i < vector_size(this->motes); i++) {
         render_mote(renderer, vector_get(this->motes, i));
     }
+    return true;
 }
 
 internal mote*
@@ -91,6 +97,7 @@ generate_explosion(int x, int y, screen scrn) {
     _explosion *e = malloc(sizeof(_explosion));
     e->x = x;
     e->y = y;
+    e->scrn = scrn;
     int density = (int) random_in_range(MIN_DENSITY, MAX_DENISTY);
     e->motes = vector_init(density);
     int i;
@@ -110,6 +117,10 @@ free_explosion(explosion e) {
             free_mote(vector_get(this->motes, i));
         }
         vector_free(this->motes);
-        free(this);
     }
+}
+
+size_t
+explosion_size(void) {
+    return sizeof(_explosion);
 }
