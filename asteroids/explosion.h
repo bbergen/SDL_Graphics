@@ -39,4 +39,9 @@ void free_explosion(explosion e);
  */
 size_t explosion_size(void);
 
+/*
+ * Returns whether the explosion's TTL has expired
+ */
+int8_t explosion_expired(explosion e);
+
 #endif //SDL_GRAPHICS_EXPLOSION_H

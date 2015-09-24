@@ -145,3 +145,8 @@ size_t
 explosion_size(void) {
     return sizeof(_explosion);
 }
+
+int8_t
+explosion_expired(explosion e) {
+    return ((_explosion*)e)->ttl <= 0;
+}

@@ -13,6 +13,7 @@
 #include <colors.h>
 #include <menu.h>
 #include <random.h>
+#include <list.h>
 #include "asteroids.h"
 #include "explosion.h"
 
@@ -245,6 +246,15 @@ prune_asteroids(asteroids_game *game) {
     }
 }
 
+internal void
+prune_explosions(list *explosions) {
+    if (explosions && explosions->head) {
+        if (explosion_expired(explosions->head->data)) {
+            list_remove(explosions, 0);
+        }
+    }
+}
+
 internal int8_t
 below_asteroid_threshold(vector asteroids) {
     int visible = 0;
@@ -265,6 +275,7 @@ update(asteroids_game *game) {
         update_asteroid(vector_get(game->asteroids, i), *game->scrn);
     }
     list_for_each(game->explosions, update_explosion);
+    prune_explosions(game->explosions);
 
     //check collisions
     bullet_asteroid_collisions(game->explosions,
@@ -299,6 +310,7 @@ render(SDL_Renderer *renderer, asteroids_game *game) {
 
 internal void
 init_sounds(asteroids_game *game) {
+    game->sounds = map_init();
     if (game->sounds) {
         // we need to map only the pointer to the chunk pointer so that we can properly free later
         Mix_Chunk *thrust = Mix_LoadWAV(SOUND_SHIP_THRUSTER);
@@ -337,13 +349,12 @@ random_asteroid_coordinate(screen scrn) {
 
 internal asteroids_game*
 init_game(void) {
-    asteroids_game *game = malloc(sizeof(asteroids_game));
+    asteroids_game *game = calloc(1, sizeof(asteroids_game));
     game->keys = calloc(1, sizeof(keyboard)); //keys must be zeroed
     game->running = true;
     game->game_over = false;
     game->event = malloc(sizeof(SDL_Event));
     game->scrn = malloc(sizeof(screen));
-    game->sounds = map_init();
     return game;
 }
 
@@ -355,14 +366,18 @@ free_game(asteroids_game *game) {
         Mix_FreeChunk(*((Mix_Chunk**) map_get(game->sounds, SOUND_SHIP_THRUSTER)));
         Mix_FreeChunk(*((Mix_Chunk**) map_get(game->sounds, SOUND_SHIP_SHOOT)));
         Mix_FreeChunk(*((Mix_Chunk**) map_get(game->sounds, SOUND_EXPLOSION_1)));
+        map_free(game->sounds);
     }
-    map_free(game->sounds);
     int i;
     for (i = 0; i < vector_size(game->asteroids); i++) {
         free_asteroid(vector_get(game->asteroids, i));
     }
-    vector_free(game->asteroids);
-    list_free(game->explosions);
+    if (game->asteroids) {
+        vector_free(game->asteroids);
+    }
+    if (game->explosions) {
+        list_free(game->explosions);
+    }
     free(game->keys);
     free(game->scrn);
     free(game->event);
@@ -485,7 +500,7 @@ run(asteroids_game *game) {
     }
 
     //TODO change to a user preference later on
-//    SDL_SetWindowFullscreen(window, SDL_WINDOW_FULLSCREEN_DESKTOP);
+    SDL_SetWindowFullscreen(window, SDL_WINDOW_FULLSCREEN_DESKTOP);
     SDL_GetWindowSize(window, &game->scrn->width, &game->scrn->height);
 
     SDL_Renderer *renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
