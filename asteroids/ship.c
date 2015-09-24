@@ -276,7 +276,7 @@ update_ship(ship s, keyboard keys, screen scrn) {
 void
 render_ship(SDL_Renderer *renderer, ship s) {
     _ship *this = s;
-    SDL_SetRenderDrawColor(renderer, WHITE.r, WHITE.g, WHITE.b, WHITE.a);
+    SDL_SetRenderDrawColor(renderer, BLUE.r, BLUE.g, BLUE.b, BLUE.a);
 
     int i;
     for (i = 0; i < SHIP_POINTS; i++) {

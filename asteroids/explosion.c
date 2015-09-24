@@ -8,7 +8,7 @@
 #include <colors.h>
 #include "explosion.h"
 
-#define MAX_DENISTY 25
+#define MAX_DENISTY 50
 #define MIN_DENSITY 5
 //TODO change ttl range to coefficient on screen size
 #define MAX_TTL 30
@@ -19,6 +19,7 @@ typedef struct mote {
     double y;
     int speed;
     double dir;
+    SDL_Color color;
 } mote;
 
 typedef struct _explosion {
@@ -37,7 +38,21 @@ update_mote(mote *m, screen scrn) {
     m->x += x_vector * m->speed;
     m->y -= y_vector * m->speed;
 
-    //TODO screen wrap check
+    if (m->x > scrn.width) {
+        m->x = 0;
+    }
+
+    if (m->x < 0) {
+        m->x = scrn.width;
+    }
+
+    if (m->y > scrn.height) {
+        m->y = 0;
+    }
+
+    if (m->y < 0) {
+        m->y = scrn.height;
+    }
 }
 
 int8_t
@@ -56,8 +71,13 @@ update_explosion(explosion e) {
 
 internal void
 render_mote(SDL_Renderer *renderer, mote *m) {
-    SDL_SetRenderDrawColor(renderer, WHITE.r, WHITE.g, WHITE.b, WHITE.a);
-    SDL_RenderDrawPoint(renderer, (int) m->x, (int) m->y);
+    SDL_SetRenderDrawColor(renderer, m->color.r, m->color.g, m->color.b, m->color.a);
+    SDL_Rect rect = {
+            (int) m->x - 1,
+            (int) m->y - 1,
+            3, 3
+    };
+    SDL_RenderDrawRect(renderer, &rect);
 }
 
 int8_t
@@ -81,6 +101,7 @@ generate_mote(int x, int y) {
     m->y = y;
     m->dir = random_double() * RADIANS;
     m->speed = (int) random_in_range(2,7);
+    m->color = random_bool() ? DARK_ORANGE : YELLOW;
     return m;
 }
 
