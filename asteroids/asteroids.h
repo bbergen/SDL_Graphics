@@ -10,6 +10,7 @@
 #include "ship.h"
 #include "asteroid_types.h"
 #include "asteroid.h"
+#include "starfield.h"
 
 #define FREE_CHANNEL -1
 
@@ -39,6 +40,7 @@ typedef struct asteroids_game {
     hash_map sounds;
     vector asteroids;
     list *explosions;
+    star_field stars;
 } asteroids_game;
 
 

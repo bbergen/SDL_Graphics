@@ -45,6 +45,14 @@ random_bool(void) {
     return random_in_range(0, RAND_MAX) % 2 == 0;
 }
 
+int8_t
+random_bool_with_probability(double prob) {
+    if (!random_init) {
+        init_random();
+    }
+    return rand() < (prob * ((double)RAND_MAX + 1.0));
+}
+
 double
 random_double(void) {
     if (!random_init) {

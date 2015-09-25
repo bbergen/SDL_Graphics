@@ -19,6 +19,13 @@ long random_in_range(long, long);
 int8_t random_bool(void);
 
 /*
+ * Generates a pseudo-random boolean value
+ * with a probability of being true equal
+ * to (the passed double * 100)%
+ */
+int8_t random_bool_with_probability(double);
+
+/*
  * Generates a pseudo-random, uniform double between 0 and 1.0000
  */
 double random_double(void);

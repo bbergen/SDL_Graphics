@@ -297,6 +297,7 @@ render(SDL_Renderer *renderer, asteroids_game *game) {
     SDL_RenderClear(renderer);
 
     //TODO do drawing here
+    render_star_field(renderer, game->stars);
     int i;
     for (i = 0; i < vector_size(game->asteroids); i++) {
         render_asteroid(renderer, vector_get(game->asteroids, i));
@@ -377,6 +378,9 @@ free_game(asteroids_game *game) {
     }
     if (game->explosions) {
         list_free(game->explosions);
+    }
+    if (game->stars) {
+        free_star_field(game->stars);
     }
     free(game->keys);
     free(game->scrn);
@@ -483,6 +487,7 @@ reset_game_state(SDL_Window *window, asteroids_game *game) {
     }
     game->explosions = malloc(sizeof(list));
     list_init(game->explosions, explosion_size(), free_explosion);
+    game->stars = init_star_field(*game->scrn);
 }
 
 internal void

@@ -40,7 +40,9 @@ set(ASTEROIDS_SOURCE
     common/list.c
     common/vector.c
     common/random.c
-    asteroids/asteroid_types.h)
+    asteroids/asteroid_types.h
+    asteroids/starfield.c
+)
 add_executable(SDL_Ball ${BALL_SOURCE})
 add_executable(SDL_Pong ${PONG_SOURCE})
 add_executable(SDL_Breaker ${BREAKER_SOURCE})
