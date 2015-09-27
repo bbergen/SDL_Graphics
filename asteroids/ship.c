@@ -10,9 +10,11 @@
 global const int SHIP_POINTS = 5;
 global const int ENGINE_POINTS = 3;
 global const double ACCELERATION_FACTOR = 0.25;
-global const double BASE_BULLET_DELTA = 15;
-global const int BASE_BULLET_TTL = 100;
-global const int BULLET_SHOT_FREQUENCY = 1000 / 4;
+global const double BASE_BULLET_DELTA = 25;
+global const int BASE_BULLET_TTL = 50;
+global const int BULLET_SHOT_FREQUENCY = 1000 / 8;
+global const int BURST_SIZE = 5;
+global const int BURST_DELAY = 1000;
 
 typedef struct _ship {
     int x;
@@ -214,19 +216,33 @@ update_ship_impl(_ship *this, keyboard keys, screen scrn) {
     persistent uint32_t then = 0;
     persistent uint32_t now = 0;
     persistent double ticks_passed = 0.0;
+    persistent double burst_wait = 0.0;
+    persistent int burst_count = 0;
 
     then = now;
     now = SDL_GetTicks();
     ticks_passed += now - then;
+    burst_wait += now - then;
 
     if (keys.space_down && ticks_passed >= BULLET_SHOT_FREQUENCY) {
-        ticks_passed = 0.0;
-        _bullet bullet = new_bullet(this->dir, this->x_delta, this->y_delta, this->ship_vertices[1]);
-        list_add(this->bullets, &bullet);
-        if (this->shoot) {
-            //optional on shoot callback
-            this->shoot(this->on_shoot_arg);
+
+        if (burst_count < BURST_SIZE) {
+            ticks_passed = 0.0;
+            burst_wait = 0.0;
+            _bullet bullet = new_bullet(this->dir, this->x_delta, this->y_delta, this->ship_vertices[1]);
+            list_add(this->bullets, &bullet);
+            if (this->shoot) {
+                //optional on shoot callback
+                this->shoot(this->on_shoot_arg);
+            }
+            burst_count++;
+        } else {
+            if (burst_wait >= BURST_DELAY) {
+                burst_wait = 0.0;
+                burst_count = 0;
+            }
         }
+
     }
     list_for_each_with_param(this->bullets, update_bullets, &scrn);
 
