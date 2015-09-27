@@ -34,10 +34,6 @@ As well as learning more C, developing style with the language, and enjoying bui
 ### Screen Shots
 ----------------
 
-* Bouncing Ball
-
-![bouncing_ball_for_readme](https://cloud.githubusercontent.com/assets/5553971/9722412/7f27fb56-5561-11e5-86d0-65c25c6ca477.png)
-
 * Pong
 
 ![pong_for_readme](https://cloud.githubusercontent.com/assets/5553971/9722414/8665b7be-5561-11e5-9b4a-f7e01c7422a8.png)
@@ -47,9 +43,5 @@ As well as learning more C, developing style with the language, and enjoying bui
 ![breaker_for_readme](https://cloud.githubusercontent.com/assets/5553971/9722415/8a4cbd32-5561-11e5-92c7-6ed50e9e9991.png)
 
 * Asteroids (Work in Progress)
-
-![asteroids_for_readme](https://cloud.githubusercontent.com/assets/5553971/9722416/8f70f4fe-5561-11e5-8ed7-dc0edb91f46f.png)
-
-* Asteroids (No collision yet)
 
 ![asteroids](https://cloud.githubusercontent.com/assets/5553971/10036836/28e4e3f0-6162-11e5-9544-7e1b31e1e5f4.gif)
