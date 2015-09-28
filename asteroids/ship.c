@@ -11,8 +11,8 @@ global const int SHIP_POINTS = 5;
 global const int ENGINE_POINTS = 3;
 global const double ACCELERATION_FACTOR = 0.25;
 global const double BASE_BULLET_DELTA = 25;
-global const int BASE_BULLET_TTL = 50;
-global const int BULLET_SHOT_FREQUENCY = 1000 / 8;
+global const double BASE_BULLET_TTL = .035;
+global const int BULLET_SHOT_FREQUENCY = 1000 / 10;
 global const int BURST_SIZE = 5;
 global const int BURST_DELAY = 1000;
 
@@ -142,14 +142,14 @@ free_ship(ship s) {
 }
 
 internal _bullet
-new_bullet(double dir, double x_delta, double y_delta, point nose) {
+new_bullet(double dir, double x_delta, double y_delta, int ttl, point nose) {
     _bullet bullet = {
             nose.x,
             nose.y,
             x_delta,
             y_delta,
             dir,
-            BASE_BULLET_TTL
+            ttl
     };
     return bullet;
 }
@@ -226,23 +226,23 @@ update_ship_impl(_ship *this, keyboard keys, screen scrn) {
 
     if (keys.space_down && ticks_passed >= BULLET_SHOT_FREQUENCY) {
 
+        if (burst_wait >= BURST_DELAY) {
+            burst_wait = 0.0;
+            burst_count = 0;
+        }
+
         if (burst_count < BURST_SIZE) {
             ticks_passed = 0.0;
             burst_wait = 0.0;
-            _bullet bullet = new_bullet(this->dir, this->x_delta, this->y_delta, this->ship_vertices[1]);
+            int ttl = (int) (BASE_BULLET_TTL * scrn.width);
+            _bullet bullet = new_bullet(this->dir, this->x_delta, this->y_delta, ttl, this->ship_vertices[1]);
             list_add(this->bullets, &bullet);
             if (this->shoot) {
                 //optional on shoot callback
                 this->shoot(this->on_shoot_arg);
             }
             burst_count++;
-        } else {
-            if (burst_wait >= BURST_DELAY) {
-                burst_wait = 0.0;
-                burst_count = 0;
-            }
         }
-
     }
     list_for_each_with_param(this->bullets, update_bullets, &scrn);
 
